@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grafana Cloud — Kubernetes Cluster & Pod Health Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#111217;--bg-card:#181b1f;--border:#22252b;
+  --accent-orange:#ff9900;--accent-blue:#5794f2;--accent-green:#73bf69;--accent-red:#f2495c;
+  --text:#d8d9da;--text-sub:#8e8e8e;--text-dim:#55595f;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:28px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1160px;display:flex;flex-direction:column;gap:20px}
+
+/* Grafana Header */
+.gf-header{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:16px;border-bottom:1px solid var(--border);
+}
+.gf-brand{display:flex;align-items:center;gap:12px}
+.gf-logo{
+  width:36px;height:36px;border-radius:6px;background:var(--accent-orange);
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;color:#000;
+}
+.gf-title{font-size:1.3rem;font-weight:700;color:#fff}
+.gf-filters{display:flex;gap:10px;align-items:center}
+.gf-select{
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:6px;
+  padding:6px 12px;color:#fff;font-size:0.78rem;font-family:var(--mono);
+}
+
+/* Metric Row */
+.metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.metric-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:8px;
+  padding:14px 16px;display:flex;flex-direction:column;gap:4px;
+}
+.metric-lbl{font-size:0.68rem;font-weight:600;text-transform:uppercase;color:var(--text-sub)}
+.metric-val{font-size:1.5rem;font-weight:700;font-family:var(--mono);color:#fff}
+
+/* Pods Grid */
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+  padding:20px;display:flex;flex-direction:column;gap:14px;
+}
+.card-title{font-size:0.88rem;font-weight:700;color:#fff;display:flex;justify-content:space-between;align-items:center}
+
+.pod-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;
+}
+.pod-card{
+  background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:6px;
+  padding:12px;display:flex;flex-direction:column;gap:6px;font-size:0.75rem;
+}
+.pod-card.crash{border-color:var(--accent-red);background:rgba(242,73,92,0.08)}
+.pod-hdr{display:flex;justify-content:space-between;font-weight:700;font-family:var(--mono);color:#fff}
+.pod-status{font-weight:700;font-size:0.7rem}
+.pod-status.running{color:var(--accent-green)}
+.pod-status.crash{color:var(--accent-red)}
+.pod-meta{display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text-sub);font-family:var(--mono)}
+
+/* Controls */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  padding:8px 16px;border-radius:6px;font-family:var(--font);font-size:0.78rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.2s;
+}
+.btn-orange{background:var(--accent-orange);color:#000}
+.btn-orange:hover{background:#e68a00}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="gf-header">
+    <div class="gf-brand">
+      <div class="gf-logo">📈</div>
+      <div>
+        <div class="gf-title">Grafana Cloud · Kubernetes Cluster SRE Dashboard</div>
+        <div style="font-size:0.75rem;color:var(--text-sub)">Cluster: <b>k8s-prod-us-central1</b> · Prometheus PromQL Engine</div>
+      </div>
+    </div>
+    <div class="gf-filters">
+      <select class="gf-select">
+        <option>namespace: production</option>
+        <option>namespace: staging</option>
+        <option>namespace: kube-system</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="metric-row">
+    <div class="metric-card">
+      <span class="metric-lbl">Total Pods Activos</span>
+      <span class="metric-val" style="color:var(--accent-blue)">48 / 48</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-lbl">Uso Total CPU NodePool</span>
+      <span class="metric-val" style="color:var(--accent-green)" id="valCpu">42.8%</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-lbl">Uso de Memoria RAM</span>
+      <span class="metric-val" style="color:var(--accent-orange)">68.4%</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-lbl">Reinicios de Contenedores</span>
+      <span class="metric-val" style="color:var(--accent-green)" id="valRestarts">0</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span>📦 Estado de Pods en Tiempo Real (Deployment: checkout-service)</span>
+      <span style="font-size:0.72rem;color:var(--text-sub);font-family:var(--mono)">PromQL: sum(kube_pod_status_phase) by (phase)</span>
+    </div>
+
+    <div class="pod-grid" id="podGrid">
+      <div class="pod-card" id="pod-1">
+        <div class="pod-hdr"><span>checkout-7d8b-1</span><span class="pod-status running" id="st-1">Running</span></div>
+        <div class="pod-meta"><span>CPU: 45m</span><span>Mem: 210MB</span><span>Restarts: 0</span></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-hdr"><span>checkout-7d8b-2</span><span class="pod-status running">Running</span></div>
+        <div class="pod-meta"><span>CPU: 52m</span><span>Mem: 224MB</span><span>Restarts: 0</span></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-hdr"><span>checkout-7d8b-3</span><span class="pod-status running">Running</span></div>
+        <div class="pod-meta"><span>CPU: 38m</span><span>Mem: 198MB</span><span>Restarts: 0</span></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-hdr"><span>checkout-7d8b-4</span><span class="pod-status running">Running</span></div>
+        <div class="pod-meta"><span>CPU: 41m</span><span>Mem: 205MB</span><span>Restarts: 0</span></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-hdr"><span>checkout-7d8b-5</span><span class="pod-status running">Running</span></div>
+        <div class="pod-meta"><span>CPU: 49m</span><span>Mem: 218MB</span><span>Restarts: 0</span></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-hdr"><span>checkout-7d8b-6</span><span class="pod-status running">Running</span></div>
+        <div class="pod-meta"><span>CPU: 44m</span><span>Mem: 212MB</span><span>Restarts: 0</span></div>
+      </div>
+    </div>
+
+    <div class="btn-row" style="margin-top:10px">
+      <button class="btn btn-orange" onclick="simulateOOMKill()">⚠️ Simular Out-Of-Memory (OOMKilled) en Pod 1</button>
+      <button class="btn btn-sec" onclick="healPod()">🔄 Auto-Healing / Recrear Pod Saludable</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function simulateOOMKill(){
+  const p1 = document.getElementById('pod-1');
+  p1.className = 'pod-card crash';
+  document.getElementById('st-1').className = 'pod-status crash';
+  document.getElementById('st-1').textContent = 'CrashLoopBackOff';
+  document.getElementById('valRestarts').textContent = '4 (ALERTA)';
+  document.getElementById('valRestarts').style.color = 'var(--accent-red)';
+  document.getElementById('valCpu').textContent = '89.2%';
+  document.getElementById('valCpu').style.color = 'var(--accent-red)';
+}
+
+function healPod(){
+  const p1 = document.getElementById('pod-1');
+  p1.className = 'pod-card';
+  document.getElementById('st-1').className = 'pod-status running';
+  document.getElementById('st-1').textContent = 'Running';
+  document.getElementById('valRestarts').textContent = '0';
+  document.getElementById('valRestarts').style.color = 'var(--accent-green)';
+  document.getElementById('valCpu').textContent = '42.8%';
+  document.getElementById('valCpu').style.color = 'var(--accent-green)';
+}
+</script>
+</body>
+</html>

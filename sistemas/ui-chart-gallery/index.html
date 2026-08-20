@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flujoweb UI & Chart Design Showroom — Catálogo Visual de Componentes</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root {
+  /* Dynamic Theme Variables (Defaults to Datadog Pro Dark) */
+  --bg-app: #0e1017;
+  --bg-surface: #151924;
+  --bg-card: rgba(26, 31, 46, 0.85);
+  --border-card: rgba(255, 255, 255, 0.08);
+  --border-active: #7c3aed;
+  --accent-primary: #7c3aed;
+  --accent-cyan: #06b6d4;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+  --text-main: #f8fafc;
+  --text-sub: #94a3b8;
+  --text-dim: #64748b;
+  --font-main: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --glow-intensity: 0 0 20px rgba(124, 58, 237, 0.35);
+}
+
+/* Theme 2: Grafana SRE Dark */
+body[data-theme="grafana"] {
+  --bg-app: #111217;
+  --bg-surface: #181b1f;
+  --bg-card: rgba(30, 34, 42, 0.88);
+  --border-card: rgba(255, 255, 255, 0.09);
+  --border-active: #ff9900;
+  --accent-primary: #ff9900;
+  --accent-cyan: #5794f2;
+  --accent-emerald: #73bf69;
+  --accent-amber: #ff9900;
+  --accent-rose: #f2495c;
+  --glow-intensity: 0 0 16px rgba(255, 153, 0, 0.25);
+}
+
+/* Theme 3: Linear / Stripe Clean Minimalist */
+body[data-theme="linear"] {
+  --bg-app: #090d16;
+  --bg-surface: #0f1523;
+  --bg-card: rgba(22, 28, 45, 0.7);
+  --border-card: rgba(255, 255, 255, 0.07);
+  --border-active: #38bdf8;
+  --accent-primary: #38bdf8;
+  --accent-cyan: #38bdf8;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+  --glow-intensity: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+/* Theme 4: ELK Stack / Kibana SIEM */
+body[data-theme="kibana"] {
+  --bg-app: #10121a;
+  --bg-surface: #171b26;
+  --bg-card: rgba(29, 34, 48, 0.9);
+  --border-card: rgba(255, 255, 255, 0.08);
+  --border-active: #00bfb3;
+  --accent-primary: #00bfb3;
+  --accent-cyan: #00bfb3;
+  --accent-emerald: #00a65a;
+  --accent-amber: #f39c12;
+  --accent-rose: #e74c3c;
+  --glow-intensity: 0 0 16px rgba(0, 191, 179, 0.3);
+}
+
+/* Theme 5: Cyberpunk Neon Tactical */
+body[data-theme="cyberpunk"] {
+  --bg-app: #030812;
+  --bg-surface: #060e1e;
+  --bg-card: rgba(8, 20, 38, 0.85);
+  --border-card: rgba(0, 240, 255, 0.2);
+  --border-active: #00ff88;
+  --accent-primary: #00ff88;
+  --accent-cyan: #00f0ff;
+  --accent-emerald: #00ff88;
+  --accent-amber: #ffaa00;
+  --accent-rose: #ff0055;
+  --glow-intensity: 0 0 25px rgba(0, 255, 136, 0.5);
+}
+
+/* Theme 6: Apple / macOS Glassmorphism */
+body[data-theme="glass"] {
+  --bg-app: #0a0f1d;
+  --bg-surface: rgba(255, 255, 255, 0.05);
+  --bg-card: rgba(255, 255, 255, 0.04);
+  --border-card: rgba(255, 255, 255, 0.12);
+  --border-active: rgba(255, 255, 255, 0.6);
+  --accent-primary: #ffffff;
+  --accent-cyan: #60a5fa;
+  --accent-emerald: #34d399;
+  --accent-amber: #fbbf24;
+  --accent-rose: #fb7185;
+  --glow-intensity: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg-app);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  line-height: 1.5;
+  padding: 30px 20px 120px;
+  transition: background 0.3s ease;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-card);
+}
+.header__badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-card);
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
+}
+.header__title {
+  font-size: clamp(1.6rem, 3.5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+.header__title span {
+  color: var(--accent-primary);
+  text-shadow: var(--glow-intensity);
+}
+.header__desc {
+  font-size: 0.92rem;
+  color: var(--text-sub);
+  max-width: 780px;
+}
+
+/* Theme Switcher Bar */
+.theme-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+}
+.theme-lbl {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-right: 6px;
+}
+.theme-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-sub);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.theme-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+.theme-btn.active {
+  background: var(--accent-primary);
+  color: #000;
+  font-weight: 700;
+}
+body[data-theme="datadog"] .theme-btn.active,
+body[data-theme="cyberpunk"] .theme-btn.active {
+  color: #000;
+}
+body[data-theme="glass"] .theme-btn.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Nav Tabs */
+.tabs-nav {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-card);
+}
+.tab-btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-card);
+  color: var(--text-sub);
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+.tab-btn.active {
+  background: var(--bg-surface);
+  border-color: var(--accent-primary);
+  color: #fff;
+  box-shadow: var(--glow-intensity);
+}
+
+/* Showroom Grid */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* Component Card */
+.comp-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+.comp-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-primary);
+  box-shadow: var(--glow-intensity);
+}
+.comp-card.selected {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.4);
+  background: var(--bg-surface);
+}
+
+.comp-card__hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.comp-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  color: var(--accent-primary);
+}
+.comp-use {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+.comp-preview {
+  width: 100%;
+  height: 120px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.comp-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+.comp-desc {
+  font-size: 0.78rem;
+  color: var(--text-sub);
+  line-height: 1.4;
+}
+.comp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.comp-tag {
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-dim);
+}
+
+/* Floating Action Bar */
+.action-bar {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--accent-primary);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), var(--glow-intensity);
+  border-radius: 40px;
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  z-index: 1000;
+  backdrop-filter: blur(16px);
+}
+.action-text {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+}
+.action-text b {
+  color: #fff;
+}
+.btn-copy {
+  padding: 8px 18px;
+  border-radius: 20px;
+  background: var(--accent-primary);
+  color: #000;
+  font-weight: 700;
+  font-size: 0.78rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-copy:hover {
+  transform: scale(1.05);
+}
+
+/* Tab Sections */
+.tab-section {
+  display: none;
+}
+.tab-section.active {
+  display: grid;
+}
+
+/* Mini Canvas / SVG Renderers */
+.gauge-svg { width: 90px; height: 90px; }
+.pulse-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  box-shadow: var(--glow-intensity);
+  animation: floatPulse 2s infinite ease-in-out;
+}
+@keyframes floatPulse {
+  0%, 100% { transform: scale(1); box-shadow: var(--glow-intensity); }
+  50% { transform: scale(1.08); box-shadow: 0 0 30px var(--accent-primary); }
+}
+
+/* 90-Day Uptime Segment Bar */
+.uptime-strip {
+  display: flex;
+  gap: 2px;
+  width: 100%;
+  height: 24px;
+  align-items: center;
+}
+.up-bar {
+  flex: 1;
+  height: 100%;
+  background: var(--accent-emerald);
+  border-radius: 2px;
+  transition: opacity 0.2s;
+}
+.up-bar.warn { background: var(--accent-amber); }
+.up-bar.down { background: var(--accent-rose); }
+.up-bar:hover { opacity: 0.6; }
+
+/* Micro Waterfall Flamegraph */
+.flame-box {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.flame-row {
+  height: 14px;
+  border-radius: 3px;
+  font-size: 0.6rem;
+  font-family: var(--font-mono);
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  color: #fff;
+}
+
+/* Vector Connection Line Preview */
+.line-canvas { width: 100%; height: 60px; }
+</style>
+</head>
+<body data-theme="datadog">
+
+<div class="container">
+
+  <!-- Header -->
+  <header class="header">
+    <span class="header__badge">Interactive Design System · Showroom</span>
+    <h1 class="header__title">Catálogo Visual de <span>Gráficas, Nodos & Estilos</span></h1>
+    <p class="header__desc">
+      Explora la colección de componentes visuales para observabilidad empresarial. Cambia temas en tiempo real (Datadog, Grafana, ELK, Linear, Glassmorphism, Cyberpunk) y haz clic en cualquier elemento para seleccionarlo y copiar su referencia.
+    </p>
+
+    <!-- Theme Switcher -->
+    <div class="theme-bar">
+      <span class="theme-lbl">🎨 Cambiar Look & Feel:</span>
+      <button class="theme-btn active" onclick="setTheme('datadog', this)">📊 Datadog Pro</button>
+      <button class="theme-btn" onclick="setTheme('grafana', this)">📈 Grafana SRE</button>
+      <button class="theme-btn" onclick="setTheme('kibana', this)">🔍 ELK / Kibana</button>
+      <button class="theme-btn" onclick="setTheme('linear', this)">✨ Linear / Stripe</button>
+      <button class="theme-btn" onclick="setTheme('glass', this)">💎 Apple Glass</button>
+      <button class="theme-btn" onclick="setTheme('cyberpunk', this)">⚡ Cyberpunk Neon</button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="tabs-nav">
+    <button class="tab-btn active" onclick="openTab('tab-charts', this)">📊 1. Tipos de Gráficas & Telemetría</button>
+    <button class="tab-btn" onclick="openTab('tab-nodes', this)">🔮 2. Esferas, Nodos & Pulsos</button>
+    <button class="tab-btn" onclick="openTab('tab-lines', this)">⚡ 3. Líneas de Conexión & Pistas</button>
+    <button class="tab-btn" onclick="openTab('tab-layouts', this)">🏢 4. Paneles & Layouts Corporativos</button>
+  </nav>
+
+  <!-- TAB 1: CHARTS & TELEMETRY -->
+  <section class="catalog-grid tab-section active" id="tab-charts">
+
+    <!-- Chart 1: Circular Gauge 0-100 -->
+    <div class="comp-card" onclick="selectComp('Gauge Circular SVG (0-100%)', 'Medición de SLO, Puntaje de Seguridad A+, Salud de Cluster')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#01 · Gauge</span>
+        <span class="comp-use">Datadog / Lighthouse</span>
+      </div>
+      <div class="comp-preview">
+        <svg class="gauge-svg" viewBox="0 0 36 36">
+          <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+          <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--accent-primary)" stroke-dasharray="94, 100" stroke-width="3" stroke-linecap="round"/>
+          <text x="18" y="21" font-size="8" font-weight="bold" fill="#fff" text-anchor="middle" font-family="var(--font-mono)">94%</text>
+        </svg>
+      </div>
+      <div class="comp-title">Gauge Circular de Porcentaje (SVG)</div>
+      <div class="comp-desc">Medidor radial con animación de conteo numérico y gradiente interpolado. Ideal para KPIs críticos y presupuestos de error.</div>
+      <div class="comp-tags"><span class="comp-tag">SVG Radial</span><span class="comp-tag">SLO / SLA</span><span class="comp-tag">Score 0-100</span></div>
+    </div>
+
+    <!-- Chart 2: 90-Day SLA Uptime Bar -->
+    <div class="comp-card" onclick="selectComp('Barra de Uptime 90 Días (GitHub / Datadog Status)', 'Historial de micro-cortes, disponibilidad de servicios')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#02 · Status Bar</span>
+        <span class="comp-use">GitHub Status / Datadog</span>
+      </div>
+      <div class="comp-preview">
+        <div class="uptime-strip">
+          <div class="up-bar"></div><div class="up-bar"></div><div class="up-bar"></div><div class="up-bar"></div><div class="up-bar"></div>
+          <div class="up-bar"></div><div class="up-bar"></div><div class="up-bar warn"></div><div class="up-bar"></div><div class="up-bar"></div>
+          <div class="up-bar"></div><div class="up-bar"></div><div class="up-bar"></div><div class="up-bar down"></div><div class="up-bar"></div>
+          <div class="up-bar"></div><div class="up-bar"></div><div class="up-bar"></div><div class="up-bar"></div><div class="up-bar"></div>
+        </div>
+      </div>
+      <div class="comp-title">Barra Segmentada de Uptime (90 Días)</div>
+      <div class="comp-desc">Tiras de píxeles con tooltips interactivos que detallan micro-cortes históricos de disponibilidad 99.99%.</div>
+      <div class="comp-tags"><span class="comp-tag">SLA 99.99%</span><span class="comp-tag">Segmentos</span><span class="comp-tag">NOC Status</span></div>
+    </div>
+
+    <!-- Chart 3: Real-Time ECG / Canvas Waveform -->
+    <div class="comp-card" onclick="selectComp('Onda Continua a 60 FPS (ECG / Audio Waveform)', 'Signos vitales UCI, throughput de red, streaming audio')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#03 · Waveform</span>
+        <span class="comp-use">Médico / Audio / Telecom</span>
+      </div>
+      <div class="comp-preview">
+        <canvas class="line-canvas" id="demo-wave"></canvas>
+      </div>
+      <div class="comp-title">Onda Osciloscopio / ECG (Canvas 60 FPS)</div>
+      <div class="comp-desc">Trazado continuo en tiempo real para telemetría clínica, frecuencia de audio, o fluctuación de tráfico de paquetes.</div>
+      <div class="comp-tags"><span class="comp-tag">Canvas 2D</span><span class="comp-tag">60 FPS</span><span class="comp-tag">Onda P-Q-R-S-T</span></div>
+    </div>
+
+    <!-- Chart 4: Distributed Tracing Waterfall Flamegraph -->
+    <div class="comp-card" onclick="selectComp('Flamegraph / Cascada APM (Distributed Tracing)', 'Latencia de microservicios, cuellos de botella en APIs')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#04 · Waterfall</span>
+        <span class="comp-use">Datadog APM / Jaeger</span>
+      </div>
+      <div class="comp-preview">
+        <div class="flame-box">
+          <div class="flame-row" style="background:var(--accent-primary);width:100%">api-gateway · 120ms</div>
+          <div class="flame-row" style="background:var(--accent-cyan);width:65%;margin-left:15%">auth-service · 45ms</div>
+          <div class="flame-row" style="background:var(--accent-amber);width:40%;margin-left:45%">db-postgres · 22ms</div>
+        </div>
+      </div>
+      <div class="comp-title">Cascada de Trazas Distribuidas (APM)</div>
+      <div class="comp-desc">Desglose jerárquico de spans de ejecución entre microservicios para identificar exactamente dónde se pierde tiempo.</div>
+      <div class="comp-tags"><span class="comp-tag">APM Traces</span><span class="comp-tag">Span Waterfall</span><span class="comp-tag">MuleSoft RTF</span></div>
+    </div>
+
+    <!-- Chart 5: Latency Percentiles Histogram -->
+    <div class="comp-card" onclick="selectComp('Histograma de Percentiles de Latencia (p50, p95, p99)', 'Distribución de paquetes en red y SLAs bancarios')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#05 · Histogram</span>
+        <span class="comp-use">ELK / Prometheus</span>
+      </div>
+      <div class="comp-preview">
+        <div style="display:flex;align-items:flex-end;gap:4px;width:100%;height:80px;padding:0 20px">
+          <div style="flex:1;height:25%;background:var(--accent-cyan);border-radius:2px"></div>
+          <div style="flex:1;height:50%;background:var(--accent-cyan);border-radius:2px"></div>
+          <div style="flex:1;height:90%;background:var(--accent-emerald);border-radius:2px"></div>
+          <div style="flex:1;height:65%;background:var(--accent-emerald);border-radius:2px"></div>
+          <div style="flex:1;height:35%;background:var(--accent-amber);border-radius:2px"></div>
+          <div style="flex:1;height:12%;background:var(--accent-rose);border-radius:2px"></div>
+        </div>
+      </div>
+      <div class="comp-title">Histograma de Percentiles (p50 / p95 / p99)</div>
+      <div class="comp-desc">Distribución de campana que permite visualizar qué porcentaje de peticiones caen dentro de la latencia esperada.</div>
+      <div class="comp-tags"><span class="comp-tag">Histograma</span><span class="comp-tag">p99 Latency</span><span class="comp-tag">Fintech</span></div>
+    </div>
+
+    <!-- Chart 6: Occupancy Floor Heatmap -->
+    <div class="comp-card" onclick="selectComp('Mapa de Calor Matricial (Heatmap)', 'Ocupación de pisos, dispersión de fuego, matriz de vulnerabilidades')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#06 · Heatmap</span>
+        <span class="comp-use">Grafana / IoT SCADA</span>
+      </div>
+      <div class="comp-preview">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;width:100%">
+          <div style="height:16px;background:rgba(16,185,129,0.2);border-radius:2px"></div>
+          <div style="height:16px;background:rgba(16,185,129,0.5);border-radius:2px"></div>
+          <div style="height:16px;background:rgba(245,158,11,0.7);border-radius:2px"></div>
+          <div style="height:16px;background:rgba(244,63,94,0.9);border-radius:2px"></div>
+          <div style="height:16px;background:rgba(16,185,129,0.3);border-radius:2px"></div>
+          <div style="height:16px;background:rgba(16,185,129,0.4);border-radius:2px"></div>
+          <div style="height:16px;background:rgba(245,158,11,0.8);border-radius:2px"></div>
+          <div style="height:16px;background:rgba(244,63,94,1.0);border-radius:2px"></div>
+          <div style="height:16px;background:rgba(245,158,11,0.5);border-radius:2px"></div>
+          <div style="height:16px;background:rgba(16,185,129,0.2);border-radius:2px"></div>
+        </div>
+      </div>
+      <div class="comp-title">Mapa de Calor Matricial (Heatmap)</div>
+      <div class="comp-desc">Cuadrícula cromática de intensidad de calor, sensor de temperatura o concurrencia de llamadas a APIs.</div>
+      <div class="comp-tags"><span class="comp-tag">Matriz</span><span class="comp-tag">Heatmap</span><span class="comp-tag">Sensores IoT</span></div>
+    </div>
+
+  </section>
+
+  <!-- TAB 2: NODES & SPHERES -->
+  <section class="catalog-grid tab-section" id="tab-nodes">
+
+    <!-- Node 1: Glassmorphism Pulse Orb -->
+    <div class="comp-card" onclick="selectComp('Esfera Glassmorphism con Pulso', 'Nodos centrales de estado, servidores en línea')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#07 · Glass Orb</span>
+        <span class="comp-use">Apple Glass / Modern UI</span>
+      </div>
+      <div class="comp-preview">
+        <div class="pulse-circle">🛡️</div>
+      </div>
+      <div class="comp-title">Esfera de Cristal con Pulso Respiratorio</div>
+      <div class="comp-desc">Círculo con desenfoque de fondo (backdrop-filter) y animación de latido suave con resplandor especular.</div>
+      <div class="comp-tags"><span class="comp-tag">Glassmorphism</span><span class="comp-tag">Animación CSS</span><span class="comp-tag">Emoji Vivo</span></div>
+    </div>
+
+    <!-- Node 2: Orbital Spinner Ring -->
+    <div class="comp-card" onclick="selectComp('Anillo Orbital Giratorio de Carga', 'Procesamiento en progreso, handshake SSL, validación JWT')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#08 · Spinner</span>
+        <span class="comp-use">Cyberpunk / FinTech</span>
+      </div>
+      <div class="comp-preview">
+        <div style="width:55px;height:55px;border-radius:50%;border:3px solid rgba(255,255,255,0.08);border-top-color:var(--accent-primary);animation:spin 1s infinite linear;display:flex;align-items:center;justify-content:center">
+          <span style="font-size:1.2rem">⚡</span>
+        </div>
+      </div>
+      <div class="comp-title">Anillo Orbital de Rotación Activa</div>
+      <div class="comp-desc">Anillo giratorio con cabeza iluminada que indica ejecución en progreso sin bloquear la interfaz.</div>
+      <div class="comp-tags"><span class="comp-tag">Spin 360°</span><span class="comp-tag">Procesando</span><span class="comp-tag">Estado Activo</span></div>
+    </div>
+
+    <!-- Node 3: Live Pulse Status Pill -->
+    <div class="comp-card" onclick="selectComp('Píldora de Estado Viva con Ping ms', 'Barra superior de salud, servidores activos')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#09 · Status Pill</span>
+        <span class="comp-use">Datadog / Linear HUD</span>
+      </div>
+      <div class="comp-preview">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 18px;border-radius:30px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:var(--accent-emerald);font-weight:700;font-size:0.8rem">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--accent-emerald);box-shadow:0 0 10px var(--accent-emerald)"></span>
+          <span>SISTEMA EN LÍNEA · 14ms</span>
+        </div>
+      </div>
+      <div class="comp-title">Píldora de Estado Viva con Ping de Latencia</div>
+      <div class="comp-desc">Insignia redondeada con punto estroboscópico y latencia en milisegundos para encabezados ejecutivos.</div>
+      <div class="comp-tags"><span class="comp-tag">Status Pill</span><span class="comp-tag">Live Dot</span><span class="comp-tag">Latencia ms</span></div>
+    </div>
+
+    <!-- Node 4: Critical Alarm Pulse -->
+    <div class="comp-card" onclick="selectComp('Nodo de Alarma Crítica Estroboscópica', 'Evacuación de incendios, código azul médico, hackeo')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#10 · Alarm Node</span>
+        <span class="comp-use">Protección Civil / SRE</span>
+      </div>
+      <div class="comp-preview">
+        <div style="width:55px;height:55px;border-radius:50%;background:rgba(244,63,94,0.15);border:2px solid var(--accent-rose);display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 0 20px rgba(244,63,94,0.6);animation:alarmBlink 1s infinite">
+          🚨
+        </div>
+      </div>
+      <div class="comp-title">Nodo de Alarma Crítica con Resplandor Rojo</div>
+      <div class="comp-desc">Aviso visual de alta prioridad con destello intermitente para incidentes graves o emergencias de vida o muerte.</div>
+      <div class="comp-tags"><span class="comp-tag">Alarma Roja</span><span class="comp-tag">Prioridad 1</span><span class="comp-tag">Estroboscópico</span></div>
+    </div>
+
+  </section>
+
+  <!-- TAB 3: LINES & TRACKS -->
+  <section class="catalog-grid tab-section" id="tab-lines">
+
+    <!-- Line 1: Energy Pulse Comet -->
+    <div class="comp-card" onclick="selectComp('Pista de Energía con Cometa Luminoso', 'Transferencias financieras, paquetes de red, colas Pub/Sub')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#11 · Comet Track</span>
+        <span class="comp-use">Cyberpunk / FinTech</span>
+      </div>
+      <div class="comp-preview">
+        <canvas class="line-canvas" id="demo-comet"></canvas>
+      </div>
+      <div class="comp-title">Pista de Flujo con Cometa de Energía</div>
+      <div class="comp-desc">Línea vectorial con una cabeza de luz que viaja a velocidad constante simulando el paso de transacciones de datos.</div>
+      <div class="comp-tags"><span class="comp-tag">Energy Comet</span><span class="comp-tag">Canvas Flow</span><span class="comp-tag">Paquetes</span></div>
+    </div>
+
+    <!-- Line 2: Subtle Ambient Fading Track -->
+    <div class="comp-card" onclick="selectComp('Pista Desvanecida al Completar (Ambient Track)', 'Conexiones limpias, diagramas de arquitectura sin saturación')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#12 · Ambient Line</span>
+        <span class="comp-use">Datadog / Linear Dark</span>
+      </div>
+      <div class="comp-preview">
+        <div style="width:80%;height:3px;background:linear-gradient(90deg, rgba(255,255,255,0.05), var(--accent-primary), rgba(255,255,255,0.05));border-radius:2px;opacity:0.4"></div>
+      </div>
+      <div class="comp-title">Línea de Conexión Desvanecida (Anti-Saturación)</div>
+      <div class="comp-desc">Línea tenue que conecta nodos sin robar atención visual, manteniendo la pantalla despejada y elegante.</div>
+      <div class="comp-tags"><span class="comp-tag">Línea Sutil</span><span class="comp-tag">Anti-Saturación</span><span class="comp-tag">Clean Minimal</span></div>
+    </div>
+
+  </section>
+
+  <!-- TAB 4: LAYOUTS & CORPORATE PANELS -->
+  <section class="catalog-grid tab-section" id="tab-layouts">
+
+    <!-- Layout 1: Tri-Panel Split -->
+    <div class="comp-card" onclick="selectComp('Layout Tri-Panel Sincronizado', 'Mando móvil, plano central interactivo y receptores')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#13 · Tri-Panel</span>
+        <span class="comp-use">Salvar Vidas / Mando</span>
+      </div>
+      <div class="comp-preview">
+        <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:4px;width:100%;height:60px">
+          <div style="background:rgba(255,255,255,0.06);border-radius:4px;border:1px solid rgba(255,255,255,0.1)"></div>
+          <div style="background:rgba(124,58,237,0.15);border-radius:4px;border:1px solid var(--accent-primary)"></div>
+          <div style="background:rgba(255,255,255,0.06);border-radius:4px;border:1px solid rgba(255,255,255,0.1)"></div>
+        </div>
+      </div>
+      <div class="comp-title">Layout Tri-Panel (Mando · Simulación · Receptores)</div>
+      <div class="comp-desc">Estructura de 3 columnas para sincronizar un dispositivo de origen, una simulación central y múltiples receptores.</div>
+      <div class="comp-tags"><span class="comp-tag">Tri-Panel</span><span class="comp-tag">Simulación</span><span class="comp-tag">Multidispositivo</span></div>
+    </div>
+
+    <!-- Layout 2: NOC Grid 9-Service Mesh -->
+    <div class="comp-card" onclick="selectComp('Cuadrícula Modular de Servicios (NOC Mesh Grid)', 'Monitoreo de 9 o más microservicios, bases de datos y APIs')">
+      <div class="comp-card__hdr">
+        <span class="comp-badge">#14 · NOC Grid</span>
+        <span class="comp-use">Datadog / Grafana</span>
+      </div>
+      <div class="comp-preview">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%">
+          <div style="height:18px;background:rgba(255,255,255,0.05);border-radius:3px"></div>
+          <div style="height:18px;background:rgba(255,255,255,0.05);border-radius:3px"></div>
+          <div style="height:18px;background:rgba(255,255,255,0.05);border-radius:3px"></div>
+          <div style="height:18px;background:rgba(255,255,255,0.05);border-radius:3px"></div>
+          <div style="height:18px;background:rgba(255,255,255,0.05);border-radius:3px"></div>
+          <div style="height:18px;background:rgba(255,255,255,0.05);border-radius:3px"></div>
+        </div>
+      </div>
+      <div class="comp-title">Matriz Modular NOC de Servicios</div>
+      <div class="comp-desc">Cuadrícula responsiva que organiza decenas de microservicios con métricas de CPU, memoria y tasa de errores.</div>
+      <div class="comp-tags"><span class="comp-tag">NOC Matrix</span><span class="comp-tag">Microservicios</span><span class="comp-tag">SRE Dashboard</span></div>
+    </div>
+
+  </section>
+
+</div>
+
+<!-- Floating Action Bar -->
+<div class="action-bar" id="actionBar" style="display:none">
+  <div class="action-text">
+    Elemento seleccionado: <b id="selName">Ninguno</b> · <span id="selUse" style="font-size:0.75rem"></span>
+  </div>
+  <button class="btn-copy" onclick="copySelection()">📋 Copiar Referencia</button>
+</div>
+
+<script>
+let currentTheme = 'datadog';
+let currentSelection = '';
+
+function setTheme(themeName, btnEl) {
+  document.body.setAttribute('data-theme', themeName);
+  currentTheme = themeName;
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+}
+
+function openTab(tabId, btnEl) {
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btnEl.classList.add('active');
+}
+
+function selectComp(name, use) {
+  document.querySelectorAll('.comp-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  currentSelection = `Quiero implementar este componente: '${name}' con estilo '${currentTheme.toUpperCase()}'.`;
+  document.getElementById('selName').textContent = name;
+  document.getElementById('selUse').textContent = use;
+  document.getElementById('actionBar').style.display = 'flex';
+}
+
+function copySelection() {
+  navigator.clipboard.writeText(currentSelection).then(() => {
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = '✅ ¡Copiado!';
+    setTimeout(() => { btn.textContent = '📋 Copiar Referencia'; }, 2000);
+  });
+}
+
+// Live Micro Canvas Renderers
+const waveCanvas = document.getElementById('demo-wave');
+if (waveCanvas) {
+  const ctx = waveCanvas.getContext('2d');
+  waveCanvas.width = 280; waveCanvas.height = 60;
+  let offset = 0;
+  function drawWave() {
+    ctx.clearRect(0,0,280,60);
+    ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--accent-primary').trim() || '#7c3aed';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 30);
+    for(let x=0; x<280; x+=2) {
+      let y = 30 + Math.sin(x*0.08 + offset) * 14 + Math.cos(x*0.04 - offset) * 6;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    offset += 0.05;
+    requestAnimationFrame(drawWave);
+  }
+  drawWave();
+}
+
+const cometCanvas = document.getElementById('demo-comet');
+if (cometCanvas) {
+  const ctx = cometCanvas.getContext('2d');
+  cometCanvas.width = 280; cometCanvas.height = 60;
+  let cx = 0;
+  function drawComet() {
+    ctx.clearRect(0,0,280,60);
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(10, 30); ctx.lineTo(270, 30); ctx.stroke();
+
+    // Comet pulse
+    const grad = ctx.createLinearGradient(cx - 40, 30, cx, 30);
+    grad.addColorStop(0, 'transparent');
+    grad.addColorStop(1, getComputedStyle(document.body).getPropertyValue('--accent-primary').trim() || '#7c3aed');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(Math.max(10, cx - 40), 30); ctx.lineTo(cx, 30); ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(cx, 30, 3, 0, Math.PI*2); ctx.fill();
+
+    cx += 3;
+    if(cx > 270) cx = 10;
+    requestAnimationFrame(drawComet);
+  }
+  drawComet();
+}
+</script>
+</body>
+</html>

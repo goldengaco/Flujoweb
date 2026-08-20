@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elastic SIEM — Kibana Enterprise Security & Log Ingestion</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#10121a;--bg-card:#171b26;--border:#262b3a;
+  --accent-teal:#00bfb3;--accent-blue:#0077cc;--accent-red:#e74c3c;--accent-yellow:#f39c12;--accent-green:#00a65a;
+  --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#555d73;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:28px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1160px;display:flex;flex-direction:column;gap:20px}
+
+/* Kibana Header */
+.kibana-hdr{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:16px;border-bottom:1px solid var(--border);
+}
+.kibana-brand{display:flex;align-items:center;gap:12px}
+.kibana-logo{
+  width:36px;height:36px;border-radius:6px;background:var(--accent-teal);
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;color:#000;
+}
+.kibana-title{font-size:1.3rem;font-weight:700;color:#fff}
+
+/* Lucene Search Bar */
+.search-bar{
+  display:flex;gap:10px;align-items:center;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:8px;padding:8px 16px;
+}
+.search-bar input{
+  flex:1;background:transparent;border:none;color:#fff;font-family:var(--mono);font-size:0.82rem;outline:none;
+}
+.search-btn{
+  background:var(--accent-teal);color:#000;border:none;padding:6px 14px;border-radius:6px;
+  font-weight:700;font-size:0.75rem;cursor:pointer;
+}
+
+/* Ingestion Histogram */
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+  padding:20px;display:flex;flex-direction:column;gap:14px;
+}
+.card-hdr{display:flex;justify-content:space-between;align-items:center;font-size:0.88rem;font-weight:700}
+
+.histo-bars{
+  display:flex;align-items:flex-end;gap:3px;height:90px;width:100%;
+  padding-top:10px;border-bottom:1px solid var(--border);
+}
+.hbar{flex:1;background:var(--accent-teal);border-radius:2px 2px 0 0;min-height:8px;transition:all 0.3s}
+.hbar.alert{background:var(--accent-red)}
+
+/* Security Events Table */
+.events-table{width:100%;border-collapse:collapse;font-size:0.75rem;font-family:var(--mono)}
+.events-table th{text-align:left;padding:8px 12px;color:var(--text-dim);border-bottom:1px solid var(--border);font-weight:600}
+.events-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.sev-pill{padding:2px 8px;border-radius:4px;font-weight:700;font-size:0.65rem}
+.sev-crit{background:rgba(231,76,60,0.2);color:var(--accent-red);border:1px solid var(--accent-red)}
+.sev-warn{background:rgba(243,156,18,0.2);color:var(--accent-yellow);border:1px solid var(--accent-yellow)}
+.sev-info{background:rgba(0,191,179,0.2);color:var(--accent-teal);border:1px solid var(--accent-teal)}
+
+/* Action bar */
+.btn-row{display:flex;gap:10px;margin-top:10px}
+.btn{padding:8px 16px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;border:none}
+.btn-teal{background:var(--accent-teal);color:#000}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="kibana-hdr">
+    <div class="kibana-brand">
+      <div class="kibana-logo">🔍</div>
+      <div>
+        <div class="kibana-title">Elastic SIEM · Security & Log Ingestion Hub</div>
+        <div style="font-size:0.75rem;color:var(--text-sub)">Cluster: <b>elastic-cloud-prod</b> · Ingestion: <b>48.2k logs/sec</b></div>
+      </div>
+    </div>
+    <div style="font-size:0.75rem;font-family:var(--mono);color:var(--accent-teal)">● ElasticSearch 8.14 Active</div>
+  </header>
+
+  <!-- Query Bar -->
+  <div class="search-bar">
+    <span style="color:var(--accent-teal);font-family:var(--mono)">KQL</span>
+    <input type="text" value="service.name : 'api-gateway' AND event.outcome : 'failure'" id="kqlQuery">
+    <button class="search-btn">Buscar</button>
+  </div>
+
+  <!-- Ingestion Histogram -->
+  <div class="card">
+    <div class="card-hdr">
+      <span>📊 Tasa de Ingesta de Eventos de Seguridad (Últimos 15 min)</span>
+      <span style="font-size:0.72rem;color:var(--text-sub);font-family:var(--mono)">48,210 docs/sec</span>
+    </div>
+    <div class="histo-bars" id="histo">
+      <div class="hbar" style="height:35%"></div><div class="hbar" style="height:42%"></div><div class="hbar" style="height:50%"></div>
+      <div class="hbar" style="height:48%"></div><div class="hbar" style="height:55%"></div><div class="hbar" style="height:60%"></div>
+      <div class="hbar" style="height:58%"></div><div class="hbar" style="height:62%"></div><div class="hbar" style="height:70%"></div>
+      <div class="hbar" style="height:65%"></div><div class="hbar" style="height:68%"></div><div class="hbar" style="height:74%"></div>
+    </div>
+  </div>
+
+  <!-- Events Stream Table -->
+  <div class="card">
+    <div class="card-hdr">
+      <span>🚨 Registro Forense de Eventos SIEM</span>
+      <span style="font-size:0.72rem;color:var(--text-sub)">Filtro KQL activo</span>
+    </div>
+
+    <table class="events-table">
+      <thead>
+        <tr><th>TIMESTAMP</th><th>SEVERIDAD</th><th>ORIGEN IP</th><th>EVENTO / REGLA SIEM</th><th>ACCION</th></tr>
+      </thead>
+      <tbody id="eventTable">
+        <tr>
+          <td>23:19:40.102</td><td><span class="sev-pill sev-info">INFO</span></td>
+          <td>185.199.108.153</td><td>TLS Handshake OK · Cipher: ECDHE-RSA-AES128</td><td>ALLOW</td>
+        </tr>
+        <tr>
+          <td>23:19:42.844</td><td><span class="sev-pill sev-warn">WARN</span></td>
+          <td>45.142.214.8</td><td>Spike Arrest Triggered · Rate Limit 120 RPS</td><td>THROTTLE</td>
+        </tr>
+        <tr>
+          <td>23:19:45.019</td><td><span class="sev-pill sev-info">INFO</span></td>
+          <td>192.168.1.104</td><td>OAuth2 JWT Token Refreshed · Expire 3600s</td><td>ALLOW</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="btn-row">
+      <button class="btn btn-teal" onclick="simulateAttack()">⚠️ Simular Ataque de Credenciales (Fuerza Bruta / 401 Spikes)</button>
+      <button class="btn btn-sec" onclick="clearAttack()">🔄 Limpiar Filtros</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function simulateAttack(){
+  const bars = document.querySelectorAll('.hbar');
+  bars.forEach(b => {
+    b.style.height = (Math.random()*40 + 60) + '%';
+    b.className = 'hbar alert';
+  });
+  const tbody = document.getElementById('eventTable');
+  const now = new Date().toTimeString().split(' ')[0];
+  tbody.innerHTML = `
+    <tr style="background:rgba(231,76,60,0.1)">
+      <td>${now}.912</td><td><span class="sev-pill sev-crit">CRITICAL</span></td>
+      <td>194.26.29.112</td><td>Brute-Force Credential Stuffing (500 req/s)</td><td style="color:var(--accent-red)">WAF_DROP</td>
+    </tr>
+    <tr style="background:rgba(231,76,60,0.1)">
+      <td>${now}.904</td><td><span class="sev-pill sev-crit">CRITICAL</span></td>
+      <td>194.26.29.112</td><td>SQLi Attack Pattern in /v1/login body</td><td style="color:var(--accent-red)">IP_BLOCKED</td>
+    </tr>
+  ` + tbody.innerHTML;
+}
+
+function clearAttack(){
+  const bars = document.querySelectorAll('.hbar');
+  bars.forEach(b => {
+    b.style.height = (Math.random()*30 + 35) + '%';
+    b.className = 'hbar';
+  });
+}
+</script>
+</body>
+</html>

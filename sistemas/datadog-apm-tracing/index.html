@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Datadog APM — Distributed Tracing & Service Mesh Cockpit</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#0e1017;--bg-card:#151924;--bg-card-hover:#1c2130;
+  --border:#262d3d;--accent-purple:#7c3aed;--accent-cyan:#06b6d4;
+  --safe:#10b981;--warn:#f59e0b;--danger:#f43f5e;
+  --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#64748b;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:28px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1160px;display:flex;flex-direction:column;gap:20px}
+
+/* Datadog Top Bar */
+.dd-header{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:18px;border-bottom:1px solid var(--border);
+}
+.dd-brand{display:flex;align-items:center;gap:12px}
+.dd-logo{
+  width:36px;height:36px;border-radius:8px;background:var(--accent-purple);
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;color:#fff;
+}
+.dd-title{font-size:1.3rem;font-weight:700;letter-spacing:-0.02em}
+.dd-env-tag{
+  font-size:0.75rem;padding:4px 10px;border-radius:6px;background:rgba(124,58,237,0.15);
+  border:1px solid rgba(124,58,237,0.3);color:#c084fc;font-family:var(--mono);font-weight:600;
+}
+
+/* Metric KPI Cards */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.kpi-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+  padding:16px 18px;display:flex;flex-direction:column;gap:4px;
+}
+.kpi-lbl{font-size:0.68rem;font-weight:600;text-transform:uppercase;color:var(--text-dim);letter-spacing:0.05em}
+.kpi-val{font-size:1.5rem;font-weight:700;font-family:var(--mono);color:#fff}
+.kpi-sub{font-size:0.72rem;color:var(--text-sub)}
+
+/* Trace Waterfall Section */
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:20px;display:flex;flex-direction:column;gap:16px;
+}
+.card-hdr{display:flex;justify-content:space-between;align-items:center;font-size:0.88rem;font-weight:700}
+
+/* Waterfall Spans */
+.waterfall{display:flex;flex-direction:column;gap:8px}
+.span-row{
+  display:grid;grid-template-columns:220px 1fr 90px;align-items:center;gap:12px;
+  font-size:0.75rem;font-family:var(--mono);padding:8px 12px;border-radius:6px;
+  background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);
+}
+.span-name{color:#fff;font-weight:600;display:flex;align-items:center;gap:6px}
+.span-bar-wrap{height:16px;background:rgba(255,255,255,0.04);border-radius:4px;position:relative;overflow:hidden}
+.span-bar{height:100%;border-radius:3px;transition:width 0.4s ease}
+.span-dur{text-align:right;color:var(--text-sub);font-weight:600}
+
+/* Action Controls */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  padding:9px 18px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.2s;
+}
+.btn-purple{background:var(--accent-purple);color:#fff}
+.btn-purple:hover{background:#6d28d9}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="dd-header">
+    <div class="dd-brand">
+      <div class="dd-logo">🐕</div>
+      <div>
+        <div class="dd-title">Datadog APM · Distributed Tracing Cockpit</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Servicio: <b>checkout-orchestrator-prod</b> · Operación: <b>POST /v1/order/checkout</b></div>
+      </div>
+    </div>
+    <div class="dd-env-tag">env:production · trace_id: #8942b-9801</div>
+  </header>
+
+  <!-- Key Metrics -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <span class="kpi-lbl">Latencia Total (p95)</span>
+      <span class="kpi-val" style="color:var(--accent-cyan)" id="valLat">142.6 ms</span>
+      <span class="kpi-sub">SLA comprometido: &lt; 250 ms</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-lbl">Presupuesto de Error (SLO)</span>
+      <span class="kpi-val" style="color:var(--safe)">99.98%</span>
+      <span class="kpi-sub">Burn Rate: 0.04x (Saludable)</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-lbl">Throughput (RPS)</span>
+      <span class="kpi-val" id="valRps">14.8k req/s</span>
+      <span class="kpi-sub">Distribuidos en 4 zonas</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-lbl">Tasa de Error 5xx</span>
+      <span class="kpi-val" style="color:var(--safe)" id="valErr">0.01%</span>
+      <span class="kpi-sub">12 fallos en última hora</span>
+    </div>
+  </div>
+
+  <!-- Waterfall Tracing Spans -->
+  <div class="card">
+    <div class="card-hdr">
+      <span>⚡ Desglose de Spans en Cascada (Execution Flamegraph)</span>
+      <span style="font-size:0.75rem;color:var(--text-dim);font-family:var(--mono)">Duration: 142.6ms · 6 Microservicios</span>
+    </div>
+
+    <div class="waterfall">
+      <!-- Span 1 -->
+      <div class="span-row">
+        <span class="span-name">🌐 edge-ingress-gateway</span>
+        <div class="span-bar-wrap">
+          <div class="span-bar" style="width:100%;background:var(--accent-purple)"></div>
+        </div>
+        <span class="span-dur">142.6 ms</span>
+      </div>
+
+      <!-- Span 2 -->
+      <div class="span-row">
+        <span class="span-name" style="padding-left:14px">🔑 auth-jwt-validator</span>
+        <div class="span-bar-wrap">
+          <div class="span-bar" style="width:25%;margin-left:5%;background:var(--accent-cyan)"></div>
+        </div>
+        <span class="span-dur">18.4 ms</span>
+      </div>
+
+      <!-- Span 3 -->
+      <div class="span-row">
+        <span class="span-name" style="padding-left:14px">🛒 cart-pricing-service</span>
+        <div class="span-bar-wrap">
+          <div class="span-bar" style="width:35%;margin-left:30%;background:#3b82f6"></div>
+        </div>
+        <span class="span-dur">42.1 ms</span>
+      </div>
+
+      <!-- Span 4 -->
+      <div class="span-row">
+        <span class="span-name" style="padding-left:28px">📦 inventory-reservations</span>
+        <div class="span-bar-wrap">
+          <div class="span-bar" style="width:20%;margin-left:45%;background:#8b5cf6"></div>
+        </div>
+        <span class="span-dur">24.8 ms</span>
+      </div>
+
+      <!-- Span 5 -->
+      <div class="span-row">
+        <span class="span-name" style="padding-left:14px">💳 payment-stripe-clearing</span>
+        <div class="span-bar-wrap">
+          <div class="span-bar" style="width:30%;margin-left:65%;background:var(--warn)" id="spanPay"></div>
+        </div>
+        <span class="span-dur" id="durPay">48.2 ms</span>
+      </div>
+
+      <!-- Span 6 -->
+      <div class="span-row">
+        <span class="span-name" style="padding-left:28px">🗄️ postgres-aurora-commit</span>
+        <div class="span-bar-wrap">
+          <div class="span-bar" style="width:12%;margin-left:85%;background:var(--safe)"></div>
+        </div>
+        <span class="span-dur">9.1 ms</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn btn-purple" onclick="simulateSlowdown()">⚠️ Inyectar Latencia en Pasarela de Pago (p99 Spikes)</button>
+      <button class="btn btn-sec" onclick="resetTrace()">🔄 Restablecer Latencia Normal</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function simulateSlowdown(){
+  document.getElementById('spanPay').style.background = 'var(--danger)';
+  document.getElementById('spanPay').style.width = '70%';
+  document.getElementById('durPay').textContent = '482.0 ms (ALERTA)';
+  document.getElementById('durPay').style.color = 'var(--danger)';
+  document.getElementById('valLat').textContent = '586.4 ms';
+  document.getElementById('valLat').style.color = 'var(--danger)';
+  document.getElementById('valErr').textContent = '4.12%';
+  document.getElementById('valErr').style.color = 'var(--danger)';
+}
+
+function resetTrace(){
+  document.getElementById('spanPay').style.background = 'var(--warn)';
+  document.getElementById('spanPay').style.width = '30%';
+  document.getElementById('durPay').textContent = '48.2 ms';
+  document.getElementById('durPay').style.color = 'var(--text-sub)';
+  document.getElementById('valLat').textContent = '142.6 ms';
+  document.getElementById('valLat').style.color = 'var(--accent-cyan)';
+  document.getElementById('valErr').textContent = '0.01%';
+  document.getElementById('valErr').style.color = 'var(--safe)';
+}
+</script>
+</body>
+</html>

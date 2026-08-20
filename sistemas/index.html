@@ -996,7 +996,15 @@
       <div class="filter-pills-row">
         <button class="filter-btn category-pill active" data-category="all" data-filter="all">
           <span>🌐 All Systems</span>
-          <span class="pill-count" id="count-all">21</span>
+          <span class="pill-count" id="count-all">25</span>
+        </button>
+        <button class="filter-btn category-pill" data-category="datadog-grafana" data-filter="datadog-grafana">
+          <span>📊 Datadog, Grafana & ELK</span>
+          <span class="pill-count" id="count-apm">3</span>
+        </button>
+        <button class="filter-btn category-pill" data-category="showroom" data-filter="showroom">
+          <span>🎨 Showroom & Diseños</span>
+          <span class="pill-count" id="count-showroom">1</span>
         </button>
         <button class="filter-btn category-pill" data-category="emergencia" data-filter="emergencia">
           <span>🚨 Emergencia ("Salvar Vidas")</span>
@@ -1059,6 +1067,9 @@
       </button>
       <button class="doc-tab drawer-tab" data-doc="mulesoft-arch">
         <span>🌐 Arquitectura MuleSoft & Apigee</span>
+      </button>
+      <button class="doc-tab drawer-tab" data-doc="graficas-guia">
+        <span>🎨 Catálogo de Gráficas & Diseños</span>
       </button>
     </div>
 
@@ -1340,6 +1351,54 @@
         href: './smart-factory-scada/index.html',
         metrics: { latency: '8ms', sla: '99.95%', rps: '94 ppm' },
         visType: 'radar'
+      },
+      {
+        id: 'ui-chart-gallery',
+        name: 'UI & Chart Design Showroom',
+        subtitle: 'Interactive Design System & Component Catalog',
+        category: 'showroom',
+        categoryLabel: '🎨 Showroom & Diseños',
+        badges: ['6 Themes', 'Theme Switcher', 'Live Snippets', 'Copy Orders'],
+        description: 'Interactive component showroom to test, preview and choose charts, nodes, glowing effects, and corporate themes (Datadog, Grafana, ELK, Linear, Glass, Cyberpunk).',
+        href: './ui-chart-gallery/index.html',
+        metrics: { latency: '1ms', sla: '100%', rps: 'Design UI' },
+        visType: 'mesh'
+      },
+      {
+        id: 'datadog-apm-tracing',
+        name: 'Datadog APM · Distributed Tracing',
+        subtitle: 'Microservices Waterfall & Execution Flamegraph',
+        category: 'datadog-grafana',
+        categoryLabel: '📊 Datadog, Grafana & ELK',
+        badges: ['Flamegraph', 'Spans Waterfall', 'SLO Error Budget', 'p95/p99 Latency'],
+        description: 'Enterprise APM distributed tracing cockpit breaking down multi-hop microservice calls across edge gateways, auth validators, and database transactions.',
+        href: './datadog-apm-tracing/index.html',
+        metrics: { latency: '142ms', sla: '99.98%', rps: '14.8k req/s' },
+        visType: 'tx'
+      },
+      {
+        id: 'grafana-k8s-cluster',
+        name: 'Grafana Cloud · Kubernetes Health',
+        subtitle: 'Prometheus PromQL & Pod Grid Telemetry',
+        category: 'datadog-grafana',
+        categoryLabel: '📊 Datadog, Grafana & ELK',
+        badges: ['K8s Pod Grid', 'PromQL Engine', 'Node CPU / RAM', 'OOMKill Simulation'],
+        description: 'SRE cluster monitoring board displaying Kubernetes pod lifecycles, CPU/memory resource saturation gauges, container restart trackers, and auto-healing triggers.',
+        href: './grafana-k8s-cluster/index.html',
+        metrics: { latency: '4ms', sla: '99.99%', rps: '48 Pods' },
+        visType: 'radar'
+      },
+      {
+        id: 'elk-security-siem',
+        name: 'Elastic SIEM · Security Log Hub',
+        subtitle: '50k Logs/sec Ingestion & KQL Query Stream',
+        category: 'datadog-grafana',
+        categoryLabel: '📊 Datadog, Grafana & ELK',
+        badges: ['48k logs/sec', 'KQL Lucene', 'SIEM Rules', 'Geo-IP Threat'],
+        description: 'High-throughput security event stream with log distribution histograms, KQL query filters, threat severity classifications, and brute-force attack simulation.',
+        href: './elk-security-siem/index.html',
+        metrics: { latency: '9ms', sla: '99.99%', rps: '48.2k logs/s' },
+        visType: 'alarm'
       }
     ];
 
@@ -1935,6 +1994,8 @@
         filename = 'manual_observabilidad_cloud_sre.md';
       } else if (docKey === 'mulesoft-arch' || docKey.includes('arquitectura') || docKey.includes('mulesoft_y')) {
         filename = 'mulesoft_y_arquitectura_sistemas.md';
+      } else if (docKey === 'graficas-guia' || docKey.includes('graficas') || docKey.includes('catalogo')) {
+        filename = 'guia_catalogo_graficas_y_disenos.md';
       }
 
       try {
