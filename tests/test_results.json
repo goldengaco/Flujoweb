@@ -1,0 +1,297 @@
+{
+  "timestamp": "2026-08-20T03:44:19.901Z",
+  "totalExecuted": 344,
+  "totalPassed": 344,
+  "totalFailed": 0,
+  "durationMs": 261179,
+  "suites": [
+    {
+      "name": "Audio Synthesizer & Sound Controls Suite (7 Dashboards)",
+      "total": 14,
+      "passed": 14,
+      "failed": 0,
+      "duration": 24604,
+      "failures": []
+    },
+    {
+      "name": "Log Panels, Real-Time Filtering & JSON Export Suite",
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "duration": 13105,
+      "failures": []
+    },
+    {
+      "name": "Master Launchpad Portal Suite (sistemas/index.html)",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 7777,
+      "failures": []
+    },
+    {
+      "name": "Layout Integrity, Anti-Collision & Multi-Viewport Suite (360px-3840px)",
+      "total": 60,
+      "passed": 60,
+      "failed": 0,
+      "duration": 64074,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: Security Audit Features (F01 - F05)",
+      "total": 27,
+      "passed": 27,
+      "failed": 0,
+      "duration": 8824,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: Security Audit Boundary & Corner Cases",
+      "total": 25,
+      "passed": 25,
+      "failed": 0,
+      "duration": 5693,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: Security Cross-Feature Combinations",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "duration": 8177,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: Security Audit Real-World Lifecycles",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 7911,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: Server Status NOC Features (F06 - F10)",
+      "total": 27,
+      "passed": 27,
+      "failed": 0,
+      "duration": 3185,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: Server Status NOC Boundary & Corner Cases",
+      "total": 25,
+      "passed": 25,
+      "failed": 0,
+      "duration": 3090,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: Server Status Cross-Feature Combinations",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "duration": 1249,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: Server Status NOC Real-World Scenarios",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 757,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: Transaction Pipeline Features (F11 - F16)",
+      "total": 32,
+      "passed": 32,
+      "failed": 0,
+      "duration": 20528,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: Transaction Pipeline Boundary & Corner Cases",
+      "total": 30,
+      "passed": 30,
+      "failed": 0,
+      "duration": 11713,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: Transaction Pipeline Cross-Feature Combinations",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "duration": 10698,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: Transaction Pipeline Real-World Scenarios",
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "duration": 17000,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: GCP Serverless Pipeline Features",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 897,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: GCP Serverless Pipeline Boundaries",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 1296,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: GCP Serverless Pipeline Combinations",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "duration": 944,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: GCP Serverless Blue/Green Scenario (S1)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 1590,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: GCP Event-Driven Pub/Sub Features",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 896,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: GCP Event-Driven Pub/Sub Boundaries",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 3432,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: GCP Event-Driven Pub/Sub Combinations",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "duration": 1159,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: GCP Pub/Sub DLQ Recovery Scenario (S2)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 1699,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: GCP Cloud SQL HA & VPC Features",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 6989,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: GCP Cloud SQL HA & VPC Boundaries",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 1514,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: GCP Cloud SQL HA & VPC Combinations",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "duration": 2181,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: GCP Cloud SQL HA Failover Scenario (S3)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 7170,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: GCP IAM Security & Secret Vault Features",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 572,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: GCP IAM Security & Secret Vault Boundaries",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 2486,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: GCP IAM Security & Secret Vault Combinations",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "duration": 1468,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: GCP IAM Compromise Response Scenario (S4)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 1494,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: GCP CloudOps SRE Cockpit Features",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 943,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: GCP CloudOps SRE Cockpit Boundaries",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 4768,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: GCP CloudOps SRE Cockpit Combinations",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "duration": 5272,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: GCP CloudOps SRE SEV-1 Incident Response (S5)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 5661,
+      "failures": []
+    }
+  ]
+}

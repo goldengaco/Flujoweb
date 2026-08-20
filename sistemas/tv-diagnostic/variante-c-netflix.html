@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico TV — Variante C Netflix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0f1a;
+    --bg-lighter: #111827;
+    --surface: #151c2c;
+    --border: #1e2a3a;
+    --text-primary: #f0f2f5;
+    --text-secondary: #8a95a8;
+    --text-dim: #4a5568;
+    --teal: #14b8a6;
+    --teal-dark: #0d9488;
+    --green: #22c55e;
+    --green-soft: #16a34a;
+    --green-dim: rgba(34, 197, 94, 0.12);
+    --red: #ef4444;
+    --cyan: #06b6d4;
+    --node-size: 96px;
+    --node-size-mobile: 72px;
+    --track-height: 3px;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Subtle radial ambient light */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(20, 184, 166, 0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 820px;
+    padding: 48px 24px 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ─── Header ─── */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(20, 184, 166, 0.08);
+    border: 1px solid rgba(20, 184, 166, 0.15);
+    border-radius: 24px;
+    padding: 6px 18px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .header-badge .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--teal);
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes badge-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+  }
+
+  .header .subtitle {
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .status-text {
+    margin-top: 18px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    transition: color 0.4s ease;
+    min-height: 1.4em;
+  }
+
+  .status-text.active { color: var(--teal); }
+  .status-text.done { color: var(--green); }
+  .status-text.error { color: var(--red); }
+
+  /* ─── Stepper ─── */
+  .stepper {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  .step-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    flex: 0 0 auto;
+  }
+
+  .step-node {
+    width: var(--node-size);
+    height: var(--node-size);
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: border-color 0.5s ease, background 0.5s ease, box-shadow 0.5s ease;
+    cursor: default;
+  }
+
+  .step-emoji {
+    font-size: 2rem;
+    line-height: 1;
+    transition: filter 0.5s ease, transform 0.3s ease;
+    filter: saturate(0.5) brightness(0.7);
+    position: relative;
+    z-index: 3;
+  }
+
+  /* Spinner ring (active state) */
+  .step-node::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: var(--teal);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+  }
+
+  /* Ambient glow circle behind node */
+  .step-node::after {
+    content: '';
+    position: absolute;
+    inset: -16px;
+    border-radius: 50%;
+    background: transparent;
+    transition: background 0.6s ease;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .step-label {
+    margin-top: 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 0.01em;
+    transition: color 0.4s ease;
+    max-width: 110px;
+  }
+
+  .step-ms {
+    margin-top: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--teal);
+    opacity: 0;
+    font-variant-numeric: tabular-nums;
+    transition: opacity 0.3s ease;
+    min-height: 1.1em;
+  }
+
+  /* ── Pending (default) ── */
+  /* Already styled above as default */
+
+  /* ── Active ── */
+  .step-wrapper.active .step-node {
+    border-color: var(--teal);
+    background: rgba(20, 184, 166, 0.06);
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.12);
+  }
+
+  .step-wrapper.active .step-node::before {
+    opacity: 1;
+    animation: spin-ring 1s linear infinite;
+  }
+
+  .step-wrapper.active .step-emoji {
+    filter: saturate(1) brightness(1);
+    animation: emoji-active-pulse 1.8s ease-in-out infinite;
+  }
+
+  .step-wrapper.active .step-label {
+    color: var(--text-primary);
+  }
+
+  .step-wrapper.active .step-ms {
+    opacity: 1;
+  }
+
+  @keyframes spin-ring {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes emoji-active-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  /* ── Completed ── */
+  .step-wrapper.completed .step-node {
+    border-color: var(--green);
+    background: rgba(34, 197, 94, 0.08);
+    box-shadow:
+      0 0 16px rgba(34, 197, 94, 0.2),
+      0 0 40px rgba(34, 197, 94, 0.08),
+      inset 0 0 12px rgba(34, 197, 94, 0.06);
+  }
+
+  .step-wrapper.completed .step-node::before {
+    opacity: 0;
+    animation: none;
+  }
+
+  .step-wrapper.completed .step-node::after {
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.06) 0%, transparent 70%);
+  }
+
+  .step-wrapper.completed .step-emoji {
+    filter: saturate(1.1) brightness(1.1) drop-shadow(0 0 6px rgba(34, 197, 94, 0.5));
+    animation: none;
+    transform: scale(1);
+  }
+
+  .step-wrapper.completed .step-label {
+    color: var(--green);
+  }
+
+  /* ── Error ── */
+  .step-wrapper.error .step-node {
+    border-color: var(--red);
+    background: rgba(239, 68, 68, 0.08);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+  }
+
+  .step-wrapper.error .step-node::before {
+    opacity: 0;
+    animation: none;
+  }
+
+  .step-wrapper.error .step-emoji {
+    filter: saturate(1) brightness(1) drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
+  }
+
+  .step-wrapper.error .step-label {
+    color: var(--red);
+  }
+
+  /* ─── Track ─── */
+  .track-segment {
+    flex: 1;
+    height: var(--track-height);
+    background: var(--border);
+    border-radius: 2px;
+    align-self: center;
+    margin-top: calc(var(--node-size) / 2 - var(--track-height) / 2 + 0px);
+    /* offset for label area — we want vertical center of node */
+    position: relative;
+    overflow: hidden;
+    min-width: 40px;
+  }
+
+  /* wrapper to position tracks correctly */
+  .stepper-inner {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .track-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--teal), var(--green-soft));
+    border-radius: 2px;
+    transition: width 0.6s ease;
+    box-shadow: 0 0 8px rgba(20, 184, 166, 0.3);
+  }
+
+  .track-fill.filled {
+    width: 100%;
+  }
+
+  .track-fill.filling {
+    width: 60%;
+    animation: track-flow 1.2s ease-in-out infinite alternate;
+  }
+
+  @keyframes track-flow {
+    0% { width: 30%; }
+    100% { width: 70%; }
+  }
+
+  /* ─── Button ─── */
+  .action-section {
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-action {
+    background: var(--teal);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 40px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
+    letter-spacing: -0.01em;
+    box-shadow: 0 2px 12px rgba(20, 184, 166, 0.2);
+  }
+
+  .btn-action:hover:not(:disabled) {
+    background: var(--teal-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(20, 184, 166, 0.3);
+  }
+
+  .btn-action:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .btn-action:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-action.done-state {
+    background: var(--green);
+    box-shadow: 0 2px 12px rgba(34, 197, 94, 0.2);
+  }
+
+  .btn-reset {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    display: none;
+  }
+
+  .btn-reset:hover {
+    color: var(--text-secondary);
+    border-color: var(--text-dim);
+  }
+
+  .btn-reset.visible { display: inline-flex; }
+
+  /* ─── Log Panel ─── */
+  .log-panel {
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .log-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    color: var(--text-dim);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .log-toggle:hover {
+    color: var(--text-secondary);
+    border-color: var(--text-dim);
+  }
+
+  .log-toggle .chevron {
+    margin-left: auto;
+    transition: transform 0.25s ease;
+    font-size: 0.7rem;
+  }
+
+  .log-toggle.open .chevron {
+    transform: rotate(180deg);
+  }
+
+  .log-count {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 1px 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .log-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.3s ease;
+    opacity: 0;
+  }
+
+  .log-body.open {
+    max-height: 400px;
+    opacity: 1;
+    overflow-y: auto;
+  }
+
+  .log-list {
+    margin-top: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .log-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    animation: log-in 0.3s ease;
+  }
+
+  @keyframes log-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .log-time {
+    color: var(--text-dim);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .log-msg {
+    color: var(--text-secondary);
+  }
+
+  .log-msg.success { color: var(--green); }
+  .log-msg.error { color: var(--red); }
+  .log-msg.info { color: var(--teal); }
+
+  /* ─── Scrollbar ─── */
+  .log-body::-webkit-scrollbar { width: 4px; }
+  .log-body::-webkit-scrollbar-track { background: transparent; }
+  .log-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    .app { padding: 32px 16px 48px; }
+
+    .header h1 { font-size: 1.5rem; }
+    .header .subtitle { font-size: 0.92rem; }
+
+    :root { --node-size: 68px; }
+
+    .step-emoji { font-size: 1.5rem; }
+    .step-label { font-size: 0.7rem; max-width: 80px; }
+
+    .track-segment { min-width: 24px; }
+
+    .btn-action { padding: 14px 28px; font-size: 0.95rem; }
+  }
+
+  @media (max-width: 400px) {
+    :root { --node-size: 58px; }
+    .step-emoji { font-size: 1.3rem; }
+    .step-label { font-size: 0.65rem; max-width: 68px; }
+    .header h1 { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-badge">
+      <span class="dot"></span>
+      Diagnóstico de Red
+    </div>
+    <h1>Comprobando tu conexión</h1>
+    <p class="subtitle">Mientras se comprueba tu conexión, respondemos a tu diagnóstico</p>
+    <div class="status-text" id="statusText">Listo para iniciar diagnóstico</div>
+  </header>
+
+  <!-- Stepper -->
+  <div class="stepper">
+    <div class="stepper-inner" id="stepperInner">
+      <!-- Step 1 -->
+      <div class="step-wrapper" data-step="0">
+        <div class="step-node">
+          <span class="step-emoji">🔌</span>
+        </div>
+        <span class="step-label">Conexión Local</span>
+        <span class="step-ms" id="ms-0"></span>
+      </div>
+
+      <!-- Track 1 -->
+      <div class="track-segment">
+        <div class="track-fill" id="track-0"></div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step-wrapper" data-step="1">
+        <div class="step-node">
+          <span class="step-emoji">📡</span>
+        </div>
+        <span class="step-label">Handshake API</span>
+        <span class="step-ms" id="ms-1"></span>
+      </div>
+
+      <!-- Track 2 -->
+      <div class="track-segment">
+        <div class="track-fill" id="track-1"></div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step-wrapper" data-step="2">
+        <div class="step-node">
+          <span class="step-emoji">🛡️</span>
+        </div>
+        <span class="step-label">Validación Auth</span>
+        <span class="step-ms" id="ms-2"></span>
+      </div>
+
+      <!-- Track 3 -->
+      <div class="track-segment">
+        <div class="track-fill" id="track-2"></div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="step-wrapper" data-step="3">
+        <div class="step-node">
+          <span class="step-emoji">⚡</span>
+        </div>
+        <span class="step-label">Velocidad de Red</span>
+        <span class="step-ms" id="ms-3"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action -->
+  <div class="action-section">
+    <button class="btn-action" id="btnAction">¡Vamos a solucionarlo!</button>
+    <button class="btn-reset" id="btnReset">Reiniciar diagnóstico</button>
+  </div>
+
+  <!-- Log Panel -->
+  <div class="log-panel">
+    <button class="log-toggle" id="logToggle">
+      <span>Registro de eventos</span>
+      <span class="log-count" id="logCount">0</span>
+      <span class="chevron">▼</span>
+    </button>
+    <div class="log-body" id="logBody">
+      <div class="log-list" id="logList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const STEPS = [
+    { name: 'Conexión Local', emoji: '🔌' },
+    { name: 'Handshake API', emoji: '📡' },
+    { name: 'Validación Auth', emoji: '🛡️' },
+    { name: 'Velocidad de Red', emoji: '⚡' }
+  ];
+
+  const stepWrappers = document.querySelectorAll('.step-wrapper');
+  const trackFills = [
+    document.getElementById('track-0'),
+    document.getElementById('track-1'),
+    document.getElementById('track-2')
+  ];
+  const statusText = document.getElementById('statusText');
+  const btnAction = document.getElementById('btnAction');
+  const btnReset = document.getElementById('btnReset');
+  const logToggle = document.getElementById('logToggle');
+  const logBody = document.getElementById('logBody');
+  const logList = document.getElementById('logList');
+  const logCount = document.getElementById('logCount');
+
+  let isRunning = false;
+  let logEntries = 0;
+  let msInterval = null;
+
+  // ── Log ──
+  function addLog(msg, type = '') {
+    const now = new Date();
+    const ts = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `<span class="log-time">${ts}</span><span class="log-msg ${type}">${msg}</span>`;
+    logList.prepend(entry);
+
+    logEntries++;
+    logCount.textContent = logEntries;
+  }
+
+  // ── Log Toggle ──
+  logToggle.addEventListener('click', () => {
+    logToggle.classList.toggle('open');
+    logBody.classList.toggle('open');
+  });
+
+  // ── Step state helpers ──
+  function setStepState(index, state) {
+    const wrapper = stepWrappers[index];
+    wrapper.classList.remove('active', 'completed', 'error');
+    if (state) wrapper.classList.add(state);
+  }
+
+  function fillTrack(index) {
+    if (index >= 0 && index < trackFills.length) {
+      trackFills[index].classList.remove('filling');
+      trackFills[index].classList.add('filled');
+    }
+  }
+
+  function flowTrack(index) {
+    if (index >= 0 && index < trackFills.length) {
+      trackFills[index].classList.add('filling');
+    }
+  }
+
+  // ── Ms counter for last step ──
+  function startMsCounter(index) {
+    const el = document.getElementById(`ms-${index}`);
+    let ms = 0;
+    const start = performance.now();
+    el.style.opacity = '1';
+    msInterval = setInterval(() => {
+      ms = Math.round(performance.now() - start);
+      el.textContent = `${ms} ms`;
+    }, 47);
+  }
+
+  function stopMsCounter(index) {
+    if (msInterval) {
+      clearInterval(msInterval);
+      msInterval = null;
+    }
+  }
+
+  // ── Random duration ──
+  function randomDuration() {
+    return 1500 + Math.random() * 1000; // 1.5s - 2.5s
+  }
+
+  // ── Sleep helper ──
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // ── Run Diagnostic ──
+  async function runDiagnostic() {
+    if (isRunning) return;
+    isRunning = true;
+    btnAction.disabled = true;
+    btnReset.classList.remove('visible');
+
+    statusText.textContent = 'Iniciando diagnóstico...';
+    statusText.className = 'status-text active';
+    addLog('Diagnóstico iniciado', 'info');
+
+    for (let i = 0; i < STEPS.length; i++) {
+      const step = STEPS[i];
+      const duration = randomDuration();
+
+      // Activate
+      setStepState(i, 'active');
+      statusText.textContent = `Verificando: ${step.name}...`;
+      addLog(`${step.emoji} Verificando ${step.name}...`, 'info');
+
+      // Flow track leading to this node (the one before it)
+      if (i > 0) {
+        flowTrack(i - 1);
+      }
+
+      // Start ms counter on last step
+      if (i === STEPS.length - 1) {
+        startMsCounter(i);
+      }
+
+      await sleep(duration);
+
+      // Stop ms counter
+      if (i === STEPS.length - 1) {
+        stopMsCounter(i);
+      }
+
+      // Complete
+      setStepState(i, 'completed');
+      addLog(`${step.emoji} ${step.name} — OK ✓`, 'success');
+
+      // Fill track after this node
+      if (i > 0) {
+        trackFills[i - 1].classList.remove('filling');
+        fillTrack(i - 1);
+      }
+
+      // Small gap before next step
+      if (i < STEPS.length - 1) {
+        await sleep(250);
+      }
+    }
+
+    // Done
+    statusText.textContent = 'Diagnóstico completado — Conexión estable';
+    statusText.className = 'status-text done';
+    addLog('Diagnóstico completado con éxito', 'success');
+
+    btnAction.textContent = 'Diagnóstico completo';
+    btnAction.classList.add('done-state');
+    btnAction.disabled = true;
+    btnReset.classList.add('visible');
+    isRunning = false;
+  }
+
+  // ── Reset ──
+  function resetDiagnostic() {
+    if (isRunning) return;
+
+    stepWrappers.forEach((w, i) => {
+      setStepState(i, null);
+      const msEl = document.getElementById(`ms-${i}`);
+      msEl.textContent = '';
+      msEl.style.opacity = '0';
+    });
+
+    trackFills.forEach(tf => {
+      tf.classList.remove('filled', 'filling');
+      tf.style.width = '';
+    });
+
+    statusText.textContent = 'Listo para iniciar diagnóstico';
+    statusText.className = 'status-text';
+
+    btnAction.textContent = '¡Vamos a solucionarlo!';
+    btnAction.classList.remove('done-state');
+    btnAction.disabled = false;
+
+    btnReset.classList.remove('visible');
+
+    logList.innerHTML = '';
+    logEntries = 0;
+    logCount.textContent = '0';
+  }
+
+  // ── Events ──
+  btnAction.addEventListener('click', runDiagnostic);
+  btnReset.addEventListener('click', resetDiagnostic);
+
+})();
+</script>
+</body>
+</html>

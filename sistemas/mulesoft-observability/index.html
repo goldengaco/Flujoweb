@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuleSoft Anypoint — API-Led Connectivity & Traceability Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Cascadia+Code:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#040914;--bg2:#081326;--bg3:#0e1d38;
+  --mule-blue:#00a2df;--mule-cyan:#00d2ff;
+  --green:#00ff88;--amber:#ffaa00;--red:#ff3b5c;--purple:#a855f7;
+  --text:#e2eafc;--text-dim:#7086ad;--border:rgba(0,162,223,.18);
+  --font:'Inter',sans-serif;--mono:'Cascadia Code',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;overflow-x:hidden;position:relative;
+}
+
+/* Background Ambient */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(to right,rgba(0,162,223,.03) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(0,162,223,.03) 1px,transparent 1px);
+  background-size:36px 36px;pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 65% 50% at 50% 15%,rgba(0,162,223,.06) 0%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+.app{position:relative;z-index:2;width:100%;max-width:1160px;padding:36px 20px 48px}
+
+/* Header */
+.hdr{text-align:center;margin-bottom:32px}
+.hdr__badge{
+  display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:20px;
+  background:rgba(0,162,223,.08);border:1px solid var(--border);
+  font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mule-cyan);
+  margin-bottom:12px;
+}
+.hdr__badge .dot{width:7px;height:7px;border-radius:50%;background:var(--mule-cyan);box-shadow:0 0 8px var(--mule-cyan)}
+.hdr h1{
+  font-size:clamp(1.4rem,3.2vw,2.2rem);font-weight:800;letter-spacing:-.02em;line-height:1.2;
+  background:linear-gradient(135deg,#00a2df 0%,#00ff88 50%,#00d2ff 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:8px;
+}
+.hdr p{font-size:clamp(0.78rem,1.4vw,0.88rem);color:var(--text-dim);max-width:700px;margin:0 auto}
+
+/* Layout Grid */
+.main-grid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:24px;margin-bottom:28px}
+@media(max-width:960px){.main-grid{grid-template-columns:1fr}}
+
+/* Cards Base */
+.card{
+  background:rgba(8,19,38,.75);border:1px solid var(--border);border-radius:14px;
+  padding:20px;backdrop-filter:blur(10px);position:relative;overflow:hidden;
+}
+.card__hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.card__title{font-size:clamp(0.8rem,1.4vw,0.92rem);font-weight:700;display:flex;align-items:center;gap:8px;color:var(--mule-cyan)}
+
+/* API-Led 3-Tier Layer Visualizer */
+.tiers{display:flex;flex-direction:column;gap:14px;position:relative}
+.tier-layer{
+  background:rgba(4,9,20,.6);border:1px solid rgba(255,255,255,.05);border-radius:10px;
+  padding:12px 16px;transition:all .3s;
+}
+.tier-layer.active{border-color:var(--mule-cyan);box-shadow:0 0 16px rgba(0,162,223,.2)}
+.tier-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.tier-tag{font-size:.65rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:4px}
+.tier-tag.exp{background:rgba(0,210,255,.15);color:var(--mule-cyan);border:1px solid rgba(0,210,255,.3)}
+.tier-tag.proc{background:rgba(0,255,136,.15);color:var(--green);border:1px solid rgba(0,255,136,.3)}
+.tier-tag.sys{background:rgba(255,170,0,.15);color:var(--amber);border:1px solid rgba(255,170,0,.3)}
+
+.node-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.api-node{
+  background:rgba(14,29,56,.7);border:1px solid rgba(255,255,255,.08);border-radius:8px;
+  padding:10px 12px;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:all .25s;
+}
+.api-node:hover{transform:translateY(-2px);border-color:var(--mule-cyan)}
+.api-node.flowing{border-color:var(--green);box-shadow:0 0 12px rgba(0,255,136,.3)}
+.api-node__name{font-size:clamp(0.7rem,1.2vw,0.78rem);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.api-node__meta{font-size:.62rem;font-family:var(--mono);color:var(--text-dim);display:flex;justify-content:space-between}
+.api-node__status{width:6px;height:6px;border-radius:50%;background:var(--text-dim)}
+.api-node.flowing .api-node__status{background:var(--green);box-shadow:0 0 6px var(--green)}
+
+/* Connective Flow Lines */
+.flow-arrow{text-align:center;font-size:.7rem;color:var(--mule-blue);animation:arrowPulse 1.5s infinite;position:relative;z-index:1}
+@keyframes arrowPulse{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(2px)}}
+
+/* Telemetry & Traceability Drawer */
+.trace-box{display:flex;flex-direction:column;gap:12px}
+.trace-meta{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
+  background:rgba(4,9,20,.6);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:10px;
+}
+.meta-item{display:flex;flex-direction:column;gap:2px}
+.meta-item__lbl{font-size:.6rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)}
+.meta-item__val{font-size:.72rem;font-family:var(--mono);color:var(--mule-cyan);word-break:break-all}
+
+/* DataWeave Transformer Preview */
+.dw-editor{
+  background:#02060f;border:1px solid rgba(0,162,223,.15);border-radius:8px;padding:12px;
+  font-family:var(--mono);font-size:.68rem;line-height:1.5;color:#93c5fd;min-height:120px;max-height:200px;height:auto;overflow-y:auto;
+}
+.dw-editor .kwd{color:var(--purple);font-weight:700}
+.dw-editor .str{color:var(--green)}
+.dw-editor .fn{color:var(--amber)}
+
+/* Control Buttons */
+.ctrl-bar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;justify-content:center}
+.btn{
+  padding:12px 24px;font-family:var(--font);font-size:clamp(0.75rem,1.3vw,0.85rem);font-weight:700;border-radius:8px;
+  cursor:pointer;transition:all .3s;display:inline-flex;align-items:center;gap:8px;border:none;
+}
+.btn-primary{
+  background:linear-gradient(135deg,#00a2df,#00ff88);color:#040914;box-shadow:0 4px 18px rgba(0,162,223,.3);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,162,223,.45)}
+.btn-secondary{
+  background:rgba(0,162,223,.08);border:1px solid var(--border);color:var(--mule-cyan);
+}
+.btn-secondary:hover{background:rgba(0,162,223,.16)}
+
+/* Live Event Logs */
+.log-card{background:rgba(8,19,38,.75);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.log-head{padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center}
+.log-head h3{font-size:.76rem;color:var(--mule-cyan);display:flex;align-items:center;gap:8px}
+.log-body{min-height:160px;max-height:280px;height:auto;overflow-y:auto;padding:8px 16px;font-family:var(--mono);font-size:.68rem;display:flex;flex-direction:column;gap:4px}
+.log-body::-webkit-scrollbar{width:4px}
+.log-body::-webkit-scrollbar-thumb{background:rgba(0,162,223,.2);border-radius:4px}
+.log-row{display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.02);animation:lIn .3s ease-out}
+@keyframes lIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.log-row .ts{color:var(--text-dim);min-width:70px}
+.log-row .cid{color:var(--mule-blue);min-width:130px}
+.log-row.ok .msg{color:var(--green)}
+.log-row.info .msg{color:var(--text)}
+.log-row.warn .msg{color:var(--amber)}
+
+/* Footer */
+.ftr{text-align:center;padding:24px 0 0;font-size:.65rem;color:var(--text-dim);letter-spacing:.04em}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr__badge"><span class="dot"></span> Anypoint Runtime Fabric · Active Cluster</div>
+    <h1>MuleSoft API-Led Observability Hub</h1>
+    <p>Trazabilidad distribuida de eventos a través de las 3 capas: Experience APIs, Process APIs y System APIs conectadas a Google Cloud y Core Banking.</p>
+  </header>
+
+  <!-- Controls -->
+  <div class="ctrl-bar">
+    <button class="btn btn-primary" id="btnRun" onclick="simulateTransaction('HAPPY')">
+      <span>⚡ Disparar Transacción E2E</span>
+    </button>
+    <button class="btn btn-secondary" onclick="simulateTransaction('CIRCUIT_BREAKER')">
+      <span>🛡️ Simular Circuit Breaker & Retry</span>
+    </button>
+    <button class="btn btn-secondary" onclick="simulateTransaction('DATAWEAVE_TRANSFORM')">
+      <span>🔄 Inspeccionar DataWeave 2.0</span>
+    </button>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+
+    <!-- Left: API-Led Architecture 3-Tiers -->
+    <div class="card">
+      <div class="card__hdr">
+        <span class="card__title">🌐 Anypoint Visualizer · Topología 3-Capas</span>
+        <span style="font-size:.65rem;font-family:var(--mono);color:var(--green)">Mule 4.5.0 Runtime</span>
+      </div>
+
+      <div class="tiers">
+
+        <!-- Tier 1: Experience Layer -->
+        <div class="tier-layer" id="tierExp">
+          <div class="tier-header">
+            <span class="tier-tag exp">1. Experience APIs (Canales)</span>
+            <span style="font-size:.6rem;color:var(--text-dim)">Protocolo: HTTPS / GraphQL</span>
+          </div>
+          <div class="node-group">
+            <div class="api-node" id="node-exp-tv" onclick="inspectNode('exp-tv')">
+              <span class="api-node__name">📱 Mobile Banking API</span>
+              <div class="api-node__meta"><span>v1.2</span><span class="api-node__status"></span></div>
+            </div>
+            <div class="api-node" id="node-exp-web" onclick="inspectNode('exp-web')">
+              <span class="api-node__name">📺 TV Hub Diagnostic API</span>
+              <div class="api-node__meta"><span>v2.0</span><span class="api-node__status"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">▼ Mule Message Flow · Header: X-Correlation-ID ▼</div>
+
+        <!-- Tier 2: Process Layer -->
+        <div class="tier-layer" id="tierProc">
+          <div class="tier-header">
+            <span class="tier-tag proc">2. Process APIs (Orquestación & Negocio)</span>
+            <span style="font-size:.6rem;color:var(--text-dim)">Async / Non-Blocking Engine</span>
+          </div>
+          <div class="node-group">
+            <div class="api-node" id="node-proc-pay" onclick="inspectNode('proc-pay')">
+              <span class="api-node__name">⚙️ Payment Settlement Proc API</span>
+              <div class="api-node__meta"><span>v3.1</span><span class="api-node__status"></span></div>
+            </div>
+            <div class="api-node" id="node-proc-sec" onclick="inspectNode('proc-sec')">
+              <span class="api-node__name">🛡️ Security Auditor Proc API</span>
+              <div class="api-node__meta"><span>v1.0</span><span class="api-node__status"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow">▼ DataWeave Mapping · Resilient Connectors ▼</div>
+
+        <!-- Tier 3: System Layer -->
+        <div class="tier-layer" id="tierSys">
+          <div class="tier-header">
+            <span class="tier-tag sys">3. System APIs (Conectores Cloud & DB)</span>
+            <span style="font-size:.6rem;color:var(--text-dim)">GCP Pub/Sub · Cloud SQL · SAP</span>
+          </div>
+          <div class="node-group">
+            <div class="api-node" id="node-sys-sql" onclick="inspectNode('sys-sql')">
+              <span class="api-node__name">🗄️ GCP Cloud SQL System API</span>
+              <div class="api-node__meta"><span>PostgreSQL</span><span class="api-node__status"></span></div>
+            </div>
+            <div class="api-node" id="node-sys-pub" onclick="inspectNode('sys-pub')">
+              <span class="api-node__name">📬 GCP Pub/Sub Ingestion API</span>
+              <div class="api-node__meta"><span>Dead-Letter</span><span class="api-node__status"></span></div>
+            </div>
+            <div class="api-node" id="node-sys-sap" onclick="inspectNode('sys-sap')">
+              <span class="api-node__name">🏦 Core Banking SAP System API</span>
+              <div class="api-node__meta"><span>RFC / BAPI</span><span class="api-node__status"></span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right: Telemetry & DataWeave Inspector -->
+    <div class="card trace-box">
+      <div class="card__hdr">
+        <span class="card__title">🧵 Mule Event & Correlation Tracker</span>
+        <span id="traceStatus" style="font-size:.68rem;font-weight:700;color:var(--green)">STANDBY</span>
+      </div>
+
+      <div class="trace-meta">
+        <div class="meta-item">
+          <span class="meta-item__lbl">X-Correlation-ID</span>
+          <span class="meta-item__val" id="corrId">corr-98f4-21ae-77c0</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-item__lbl">Latencia Total E2E</span>
+          <span class="meta-item__val" id="e2eLatency">48 ms</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-item__lbl">Worker Pool</span>
+          <span class="meta-item__val">0.2 vCore · 1.0 GB</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-item__lbl">Circuit Breaker</span>
+          <span class="meta-item__val" style="color:var(--green)">CLOSED (Healthy)</span>
+        </div>
+      </div>
+
+      <div style="font-size:.72rem;font-weight:700;color:var(--mule-cyan);margin-top:4px">
+        <span>🔄 DataWeave 2.0 Payload Transformation</span>
+      </div>
+      <div class="dw-editor" id="dwCode">%dw 2.0
+<span class="kwd">output</span> application/json
+---
+{
+  <span class="str">transactionId</span>: payload.orderId,
+  <span class="str">status</span>: <span class="str">"CLEARED"</span>,
+  <span class="str">settledAmount</span>: payload.total * 1.08,
+  <span class="str">destinationSystem</span>: <span class="fn">upper</span>(<span class="str">"gcp_cloud_sql_ha"</span>),
+  <span class="str">timestamp</span>: <span class="fn">now</span>()
+}</div>
+
+      <div style="background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-radius:8px;padding:10px">
+        <div style="font-size:.65rem;font-weight:700;color:var(--green);margin-bottom:4px">⚡ Resumen de Trazabilidad</div>
+        <p style="font-size:.65rem;color:var(--text-dim);line-height:1.4" id="traceSummary">
+          El mensaje viaja de Mobile Banking API → Payment Settlement Process API → GCP Cloud SQL & SAP en 48ms manteniendo el Correlation-ID intacto.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Live Anypoint Monitoring Console -->
+  <div class="log-card">
+    <div class="log-head">
+      <h3>📜 Anypoint Monitoring · Live Mule Event Stream</h3>
+      <span style="font-size:.62rem;font-family:var(--mono);color:var(--mule-cyan)">Auto-Streaming 100ms</span>
+    </div>
+    <div class="log-body" id="logList">
+      <div class="log-row info">
+        <span class="ts">17:50:12.102</span>
+        <span class="cid">corr-system-init</span>
+        <span class="msg">[org.mule.runtime.core] Mule Runtime Engine 4.5.0 initialized successfully.</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="ftr">
+    MuleSoft Anypoint Platform · Enterprise Architecture Reference v1.0
+  </footer>
+
+</div>
+
+<script>
+let busy = false;
+const slp = ms => new Promise(r => setTimeout(r, ms));
+const rnd = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+
+function ts(){
+  const d = new Date();
+  return d.toLocaleTimeString('es-MX',{hour12:false})+'.'+String(d.getMilliseconds()).padStart(3,'0');
+}
+
+function genUUID(){
+  return 'corr-' + Math.random().toString(36).substring(2, 6) + '-' + Math.random().toString(36).substring(2, 6) + '-' + Math.random().toString(36).substring(2, 6);
+}
+
+function addLog(cid, msg, type='info'){
+  const list = document.getElementById('logList');
+  const row = document.createElement('div');
+  row.className = 'log-row ' + type;
+  row.innerHTML = `<span class="ts">${ts()}</span><span class="cid">${cid}</span><span class="msg">${msg}</span>`;
+  list.prepend(row);
+}
+
+function clearFlow(){
+  document.querySelectorAll('.api-node').forEach(n => n.classList.remove('flowing'));
+  document.querySelectorAll('.tier-layer').forEach(t => t.classList.remove('active'));
+}
+
+async function simulateTransaction(mode){
+  if(busy) return;
+  busy = true;
+  clearFlow();
+  
+  const cid = genUUID();
+  document.getElementById('corrId').textContent = cid;
+  document.getElementById('traceStatus').textContent = 'PROCESSING';
+  document.getElementById('traceStatus').style.color = 'var(--mule-cyan)';
+
+  addLog(cid, `[HTTP Inbound] Inicia petición en Experience Layer: POST /v1/payments/checkout`, 'info');
+
+  // Tier 1: Exp API
+  document.getElementById('tierExp').classList.add('active');
+  document.getElementById('node-exp-tv').classList.add('flowing');
+  await slp(350);
+  addLog(cid, `[Mobile Experience API] JWT validado. Enrutando hacia Process API...`, 'info');
+
+  // Tier 2: Process API
+  document.getElementById('tierProc').classList.add('active');
+  document.getElementById('node-proc-pay').classList.add('flowing');
+  await slp(450);
+  addLog(cid, `[Payment Process API] Ejecutando orquestación y DataWeave 2.0 Mapping...`, 'info');
+
+  if(mode === 'CIRCUIT_BREAKER'){
+    addLog(cid, `[Warning] Latencia elevada en SAP Legacy. Disparando Circuit Breaker Policy...`, 'warn');
+    await slp(300);
+    addLog(cid, `[Retry Mechanism] Reintentando con Exponential Backoff (Intento 2 de 3)...`, 'warn');
+    await slp(400);
+  }
+
+  // Tier 3: System API
+  document.getElementById('tierSys').classList.add('active');
+  document.getElementById('node-sys-sql').classList.add('flowing');
+  document.getElementById('node-sys-sap').classList.add('flowing');
+  await slp(400);
+  addLog(cid, `[Cloud SQL System API] Asiento contable registrado en base de datos PostgreSQL HA.`, 'ok');
+  addLog(cid, `[SAP System API] BAPI_ACC_DOCUMENT_POST completado exitosamente.`, 'ok');
+
+  const totalMs = rnd(35, 68);
+  document.getElementById('e2eLatency').textContent = totalMs + ' ms';
+  document.getElementById('traceStatus').textContent = 'COMPLETED (200 OK)';
+  document.getElementById('traceStatus').style.color = 'var(--green)';
+  addLog(cid, `[Response 200 OK] Transacción completada en ${totalMs} ms con Correlation-ID verificado.`, 'ok');
+
+  document.getElementById('traceSummary').textContent = `La transacción con ID ${cid} recorrió las 3 capas en ${totalMs} ms sin pérdida de contexto ni cuellos de botella.`;
+
+  busy = false;
+}
+
+function inspectNode(id){
+  const names = {
+    'exp-tv': 'Mobile Banking Experience API (RAML 1.0 Spec / HTTPS)',
+    'exp-web': 'TV Diagnostic Experience API (GraphQL Endpoint)',
+    'proc-pay': 'Payment Settlement Process API (Orquestación & Business Rules)',
+    'proc-sec': 'Security Auditor Process API (Compliance Scanner)',
+    'sys-sql': 'GCP Cloud SQL System API (PostgreSQL VPC Peered Connector)',
+    'sys-pub': 'GCP Pub/Sub Ingestion API (Dead-Letter Queue Connector)',
+    'sys-sap': 'Core Banking SAP System API (RFC Connector)'
+  };
+  addLog('NODE-INSPECT', `[Anypoint Visualizer] Inspeccionando telemetría de: ${names[id] || id}`, 'info');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+{
+  "portal": {
+    "size_bytes": 302449,
+    "has_counter": true,
+    "has_search_input": true,
+    "has_category_filters": true,
+    "has_drawer": true,
+    "references_doc1": true,
+    "references_doc2": true,
+    "references_doc3": true,
+    "linked_system_hrefs": [],
+    "linked_system_count": 0,
+    "has_markdown_rendering": true
+  },
+  "dashboards": {
+    "apigee-mulesoft-hybrid": {
+      "exists": true,
+      "size_kb": 75.4,
+      "clamp_count": 3,
+      "z_index_levels": [
+        "0",
+        "1"
+      ],
+      "has_audio_ctx": true,
+      "has_audio_toggle": true,
+      "has_log_section": true,
+      "has_log_search": false,
+      "has_log_export": true,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "emergency-evacuation-v1": {
+      "exists": true,
+      "size_kb": 83.7,
+      "clamp_count": 4,
+      "z_index_levels": [
+        "0",
+        "1",
+        "10",
+        "50",
+        "100"
+      ],
+      "has_audio_ctx": true,
+      "has_audio_toggle": true,
+      "has_log_section": false,
+      "has_log_search": false,
+      "has_log_export": false,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "emergency-evacuation-v2": {
+      "exists": true,
+      "size_kb": 92.9,
+      "clamp_count": 39,
+      "z_index_levels": [
+        "0",
+        "2",
+        "20",
+        "100"
+      ],
+      "has_audio_ctx": true,
+      "has_audio_toggle": true,
+      "has_log_section": true,
+      "has_log_search": false,
+      "has_log_export": false,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "emergency-evacuation-v3": {
+      "exists": true,
+      "size_kb": 95.9,
+      "clamp_count": 6,
+      "z_index_levels": [
+        "1",
+        "2",
+        "10",
+        "50",
+        "100"
+      ],
+      "has_audio_ctx": true,
+      "has_audio_toggle": true,
+      "has_log_section": true,
+      "has_log_search": false,
+      "has_log_export": false,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "gcp-cloudops-cockpit": {
+      "exists": true,
+      "size_kb": 129.2,
+      "clamp_count": 2,
+      "z_index_levels": [
+        "0",
+        "1",
+        "10",
+        "50",
+        "99",
+        "100"
+      ],
+      "has_audio_ctx": false,
+      "has_audio_toggle": false,
+      "has_log_section": true,
+      "has_log_search": true,
+      "has_log_export": false,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "gcp-event-pubsub": {
+      "exists": true,
+      "size_kb": 117.4,
+      "clamp_count": 12,
+      "z_index_levels": [
+        "2",
+        "3",
+        "50",
+        "100"
+      ],
+      "has_audio_ctx": false,
+      "has_audio_toggle": false,
+      "has_log_section": true,
+      "has_log_search": true,
+      "has_log_export": false,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "gcp-iam-security": {
+      "exists": true,
+      "size_kb": 132.6,
+      "clamp_count": 4,
+      "z_index_levels": [
+        "0",
+        "1",
+        "100"
+      ],
+      "has_audio_ctx": true,
+      "has_audio_toggle": true,
+      "has_log_section": true,
+      "has_log_search": false,
+      "has_log_export": false,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "gcp-serverless-pipeline": {
+      "exists": true,
+      "size_kb": 92.1,
+      "clamp_count": 9,
+      "z_index_levels": [
+        "99",
+        "100"
+      ],
+      "has_audio_ctx": false,
+      "has_audio_toggle": false,
+      "has_log_section": true,
+      "has_log_search": true,
+      "has_log_export": false,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "gcp-sql-networking": {
+      "exists": true,
+      "size_kb": 99.2,
+      "clamp_count": 6,
+      "z_index_levels": [
+        "0",
+        "1",
+        "2",
+        "99",
+        "100"
+      ],
+      "has_audio_ctx": true,
+      "has_audio_toggle": true,
+      "has_log_section": true,
+      "has_log_search": true,
+      "has_log_export": true,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "mulesoft-observability": {
+      "exists": true,
+      "size_kb": 19.0,
+      "clamp_count": 5,
+      "z_index_levels": [
+        "0",
+        "1",
+        "2"
+      ],
+      "has_audio_ctx": false,
+      "has_audio_toggle": false,
+      "has_log_section": false,
+      "has_log_search": false,
+      "has_log_export": true,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "network-health": {
+      "exists": true,
+      "size_kb": 23.0,
+      "clamp_count": 21,
+      "z_index_levels": [
+        "0",
+        "1",
+        "2"
+      ],
+      "has_audio_ctx": false,
+      "has_audio_toggle": false,
+      "has_log_section": false,
+      "has_log_search": false,
+      "has_log_export": false,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "security-audit": {
+      "exists": true,
+      "size_kb": 100.5,
+      "clamp_count": 17,
+      "z_index_levels": [
+        "0",
+        "1",
+        "2",
+        "99",
+        "100",
+        "999"
+      ],
+      "has_audio_ctx": false,
+      "has_audio_toggle": false,
+      "has_log_section": true,
+      "has_log_search": false,
+      "has_log_export": true,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "server-status": {
+      "exists": true,
+      "size_kb": 117.4,
+      "clamp_count": 9,
+      "z_index_levels": [
+        "0",
+        "2",
+        "10",
+        "50",
+        "100"
+      ],
+      "has_audio_ctx": true,
+      "has_audio_toggle": true,
+      "has_log_section": true,
+      "has_log_search": false,
+      "has_log_export": false,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "transaction-flow": {
+      "exists": true,
+      "size_kb": 115.7,
+      "clamp_count": 7,
+      "z_index_levels": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "100"
+      ],
+      "has_audio_ctx": false,
+      "has_audio_toggle": false,
+      "has_log_section": true,
+      "has_log_search": false,
+      "has_log_export": false,
+      "has_glow": true,
+      "has_dummy_stub": false
+    },
+    "tv-diagnostic": {
+      "exists": true,
+      "size_kb": 21.6,
+      "clamp_count": 23,
+      "z_index_levels": [
+        "0",
+        "1",
+        "2"
+      ],
+      "has_audio_ctx": false,
+      "has_audio_toggle": false,
+      "has_log_section": false,
+      "has_log_search": false,
+      "has_log_export": false,
+      "has_glow": true,
+      "has_dummy_stub": false
+    }
+  }
+}

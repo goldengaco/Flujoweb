@@ -1,0 +1,3524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GCP IAM Security & Secret Vault Auditor // Cloud Sec-Ops Command Cockpit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Cyberpunk Mission Control Dark Palette */
+      --bg-dark: #030812;
+      --bg-card: #060d1b;
+      --bg-card-hover: #0c172e;
+      --bg-surface: #101c38;
+      --bg-panel: #091224;
+      --bg-header: #050b17;
+
+      /* Primary Cyber Crimson & Ruby Accents */
+      --red-alert: #ef4444;
+      --red-intense: #dc2626;
+      --red-glow: rgba(239, 68, 68, 0.45);
+      --red-subtle: rgba(239, 68, 68, 0.12);
+      --ruby-accent: #f43f5e;
+      --ruby-glow: rgba(244, 63, 94, 0.45);
+      --ruby-subtle: rgba(244, 63, 94, 0.12);
+
+      /* Neon Emerald */
+      --green-neon: #10b981;
+      --green-bright: #34d399;
+      --green-glow: rgba(16, 185, 129, 0.45);
+      --green-subtle: rgba(16, 185, 129, 0.12);
+
+      /* Accents & Status Colors */
+      --cyan-cyber: #00e5ff;
+      --cyan-glow: rgba(0, 229, 255, 0.45);
+      --cyan-subtle: rgba(0, 229, 255, 0.1);
+      --amber-warn: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.45);
+      --amber-subtle: rgba(245, 158, 11, 0.12);
+      --purple-cyber: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.45);
+
+      /* Text & Borders */
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border-subtle: rgba(244, 63, 94, 0.16);
+      --border-card: rgba(239, 68, 68, 0.22);
+      --border-bright: rgba(244, 63, 94, 0.55);
+      --border-cyan: rgba(0, 229, 255, 0.35);
+
+      /* Typography */
+      --font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', ui-monospace, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    /* Ambient Hexagonal & Cyberpunk Grid Background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(30deg, rgba(244, 63, 94, 0.025) 12%, transparent 12.5%, transparent 87%, rgba(244, 63, 94, 0.025) 87.5%),
+        linear-gradient(150deg, rgba(244, 63, 94, 0.025) 12%, transparent 12.5%, transparent 87%, rgba(244, 63, 94, 0.025) 87.5%),
+        linear-gradient(30deg, rgba(0, 229, 255, 0.015) 12%, transparent 12.5%, transparent 87%, rgba(0, 229, 255, 0.015) 87.5%),
+        linear-gradient(150deg, rgba(0, 229, 255, 0.015) 12%, transparent 12.5%, transparent 87%, rgba(0, 229, 255, 0.015) 87.5%),
+        linear-gradient(60deg, rgba(239, 68, 68, 0.02) 25%, transparent 25.5%, transparent 75%, rgba(239, 68, 68, 0.02) 75%);
+      background-size: 48px 84px;
+      background-position: 0 0, 0 0, 24px 42px, 24px 42px, 0 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.8;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% 10%, rgba(239, 68, 68, 0.06) 0%, rgba(244, 63, 94, 0.03) 40%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-surface);
+      border-radius: 3px;
+      border: 1px solid var(--border-subtle);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--ruby-accent);
+    }
+
+    /* App Container */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 16px 20px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 0;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    /* Permanent Luminous Icon Rule */
+    .lum-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 0 6px currentColor);
+      font-style: normal;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .lum-icon-red { color: var(--red-alert); filter: drop-shadow(0 0 8px var(--red-glow)); }
+    .lum-icon-ruby { color: var(--ruby-accent); filter: drop-shadow(0 0 8px var(--ruby-glow)); }
+    .lum-icon-green { color: var(--green-neon); filter: drop-shadow(0 0 8px var(--green-glow)); }
+    .lum-icon-cyan { color: var(--cyan-cyber); filter: drop-shadow(0 0 8px var(--cyan-glow)); }
+    .lum-icon-amber { color: var(--amber-warn); filter: drop-shadow(0 0 8px var(--amber-glow)); }
+    .lum-icon-purple { color: var(--purple-cyber); filter: drop-shadow(0 0 8px var(--purple-glow)); }
+
+    /* Top Navigation Header */
+    .app-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, rgba(6, 13, 27, 0.95), rgba(16, 28, 56, 0.85));
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .brand-logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.3), rgba(6, 13, 27, 0.95));
+      border: 1.5px solid var(--red-alert);
+      box-shadow: 0 0 18px var(--red-glow), inset 0 0 10px var(--red-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .brand-info {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .brand-info h1 {
+      font-size: clamp(1rem, 2.2vw, 1.3rem);
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #ffffff, #fca5a5, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .brand-info .subtitle {
+      font-size: clamp(0.68rem, 1.2vw, 0.78rem);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 10px;
+      margin-top: 2px;
+      min-width: 0;
+    }
+
+    .api-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      border-radius: 4px;
+      font-size: 0.68rem;
+      color: #fda4af;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .project-selector-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(3, 8, 18, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 4px 10px;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .project-selector-wrapper label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .project-select {
+      background: transparent;
+      border: none;
+      color: var(--cyan-cyber);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      outline: none;
+      cursor: pointer;
+      max-width: 100%;
+      min-width: 0;
+    }
+    .project-select option {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    /* Primary Cyber Buttons */
+    .cyber-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      text-decoration: none;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .cyber-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+    .cyber-btn:active {
+      transform: translateY(0);
+    }
+
+    .cyber-btn-red {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.35));
+      border-color: var(--red-alert);
+      color: #fee2e2;
+      box-shadow: 0 0 12px var(--red-glow);
+    }
+    .cyber-btn-red:hover {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.35), rgba(220, 38, 38, 0.55));
+      box-shadow: 0 0 20px var(--red-glow);
+    }
+
+    .cyber-btn-ruby {
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(225, 29, 72, 0.35));
+      border-color: var(--ruby-accent);
+      color: #ffe4e6;
+      box-shadow: 0 0 12px var(--ruby-glow);
+    }
+    .cyber-btn-ruby:hover {
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.35), rgba(225, 29, 72, 0.55));
+      box-shadow: 0 0 20px var(--ruby-glow);
+    }
+
+    .cyber-btn-cyan {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(0, 184, 212, 0.3));
+      border-color: var(--cyan-cyber);
+      color: #e0f7fa;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+    .cyber-btn-cyan:hover {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.25), rgba(0, 184, 212, 0.45));
+      box-shadow: 0 0 18px var(--cyan-glow);
+    }
+
+    .cyber-btn-green {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.35));
+      border-color: var(--green-neon);
+      color: #d1fae5;
+      box-shadow: 0 0 12px var(--green-glow);
+    }
+    .cyber-btn-green:hover {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.55));
+      box-shadow: 0 0 18px var(--green-glow);
+    }
+
+    .cyber-btn-subtle {
+      background: rgba(16, 28, 56, 0.6);
+      border-color: var(--border-subtle);
+      color: var(--text-secondary);
+    }
+    .cyber-btn-subtle:hover {
+      border-color: var(--ruby-accent);
+      color: var(--text-primary);
+    }
+
+    /* Score Badge Dial */
+    .header-score-dial {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      background: rgba(3, 8, 18, 0.85);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+    }
+    .dial-svg-wrapper {
+      position: relative;
+      width: 36px;
+      height: 36px;
+    }
+    .dial-svg-wrapper svg {
+      transform: rotate(-90deg);
+      width: 36px;
+      height: 36px;
+    }
+    .dial-score-val {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+    }
+
+    /* Threat Alert Banner */
+    .threat-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 20px;
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.25), rgba(244, 63, 94, 0.15));
+      border: 1.5px solid var(--red-alert);
+      border-radius: 10px;
+      box-shadow: 0 0 24px var(--red-glow), inset 0 0 12px var(--red-subtle);
+      animation: pulseAlert 2s infinite ease-in-out;
+    }
+    .threat-banner.active {
+      display: flex;
+    }
+    .threat-banner-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .threat-pulse-icon {
+      font-size: 22px;
+      animation: wobble 1s infinite ease-in-out;
+    }
+    .threat-text-title {
+      font-weight: 700;
+      color: #fecaca;
+      font-size: clamp(0.78rem, 1.5vw, 0.95rem);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .threat-text-desc {
+      font-size: 0.78rem;
+      color: #fca5a5;
+      font-family: var(--font-mono);
+    }
+
+    @keyframes pulseAlert {
+      0%, 100% { border-color: var(--red-alert); box-shadow: 0 0 18px var(--red-glow); }
+      50% { border-color: #f87171; box-shadow: 0 0 32px var(--red-glow); }
+    }
+    @keyframes wobble {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.18); }
+    }
+
+    /* KPI Summary Row */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .kpi-card {
+      background: linear-gradient(135deg, rgba(6, 13, 27, 0.9), rgba(9, 18, 36, 0.8));
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    .kpi-card:hover {
+      border-color: var(--border-bright);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--ruby-accent);
+      box-shadow: 0 0 8px var(--ruby-glow);
+    }
+    .kpi-card.green::before { background: var(--green-neon); box-shadow: 0 0 8px var(--green-glow); }
+    .kpi-card.cyan::before { background: var(--cyan-cyber); box-shadow: 0 0 8px var(--cyan-glow); }
+    .kpi-card.amber::before { background: var(--amber-warn); box-shadow: 0 0 8px var(--amber-glow); }
+    .kpi-card.red::before { background: var(--red-alert); box-shadow: 0 0 8px var(--red-glow); }
+
+    .kpi-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .kpi-title {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .kpi-icon {
+      font-size: 16px;
+    }
+    .kpi-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .kpi-value {
+      font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .kpi-badge {
+      font-size: 0.68rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    .badge-alert { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid var(--red-alert); }
+    .badge-warn { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid var(--amber-warn); }
+    .badge-ok { background: rgba(16, 185, 129, 0.2); color: #a7f3d0; border: 1px solid var(--green-neon); }
+    .badge-info { background: rgba(0, 229, 255, 0.2); color: #a5f3fc; border: 1px solid var(--cyan-cyber); }
+
+    .kpi-footer {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Tabs Navigation */
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      min-width: 0;
+      max-width: 100%;
+      width: 100%;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border-subtle);
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 8px 8px 0 0;
+      background: rgba(6, 13, 27, 0.6);
+      border: 1px solid transparent;
+      border-bottom: none;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .tab-btn:hover {
+      background: rgba(16, 28, 56, 0.8);
+      color: var(--text-primary);
+    }
+    .tab-btn.active {
+      background: linear-gradient(180deg, rgba(244, 63, 94, 0.15), rgba(9, 18, 36, 0.95));
+      border-color: var(--border-bright);
+      color: #fff;
+      box-shadow: inset 0 2px 0 var(--ruby-accent), 0 -2px 10px rgba(244, 63, 94, 0.15);
+    }
+    .tab-badge {
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 0.65rem;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Tab Panes */
+    .tab-pane {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      animation: fadeIn 0.25s ease;
+    }
+    .tab-pane.active {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Main Content Layout Panels */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    @media (min-width: 1024px) {
+      .dashboard-grid-2col {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+      .dashboard-grid-3col {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+
+    .panel-card {
+      background: linear-gradient(135deg, rgba(6, 13, 27, 0.95), rgba(9, 18, 36, 0.9));
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Hierarchy Tree Visualizer */
+    .hierarchy-tree {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .tree-node {
+      background: rgba(3, 8, 18, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px 16px;
+      transition: all 0.2s ease;
+    }
+    .tree-node:hover {
+      border-color: var(--border-bright);
+      background: rgba(16, 28, 56, 0.4);
+    }
+    .tree-node-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .tree-node-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .tree-children {
+      margin-top: 12px;
+      padding-left: 20px;
+      border-left: 2px dashed rgba(244, 63, 94, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Tables */
+    .cyber-table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(3, 8, 18, 0.7);
+    }
+    .cyber-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      text-align: left;
+    }
+    .cyber-table th {
+      background: rgba(16, 28, 56, 0.8);
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-card);
+      white-space: nowrap;
+    }
+    .cyber-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(244, 63, 94, 0.08);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+    .cyber-table tr:last-child td {
+      border-bottom: none;
+    }
+    .cyber-table tr:hover td {
+      background: rgba(244, 63, 94, 0.04);
+    }
+
+    /* Least-Privilege Risk Matrix */
+    .risk-meter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .risk-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .risk-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+    .fill-critical { background: linear-gradient(90deg, #f87171, #ef4444); box-shadow: 0 0 8px var(--red-glow); }
+    .fill-high { background: linear-gradient(90deg, #fb923c, #f97316); box-shadow: 0 0 8px rgba(249, 115, 22, 0.4); }
+    .fill-medium { background: linear-gradient(90deg, #fde047, #f59e0b); box-shadow: 0 0 8px var(--amber-glow); }
+    .fill-low { background: linear-gradient(90deg, #6ee7b7, #10b981); box-shadow: 0 0 8px var(--green-glow); }
+
+    /* Filter Controls Bar */
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(3, 8, 18, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+    }
+    .filter-pills {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .filter-pill {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      background: rgba(16, 28, 56, 0.5);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-pill:hover {
+      border-color: var(--ruby-accent);
+      color: var(--text-primary);
+    }
+    .filter-pill.active {
+      background: rgba(244, 63, 94, 0.2);
+      border-color: var(--ruby-accent);
+      color: #fff;
+      box-shadow: 0 0 8px var(--ruby-glow);
+    }
+    .search-input {
+      background: rgba(6, 13, 27, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      outline: none;
+      min-width: 220px;
+    }
+    .search-input:focus {
+      border-color: var(--ruby-accent);
+      box-shadow: 0 0 10px var(--ruby-glow);
+    }
+
+    /* Secret Version Timeline */
+    .secret-timeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(3, 8, 18, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+    }
+    .timeline-track {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      padding: 30px 20px;
+      overflow-x: auto;
+    }
+    .timeline-track::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 40px;
+      right: 40px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.3), rgba(245, 158, 11, 0.3), rgba(16, 185, 129, 0.5));
+      z-index: 0;
+    }
+    .timeline-node {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 100px;
+    }
+    .timeline-node:hover .node-dot {
+      transform: scale(1.2);
+    }
+    .node-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 2px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+    }
+    .node-dot.active {
+      border-color: var(--green-neon);
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.35), var(--bg-card));
+      box-shadow: 0 0 16px var(--green-glow);
+    }
+    .node-dot.deprecated {
+      border-color: var(--amber-warn);
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.35), var(--bg-card));
+      box-shadow: 0 0 16px var(--amber-glow);
+    }
+    .node-dot.destroyed {
+      border-color: var(--red-alert);
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.35), var(--bg-card));
+      box-shadow: 0 0 16px var(--red-glow);
+    }
+    .node-label {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+    .node-state {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    /* KMS Dial & Key Rotation */
+    .kms-dial-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(3, 8, 18, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      position: relative;
+    }
+    .kms-circle-wrapper {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .kms-circle-svg {
+      width: 140px;
+      height: 140px;
+      transform: rotate(-90deg);
+    }
+    .kms-circle-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .kms-days-val {
+      font-size: 1.6rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--cyan-cyber);
+    }
+    .kms-days-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+    }
+
+    /* API Quota Multi-Gauge Grid */
+    .quota-gauges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .quota-gauge-box {
+      background: rgba(3, 8, 18, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .quota-gauge-box.warning {
+      border-color: var(--red-alert);
+      background: rgba(239, 68, 68, 0.08);
+      box-shadow: 0 0 12px var(--red-glow);
+    }
+    .quota-title {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .quota-rps-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+    .quota-limit-text {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* Canvas Charts */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      background: rgba(3, 8, 18, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .chart-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Cloud Audit Live Terminal */
+    .terminal-container {
+      background: #02060f;
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: rgba(16, 28, 56, 0.9);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .terminal-body {
+      height: 320px;
+      overflow-y: auto;
+      padding: 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .log-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      word-break: break-all;
+    }
+    .log-time { color: #64748b; flex-shrink: 0; }
+    .log-sev-info { color: var(--cyan-cyber); font-weight: 600; flex-shrink: 0; }
+    .log-sev-warn { color: var(--amber-warn); font-weight: 600; flex-shrink: 0; }
+    .log-sev-error { color: var(--red-alert); font-weight: 600; flex-shrink: 0; }
+    .log-sev-alert { color: #f43f5e; font-weight: 700; text-shadow: 0 0 6px var(--ruby-glow); flex-shrink: 0; }
+    .log-method { color: #e2e8f0; font-weight: 500; }
+    .log-msg { color: #94a3b8; }
+
+    /* Modals & Dialogs */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 18, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-card {
+      background: linear-gradient(135deg, #060d1b, #0c172e);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8), 0 0 30px var(--ruby-glow);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .modal-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .modal-close-btn:hover { color: var(--red-alert); }
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    /* Form Inputs */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+    }
+    .form-input, .form-textarea, .form-select {
+      background: rgba(3, 8, 18, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      outline: none;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--ruby-accent);
+      box-shadow: 0 0 10px var(--ruby-glow);
+    }
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* Stepper Wizard */
+    .stepper-wizard {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .stepper-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: rgba(3, 8, 18, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .stepper-step.active {
+      border-color: var(--cyan-cyber);
+      background: rgba(0, 229, 255, 0.08);
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+    .stepper-step.completed {
+      border-color: var(--green-neon);
+      background: rgba(16, 185, 129, 0.08);
+    }
+    .step-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .stepper-step.active .step-circle { border-color: var(--cyan-cyber); color: var(--cyan-cyber); }
+    .stepper-step.completed .step-circle { border-color: var(--green-neon); color: var(--green-neon); }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      background: rgba(6, 13, 27, 0.95);
+      border: 1px solid var(--border-card);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px var(--ruby-glow);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      animation: slideUp 0.25s ease;
+      max-width: 380px;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Scanner Scanning Animation Overlay */
+    .scanner-progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      display: none;
+    }
+    .scanner-progress-bar.active {
+      display: block;
+    }
+    .scanner-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--ruby-accent), var(--cyan-cyber), var(--green-neon));
+      box-shadow: 0 0 10px var(--ruby-glow);
+      transition: width 0.3s ease;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 768px) {
+      .app-container { padding: 12px 12px 36px; }
+      .app-header { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .header-controls { width: 100%; justify-content: space-between; }
+      .project-selector-wrapper { width: 100%; }
+      .project-select { width: 100%; text-overflow: ellipsis; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .timeline-track { padding: 20px 10px; }
+      .timeline-node { min-width: 80px; }
+    }
+    @media (max-width: 480px) {
+      .app-container { padding: 10px 8px 24px; }
+      .app-header { padding: 10px 12px; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .filters-bar { flex-direction: column; align-items: stretch; }
+      .search-input { min-width: 100%; }
+      .tab-btn { padding: 6px 10px; font-size: 0.72rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Header / Mission Control Bar -->
+  <header class="app-header" data-testid="app-header">
+    <div class="brand-section">
+      <div class="brand-logo" data-testid="brand-logo">
+        <span class="lum-icon lum-icon-ruby">🛡️</span>
+      </div>
+      <div class="brand-info">
+        <h1>GCP IAM Security & Secret Vault Auditor</h1>
+        <div class="subtitle">
+          <span>SEC-OPS GOVERNANCE // AUDIT LEVEL: ENTERPRISE FIPS 140-2</span>
+          <span class="api-badge"><span class="lum-icon lum-icon-ruby">🔑</span> iam.googleapis.com</span>
+          <span class="api-badge"><span class="lum-icon lum-icon-cyan">🏢</span> cloudresourcemanager</span>
+          <span class="api-badge"><span class="lum-icon lum-icon-green">🔒</span> secretmanager</span>
+          <span class="api-badge"><span class="lum-icon lum-icon-amber">🛡️</span> cloudkms</span>
+          <span class="api-badge"><span class="lum-icon lum-icon-purple">📊</span> serviceusage</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <!-- Project Scope Selector -->
+      <div class="project-selector-wrapper">
+        <label for="projectSelect">Project Scope:</label>
+        <select id="projectSelect" class="project-select" data-testid="project-scope-select">
+          <option value="ALL">ALL (Organization: acme-corp.org)</option>
+          <option value="prj-prod-payments-9941">prj-prod-payments-9941 [PROD]</option>
+          <option value="prj-prod-vault-7721">prj-prod-vault-7721 [PROD-VAULT]</option>
+          <option value="prj-dev-sandbox-1029">prj-dev-sandbox-1029 [NON-PROD]</option>
+        </select>
+      </div>
+
+      <!-- Score Dial in Header -->
+      <div class="header-score-dial" data-testid="posture-score-dial">
+        <div class="dial-svg-wrapper">
+          <svg viewBox="0 0 36 36">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3.5" />
+            <path id="headerScorePath" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--ruby-accent)" stroke-width="3.5" stroke-dasharray="78, 100" />
+          </svg>
+          <div class="dial-score-val" id="headerScoreVal" data-testid="posture-score-val">78%</div>
+        </div>
+        <div>
+          <div style="font-size:0.65rem; color:var(--text-muted); font-family:var(--font-mono)">POSTURE SCORE</div>
+          <div id="headerScoreGrade" style="font-size:0.75rem; font-weight:700; color:var(--ruby-accent); font-family:var(--font-mono)">GRADE: C+</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <button class="cyber-btn cyber-btn-ruby" id="scanBtn" data-testid="scan-btn" title="Scan entire GCP Project Hierarchy and Vaults">
+        <span class="lum-icon lum-icon-ruby">🔍</span> SCAN HIERARCHY
+      </button>
+      <button class="cyber-btn cyber-btn-red" id="threatBtn" data-testid="simulate-threat-btn" title="Simulate Leaked SA Key Threat Alert">
+        <span class="lum-icon lum-icon-red">🚨</span> SIMULATE THREAT
+      </button>
+      <button class="cyber-btn cyber-btn-cyan" id="quotaSpikeBtn" data-testid="quota-spike-btn" title="Simulate 429 API Rate Limit Spike & Backoff">
+        <span class="lum-icon lum-icon-cyan">⚡</span> QUOTA SPIKE
+      </button>
+      <button class="cyber-btn cyber-btn-subtle" id="exportReportBtn" data-testid="export-report-btn" title="Export Security Audit Telemetry Report">
+        <span class="lum-icon lum-icon-cyan">📥</span> EXPORT
+      </button>
+      <button class="cyber-btn cyber-btn-subtle" id="audioToggleBtn" data-testid="audio-toggle-btn" title="Toggle Sound FX">
+        <span class="lum-icon lum-icon-ruby" id="audioIcon">🔊</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Scanning Progress Bar -->
+  <div class="scanner-progress-bar" id="scannerProgress">
+    <div class="scanner-progress-fill" id="scannerFill"></div>
+  </div>
+
+  <!-- Threat Alert Banner -->
+  <div class="threat-banner" id="threatBanner" data-testid="threat-banner">
+    <div class="threat-banner-content">
+      <span class="lum-icon lum-icon-red threat-pulse-icon">🚨</span>
+      <div>
+        <div class="threat-text-title">
+          <span>CRITICAL COMPROMISE DETECTED: Service Account Key Leaked on Public Repo</span>
+          <span class="badge-alert">CVE-2026-IAM-9921</span>
+        </div>
+        <div class="threat-text-desc" id="threatDescText">
+          Principal: <b style="color:#fff">sa-ci-cd-deployer@prj-prod-payments-9941.iam.gserviceaccount.com</b> | Key ID: <b style="color:#fff">key-9941-deploy-sec8</b> | Broad Role: <b style="color:#fff">roles/editor</b>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button class="cyber-btn cyber-btn-red" id="instantRevokeThreatBtn" data-testid="threat-instant-revoke-btn">
+        <span class="lum-icon lum-icon-red">⚡</span> INSTANT REVOKE KEY
+      </button>
+      <button class="cyber-btn cyber-btn-ruby" id="threatRotateBtn" data-testid="threat-rotate-btn">
+        <span class="lum-icon lum-icon-ruby">🔄</span> ROTATE KEY
+      </button>
+      <button class="cyber-btn cyber-btn-subtle" id="dismissThreatBtn">DISMISS</button>
+    </div>
+  </div>
+
+  <!-- KPI Summary Row -->
+  <section class="kpi-grid" data-testid="kpi-summary-grid">
+    <!-- KPI 1 -->
+    <div class="kpi-card red" data-testid="kpi-posture">
+      <div class="kpi-header">
+        <span class="kpi-title">Global Security Score</span>
+        <span class="lum-icon lum-icon-ruby kpi-icon">🛡️</span>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-value" id="kpiScoreVal">78/100</span>
+        <span class="kpi-badge badge-alert" id="kpiScoreBadge">ATTENTION</span>
+      </div>
+      <div class="kpi-footer">
+        <span>Hierarchy & Policy Posture</span>
+        <span id="kpiScoreTrend">Target: 95+</span>
+      </div>
+    </div>
+
+    <!-- KPI 2 -->
+    <div class="kpi-card amber" data-testid="kpi-excess-iam">
+      <div class="kpi-header">
+        <span class="kpi-title">Excess Permissions</span>
+        <span class="lum-icon lum-icon-amber kpi-icon">⚖️</span>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-value" id="kpiExcessVal">4 Flagged</span>
+        <span class="kpi-badge badge-warn" id="kpiExcessBadge">84% UNUSED</span>
+      </div>
+      <div class="kpi-footer">
+        <span>Least-Privilege Drift</span>
+        <span>Recommender AI Active</span>
+      </div>
+    </div>
+
+    <!-- KPI 3 -->
+    <div class="kpi-card red" data-testid="kpi-sa-keys">
+      <div class="kpi-header">
+        <span class="kpi-title">SA Key Health</span>
+        <span class="lum-icon lum-icon-red kpi-icon">🔑</span>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-value" id="kpiKeysVal">1 Leaked / 2 Exp</span>
+        <span class="kpi-badge badge-alert" id="kpiKeysBadge">CRITICAL</span>
+      </div>
+      <div class="kpi-footer">
+        <span>8 Managed Keys Scanned</span>
+        <span>Max Policy: 90 Days</span>
+      </div>
+    </div>
+
+    <!-- KPI 4 -->
+    <div class="kpi-card green" data-testid="kpi-secret-vault">
+      <div class="kpi-header">
+        <span class="kpi-title">Secret Manager Vault</span>
+        <span class="lum-icon lum-icon-green kpi-icon">🔒</span>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-value" id="kpiSecretsVal">4 Vaults</span>
+        <span class="kpi-badge badge-ok">16 VERSIONS</span>
+      </div>
+      <div class="kpi-footer">
+        <span>Dual-Region Encrypted</span>
+        <span>CMEK Enforced</span>
+      </div>
+    </div>
+
+    <!-- KPI 5 -->
+    <div class="kpi-card cyan" data-testid="kpi-kms-cmek">
+      <div class="kpi-header">
+        <span class="kpi-title">Cloud KMS CMEK</span>
+        <span class="lum-icon lum-icon-cyan kpi-icon">🛡️</span>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-value" id="kpiKmsVal">100% HSM</span>
+        <span class="kpi-badge badge-info">FIPS 140-2 L3</span>
+      </div>
+      <div class="kpi-footer">
+        <span>Next Auto-Rotation: 14d</span>
+        <span>2 Key Rings</span>
+      </div>
+    </div>
+
+    <!-- KPI 6 -->
+    <div class="kpi-card amber" data-testid="kpi-api-quota">
+      <div class="kpi-header">
+        <span class="kpi-title">API Quota Saturation</span>
+        <span class="lum-icon lum-icon-purple kpi-icon">📊</span>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-value" id="kpiQuotaVal">86.7% Peak</span>
+        <span class="kpi-badge badge-warn" id="kpiQuotaBadge">NEAR CEILING</span>
+      </div>
+      <div class="kpi-footer">
+        <span>secretmanager (260/300 RPS)</span>
+        <span>Backoff Ready</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Tabs Navigation -->
+  <nav class="tabs-nav" data-testid="dashboard-tabs">
+    <button class="tab-btn active" data-tab="tab-posture" data-testid="tab-btn-posture">
+      <span class="lum-icon lum-icon-ruby">🏢</span> Hierarchy & Posture <span class="tab-badge" id="tabBadgePosture">78%</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-least-privilege" data-testid="tab-btn-least-privilege">
+      <span class="lum-icon lum-icon-amber">⚖️</span> Least-Privilege Risk Matrix <span class="tab-badge" id="tabBadgeMatrix">4 Over-Priv</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-sa-keys" data-testid="tab-btn-sa-keys">
+      <span class="lum-icon lum-icon-red">🔑</span> SA Key Governance <span class="tab-badge" id="tabBadgeKeys">1 Threat</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-secret-vault" data-testid="tab-btn-secret-vault">
+      <span class="lum-icon lum-icon-green">🔒</span> Secret Vault Timeline <span class="tab-badge" id="tabBadgeVault">4 Secrets</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-cloud-kms" data-testid="tab-btn-cloud-kms">
+      <span class="lum-icon lum-icon-cyan">🛡️</span> Cloud KMS & CMEK <span class="tab-badge">HSM Protected</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-api-quotas" data-testid="tab-btn-api-quotas">
+      <span class="lum-icon lum-icon-purple">📊</span> API Quota Gauges <span class="tab-badge" id="tabBadgeQuota">5 APIs</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-audit-logs" data-testid="tab-btn-audit-logs">
+      <span class="lum-icon lum-icon-cyan">📜</span> Live Audit Stream <span class="tab-badge" id="tabBadgeLogs">LIVE</span>
+    </button>
+  </nav>
+
+  <!-- TAB 1: Resource Hierarchy & Posture Scanner -->
+  <div class="tab-pane active" id="tab-posture" data-testid="pane-posture">
+    <div class="dashboard-grid dashboard-grid-2col">
+      
+      <!-- Hierarchy Tree Card -->
+      <div class="panel-card" data-testid="hierarchy-tree-card">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">
+              <span class="lum-icon lum-icon-cyan">🏢</span> GCP Resource Hierarchy & IAM Policy Tree
+            </div>
+            <div class="panel-desc">cloudresourcemanager.googleapis.com // Effective Inherited & Direct IAM Bindings</div>
+          </div>
+          <div class="panel-actions">
+            <button class="cyber-btn cyber-btn-subtle" id="expandTreeBtn">EXPAND ALL</button>
+          </div>
+        </div>
+
+        <div class="hierarchy-tree" id="hierarchyTree">
+          <!-- Org Node -->
+          <div class="tree-node" data-node="org">
+            <div class="tree-node-header">
+              <div class="tree-node-title">
+                <span class="lum-icon lum-icon-ruby">🌐</span>
+                <span>Organization: acme-corp.org (ID: org-984214589)</span>
+              </div>
+              <span class="badge-ok">COMPLIANT (3 Policies)</span>
+            </div>
+            
+            <div class="tree-children">
+              <!-- Folder 1 -->
+              <div class="tree-node" data-node="fldr-prod">
+                <div class="tree-node-header">
+                  <div class="tree-node-title">
+                    <span class="lum-icon lum-icon-amber">📁</span>
+                    <span>Folder: Production-Workloads (ID: fldr-440182)</span>
+                  </div>
+                  <span class="badge-warn">2 PROJECTS // 3 EXCESS BINDINGS</span>
+                </div>
+                <div class="tree-children">
+                  <!-- Project 1 -->
+                  <div class="tree-node" style="border-color: rgba(239,68,68,0.4);">
+                    <div class="tree-node-header">
+                      <div class="tree-node-title">
+                        <span class="lum-icon lum-icon-red">📦</span>
+                        <span>Project: prj-prod-payments-9941</span>
+                      </div>
+                      <span class="badge-alert">RISK SCORE: 72/100 (HIGH)</span>
+                    </div>
+                    <div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:6px;">
+                      Core Payment APIs | 4 Service Accounts | 1 Leaked Key | 2 Over-Privileged Roles
+                    </div>
+                  </div>
+                  <!-- Project 2 -->
+                  <div class="tree-node">
+                    <div class="tree-node-header">
+                      <div class="tree-node-title">
+                        <span class="lum-icon lum-icon-green">📦</span>
+                        <span>Project: prj-prod-vault-7721</span>
+                      </div>
+                      <span class="badge-ok">RISK SCORE: 94/100 (GOOD)</span>
+                    </div>
+                    <div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:6px;">
+                      Secret Manager & KMS CMEK Vault | 3 Secrets | 0 Leaks | Strict IAM
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Folder 2 -->
+              <div class="tree-node" data-node="fldr-dev">
+                <div class="tree-node-header">
+                  <div class="tree-node-title">
+                    <span class="lum-icon lum-icon-cyan">📁</span>
+                    <span>Folder: Non-Production-Sandbox (ID: fldr-119284)</span>
+                  </div>
+                  <span class="badge-info">1 PROJECT // EXPERIMENTAL</span>
+                </div>
+                <div class="tree-children">
+                  <div class="tree-node">
+                    <div class="tree-node-header">
+                      <div class="tree-node-title">
+                        <span class="lum-icon lum-icon-cyan">📦</span>
+                        <span>Project: prj-dev-sandbox-1029</span>
+                      </div>
+                      <span class="badge-warn">RISK SCORE: 68/100</span>
+                    </div>
+                    <div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:6px;">
+                      Development Playground | Broad Editor Grants | 2 Expired Keys
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Posture Radar & Org Constraints -->
+      <div class="panel-card" data-testid="posture-constraints-card">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">
+              <span class="lum-icon lum-icon-ruby">🛡️</span> Security Posture Radar & Org Constraints
+            </div>
+            <div class="panel-desc">Compliance against CIS GCP Foundation Benchmark 3.0</div>
+          </div>
+        </div>
+
+        <div class="chart-container" style="height: 180px;">
+          <canvas id="postureRadarCanvas" class="chart-canvas"></canvas>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--text-secondary); text-transform:uppercase;">
+            Organization Policy Constraints
+          </div>
+
+          <div class="cyber-table-container">
+            <table class="cyber-table">
+              <thead>
+                <tr>
+                  <th>Constraint Rule</th>
+                  <th>Status</th>
+                  <th>Violations</th>
+                </tr>
+              </thead>
+              <tbody id="orgConstraintsTable">
+                <tr>
+                  <td><code>iam.disableServiceAccountKeyCreation</code></td>
+                  <td><span class="badge-warn">NOT ENFORCED</span></td>
+                  <td><span style="color:#f87171; font-weight:700">3 Keys Violating</span></td>
+                </tr>
+                <tr>
+                  <td><code>iam.automaticIamGrantsForDefaultServiceAccounts</code></td>
+                  <td><span class="badge-ok">ENFORCED</span></td>
+                  <td>0 Violations</td>
+                </tr>
+                <tr>
+                  <td><code>compute.requireOsLogin</code></td>
+                  <td><span class="badge-ok">ENFORCED</span></td>
+                  <td>0 Violations</td>
+                </tr>
+                <tr>
+                  <td><code>iam.allowedPolicyMemberDomains</code></td>
+                  <td><span class="badge-ok">ENFORCED</span></td>
+                  <td>acme-corp.org only</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 2: Least-Privilege Risk Matrix -->
+  <div class="tab-pane" id="tab-least-privilege" data-testid="pane-least-privilege">
+    <div class="panel-card">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">
+            <span class="lum-icon lum-icon-amber">⚖️</span> Least-Privilege Risk Matrix & AI Downscoping Engine
+          </div>
+          <div class="panel-desc">iam.googleapis.com // 90-Day Permission Usage Telemetry vs Assigned Roles</div>
+        </div>
+        <div class="panel-actions">
+          <button class="cyber-btn cyber-btn-ruby" id="autoRemediateAllBtn" data-testid="downscope-all-btn">
+            <span class="lum-icon lum-icon-ruby">⚡</span> AUTO-DOWNSCOPE ALL EXCESS
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters Bar -->
+      <div class="filters-bar">
+        <div class="filter-pills" id="matrixFilterPills">
+          <button class="filter-pill active" data-filter="ALL">ALL (4)</button>
+          <button class="filter-pill" data-filter="CRITICAL">CRITICAL (1)</button>
+          <button class="filter-pill" data-filter="HIGH">HIGH (2)</button>
+          <button class="filter-pill" data-filter="MEDIUM">MEDIUM (1)</button>
+          <button class="filter-pill" data-filter="REMEDIATED">REMEDIATED (0)</button>
+        </div>
+        <input type="text" id="matrixSearchInput" class="search-input" placeholder="Filter principal, role or project..." data-testid="matrix-search-input">
+      </div>
+
+      <!-- Principals Matrix Table -->
+      <div class="cyber-table-container">
+        <table class="cyber-table" data-testid="least-privilege-table">
+          <thead>
+            <tr>
+              <th>Principal Email / Type</th>
+              <th>Assigned Broad Role</th>
+              <th>90d Utilized %</th>
+              <th>Excess Permissions</th>
+              <th>Risk Severity</th>
+              <th>Downscope Recommendation</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="leastPrivilegeTableBody">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Service Account Key Governance -->
+  <div class="tab-pane" id="tab-sa-keys" data-testid="pane-sa-keys">
+    <div class="dashboard-grid dashboard-grid-2col">
+      
+      <!-- Key Inventory Table -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">
+              <span class="lum-icon lum-icon-red">🔑</span> User-Managed Service Account Keys
+            </div>
+            <div class="panel-desc">iam.serviceAccounts.keys // Expiration & Public Repository Leak Detection</div>
+          </div>
+          <div class="panel-actions">
+            <button class="cyber-btn cyber-btn-cyan" id="createKeyBtn" data-testid="create-sa-key-btn">
+              <span class="lum-icon lum-icon-cyan">+</span> GENERATE KEY
+            </button>
+          </div>
+        </div>
+
+        <div class="cyber-table-container">
+          <table class="cyber-table" data-testid="sa-keys-table">
+            <thead>
+              <tr>
+                <th>Service Account</th>
+                <th>Key ID / Algo</th>
+                <th>Age (Days)</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="saKeysTableBody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Key Rotation & Security Wizard Panel -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">
+              <span class="lum-icon lum-icon-ruby">🔄</span> Zero-Downtime Key Rotation Controller
+            </div>
+            <div class="panel-desc">Automated Dual-Key Ingestion & Secret Manager Sync</div>
+          </div>
+        </div>
+
+        <div class="stepper-wizard" id="keyRotationStepper">
+          <div class="stepper-step" id="step1">
+            <div class="step-circle">1</div>
+            <div>
+              <div style="font-weight:600; font-size:0.8rem;">Generate New Key Pair</div>
+              <div style="font-size:0.7rem; color:var(--text-muted);">Creates 2048-bit RSA Private Key in IAM</div>
+            </div>
+          </div>
+          <div class="stepper-step" id="step2">
+            <div class="step-circle">2</div>
+            <div>
+              <div style="font-weight:600; font-size:0.8rem;">Inject to Secret Manager</div>
+              <div style="font-size:0.7rem; color:var(--text-muted);">Creates new secret version with CMEK encryption</div>
+            </div>
+          </div>
+          <div class="stepper-step" id="step3">
+            <div class="step-circle">3</div>
+            <div>
+              <div style="font-weight:600; font-size:0.8rem;">Client Heartbeat Validation</div>
+              <div style="font-size:0.7rem; color:var(--text-muted);">Smoke tests workload authentication with new key</div>
+            </div>
+          </div>
+          <div class="stepper-step" id="step4">
+            <div class="step-circle">4</div>
+            <div>
+              <div style="font-weight:600; font-size:0.8rem;">Revoke & Delete Old Key</div>
+              <div style="font-size:0.7rem; color:var(--text-muted);">Safely disables prior compromised key ID</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+          <button class="cyber-btn cyber-btn-ruby" id="startKeyRotationBtn" data-testid="start-rotation-wizard-btn">
+            <span class="lum-icon lum-icon-ruby">🚀</span> START ZERO-DOWNTIME ROTATION
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 4: Secret Manager Vault Version Timeline -->
+  <div class="tab-pane" id="tab-secret-vault" data-testid="pane-secret-vault">
+    <div class="panel-card">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">
+            <span class="lum-icon lum-icon-green">🔒</span> Secret Version Lifecycle Timeline
+          </div>
+          <div class="panel-desc">secretmanager.googleapis.com // Active, Deprecated & Destroyed Version Management</div>
+        </div>
+        <div class="panel-actions">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <label style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Secret:</label>
+            <select id="secretSelect" class="project-select" style="border:1px solid var(--border-subtle); padding:4px 8px; border-radius:6px;" data-testid="secret-selector">
+              <option value="sec-payment-rsa-key">prod-payment-rsa-private-key</option>
+              <option value="sec-postgres-creds">cloudsql-pg-master-credentials</option>
+              <option value="sec-stripe-webhook">stripe-live-webhook-secret</option>
+              <option value="sec-oauth-jwt-seed">oauth-jwt-signing-hmac</option>
+            </select>
+          </div>
+          <button class="cyber-btn cyber-btn-green" id="addSecretVersionBtn" data-testid="create-secret-version-btn">
+            <span class="lum-icon lum-icon-green">+</span> NEW VERSION
+          </button>
+        </div>
+      </div>
+
+      <!-- Secret Metadata Overview -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; padding:12px; background:rgba(3,8,18,0.7); border:1px solid var(--border-subtle); border-radius:8px;">
+        <div>
+          <div style="font-size:0.7rem; color:var(--text-muted); font-family:var(--font-mono);">REPLICATION</div>
+          <div id="secretReplication" style="font-weight:700; color:var(--cyan-cyber); font-family:var(--font-mono);">Dual-Region (us-east4, us-central1)</div>
+        </div>
+        <div>
+          <div style="font-size:0.7rem; color:var(--text-muted); font-family:var(--font-mono);">CMEK ENCRYPTION KEY</div>
+          <div id="secretCmek" style="font-weight:700; color:var(--ruby-accent); font-family:var(--font-mono);">key-vault-secrets-cmek</div>
+        </div>
+        <div>
+          <div style="font-size:0.7rem; color:var(--text-muted); font-family:var(--font-mono);">ROTATION PERIOD</div>
+          <div id="secretRotation" style="font-weight:700; color:var(--amber-warn); font-family:var(--font-mono);">60 Days Automatic</div>
+        </div>
+        <div>
+          <div style="font-size:0.7rem; color:var(--text-muted); font-family:var(--font-mono);">TOTAL VERSIONS</div>
+          <div id="secretVersionCount" style="font-weight:700; color:var(--green-neon); font-family:var(--font-mono);">4 (1 Active, 2 Depr, 1 Dest)</div>
+        </div>
+      </div>
+
+      <!-- Interactive Timeline Track -->
+      <div class="secret-timeline-container" data-testid="secret-timeline">
+        <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--text-secondary); text-transform:uppercase;">
+          Version Timeline Track (Click node to inspect)
+        </div>
+        <div class="timeline-track" id="secretTimelineTrack">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Selected Version Inspector -->
+      <div id="versionInspector" style="padding:16px; background:rgba(6,13,27,0.8); border:1px solid var(--border-subtle); border-radius:8px; display:flex; flex-direction:column; gap:12px;" data-testid="secret-version-inspector">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:700; font-size:0.9rem; display:flex; align-items:center; gap:8px;">
+            <span class="lum-icon lum-icon-green" id="inspStateIcon">🟢</span>
+            <span id="inspVersionTitle">Version: v3 (ACTIVE)</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="cyber-btn cyber-btn-subtle" id="toggleVersionStateBtn" data-testid="toggle-secret-version-btn">DISABLE VERSION</button>
+            <button class="cyber-btn cyber-btn-red" id="destroyVersionBtn" data-testid="destroy-secret-version-btn">DESTROY VERSION (IRREVERSIBLE)</button>
+          </div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; font-family:var(--font-mono); font-size:0.78rem;">
+          <div><span style="color:var(--text-muted)">Created:</span> <span id="inspCreatedAt">2026-08-10 14:22:00 UTC</span></div>
+          <div><span style="color:var(--text-muted)">SHA-256 Checksum:</span> <span id="inspChecksum" style="color:var(--cyan-cyber)">e3b0c44298fc1c149afbf4c8...</span></div>
+          <div><span style="color:var(--text-muted)">Payload Size:</span> <span id="inspPayloadSize">2,048 Bytes</span></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);">SECRET PAYLOAD PREVIEW</span>
+            <button class="cyber-btn cyber-btn-subtle" id="revealPayloadBtn" style="padding:2px 8px; font-size:0.68rem;">REVEAL PAYLOAD</button>
+          </div>
+          <div id="inspPayloadPreview" style="background:#02060f; border:1px solid rgba(255,255,255,0.06); padding:10px; border-radius:6px; font-family:var(--font-mono); font-size:0.75rem; color:#a5f3fc; overflow-x:auto;">
+            ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 5: Cloud KMS & CMEK Rotation -->
+  <div class="tab-pane" id="tab-cloud-kms" data-testid="pane-cloud-kms">
+    <div class="dashboard-grid dashboard-grid-2col">
+      
+      <!-- Key Ring & CryptoKeys Table -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">
+              <span class="lum-icon lum-icon-cyan">🛡️</span> Cloud KMS Key Rings & CryptoKeys
+            </div>
+            <div class="panel-desc">cloudkms.googleapis.com // FIPS 140-2 Level 3 HSM Protection & Auto-Rotation</div>
+          </div>
+          <div class="panel-actions">
+            <button class="cyber-btn cyber-btn-cyan" id="forceKmsRotationBtn" data-testid="kms-rotate-btn">
+              <span class="lum-icon lum-icon-cyan">🔄</span> FORCE KMS ROTATION
+            </button>
+          </div>
+        </div>
+
+        <div class="cyber-table-container">
+          <table class="cyber-table" data-testid="kms-keys-table">
+            <thead>
+              <tr>
+                <th>CryptoKey Name</th>
+                <th>Algorithm</th>
+                <th>Protection</th>
+                <th>Primary Version</th>
+                <th>Auto-Rotation</th>
+              </tr>
+            </thead>
+            <tbody id="kmsTableBody">
+              <tr>
+                <td><code>key-cloudsql-postgres-cmek</code></td>
+                <td>GOOGLE_SYMMETRIC_ENCRYPTION</td>
+                <td><span class="badge-info">HSM</span></td>
+                <td><span class="badge-ok">v3 (ENABLED)</span></td>
+                <td>90 Days (in 14d)</td>
+              </tr>
+              <tr>
+                <td><code>key-vault-secrets-cmek</code></td>
+                <td>GOOGLE_SYMMETRIC_ENCRYPTION</td>
+                <td><span class="badge-info">HSM</span></td>
+                <td><span class="badge-ok">v2 (ENABLED)</span></td>
+                <td>90 Days (in 42d)</td>
+              </tr>
+              <tr>
+                <td><code>key-jwt-rsa-signing-hsm</code></td>
+                <td>RSA_SIGN_PSS_4096_SHA512</td>
+                <td><span class="badge-info">HSM</span></td>
+                <td><span class="badge-ok">v1 (ENABLED)</span></td>
+                <td>180 Days (in 110d)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Auto-Rotation Countdown & HSM Status -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">
+              <span class="lum-icon lum-icon-ruby">⏱️</span> KMS CMEK Rotation Status & HSM Guard
+            </div>
+            <div class="panel-desc">Automatic cryptographic re-encryption countdown</div>
+          </div>
+        </div>
+
+        <div class="kms-dial-card">
+          <div class="kms-circle-wrapper">
+            <svg class="kms-circle-svg" viewBox="0 0 36 36">
+              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3" />
+              <path id="kmsCirclePath" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--cyan-cyber)" stroke-width="3" stroke-dasharray="84, 100" />
+            </svg>
+            <div class="kms-circle-text">
+              <div class="kms-days-val" id="kmsDaysCount">14</div>
+              <div class="kms-days-label">DAYS REMAINING</div>
+            </div>
+          </div>
+          <div style="margin-top:16px; text-align:center;">
+            <div style="font-weight:700; font-size:0.85rem; color:#fff;">Target Key: <code>key-cloudsql-postgres-cmek</code></div>
+            <div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:4px;">
+              Auto-Rotation Period: 90 Days | Primary Version: v3 -> Next: v4
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 6: Service Usage API Quota Consumption Gauges -->
+  <div class="tab-pane" id="tab-api-quotas" data-testid="pane-api-quotas">
+    <div class="panel-card">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">
+            <span class="lum-icon lum-icon-purple">📊</span> Service Usage API Quota Consumption & Saturation
+          </div>
+          <div class="panel-desc">serviceusage.googleapis.com // Real-Time Rate Limits vs Requests-Per-Second (RPS)</div>
+        </div>
+        <div class="panel-actions">
+          <button class="cyber-btn cyber-btn-cyan" id="simulateSpikeTabBtn" data-testid="tab-quota-spike-btn">
+            <span class="lum-icon lum-icon-cyan">⚡</span> TRIGGER RATE SPIKE (429 BACKOFF TEST)
+          </button>
+        </div>
+      </div>
+
+      <!-- 5 Multi-Gauge Boxes -->
+      <div class="quota-gauges-grid" id="quotaGaugesGrid">
+        <!-- IAM -->
+        <div class="quota-gauge-box" id="gauge-iam">
+          <div class="quota-title">iam.googleapis.com</div>
+          <div class="quota-rps-val"><span id="rps-iam">145</span> <span class="quota-limit-text">/ 500 RPS</span></div>
+          <div class="risk-bar-bg"><div class="risk-bar-fill fill-low" id="fill-iam" style="width:29%"></div></div>
+          <div style="font-size:0.68rem; color:var(--text-muted); display:flex; justify-content:space-between;">
+            <span>Saturation</span> <span id="sat-iam">29%</span>
+          </div>
+        </div>
+        <!-- Secret Manager -->
+        <div class="quota-gauge-box warning" id="gauge-secretmanager">
+          <div class="quota-title">secretmanager.googleapis.com</div>
+          <div class="quota-rps-val"><span id="rps-secretmanager" style="color:#fca5a5">260</span> <span class="quota-limit-text">/ 300 RPS</span></div>
+          <div class="risk-bar-bg"><div class="risk-bar-fill fill-high" id="fill-secretmanager" style="width:86.7%"></div></div>
+          <div style="font-size:0.68rem; color:var(--text-muted); display:flex; justify-content:space-between;">
+            <span style="color:#f87171; font-weight:600">NEAR CEILING</span> <span id="sat-secretmanager">86.7%</span>
+          </div>
+        </div>
+        <!-- Cloud KMS -->
+        <div class="quota-gauge-box" id="gauge-cloudkms">
+          <div class="quota-title">cloudkms.googleapis.com</div>
+          <div class="quota-rps-val"><span id="rps-cloudkms">120</span> <span class="quota-limit-text">/ 400 RPS</span></div>
+          <div class="risk-bar-bg"><div class="risk-bar-fill fill-low" id="fill-cloudkms" style="width:30%"></div></div>
+          <div style="font-size:0.68rem; color:var(--text-muted); display:flex; justify-content:space-between;">
+            <span>Saturation</span> <span id="sat-cloudkms">30%</span>
+          </div>
+        </div>
+        <!-- Resource Manager -->
+        <div class="quota-gauge-box" id="gauge-cloudresourcemanager">
+          <div class="quota-title">cloudresourcemanager.googleapis.com</div>
+          <div class="quota-rps-val"><span id="rps-cloudresourcemanager">45</span> <span class="quota-limit-text">/ 200 RPS</span></div>
+          <div class="risk-bar-bg"><div class="risk-bar-fill fill-low" id="fill-cloudresourcemanager" style="width:22.5%"></div></div>
+          <div style="font-size:0.68rem; color:var(--text-muted); display:flex; justify-content:space-between;">
+            <span>Saturation</span> <span id="sat-cloudresourcemanager">22.5%</span>
+          </div>
+        </div>
+        <!-- Service Usage -->
+        <div class="quota-gauge-box" id="gauge-serviceusage">
+          <div class="quota-title">serviceusage.googleapis.com</div>
+          <div class="quota-rps-val"><span id="rps-serviceusage">25</span> <span class="quota-limit-text">/ 150 RPS</span></div>
+          <div class="risk-bar-bg"><div class="risk-bar-fill fill-low" id="fill-serviceusage" style="width:16.7%"></div></div>
+          <div style="font-size:0.68rem; color:var(--text-muted); display:flex; justify-content:space-between;">
+            <span>Saturation</span> <span id="sat-serviceusage">16.7%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Quota Telemetry Chart -->
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:0.75rem; font-family:var(--font-mono); color:var(--text-secondary); text-transform:uppercase;">
+            60-Second Live Traffic vs Quota Ceilings
+          </span>
+          <span style="font-size:0.72rem; color:var(--cyan-cyber); font-family:var(--font-mono);" id="backoffStatusLabel">
+            STATUS: STABLE TELEMETRY (0 THROTTLED)
+          </span>
+        </div>
+        <div class="chart-container" style="height:240px;">
+          <canvas id="quotaChartCanvas" class="chart-canvas"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 7: Live Cloud Audit Log Stream -->
+  <div class="tab-pane" id="tab-audit-logs" data-testid="pane-audit-logs">
+    <div class="terminal-container" data-testid="audit-console">
+      <div class="terminal-header">
+        <div class="terminal-title">
+          <span class="lum-icon lum-icon-ruby">📜</span>
+          <span>cloudaudit.googleapis.com // Activity & Data Access Streaming Tail</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="cyber-btn cyber-btn-subtle" id="pauseLogBtn" style="padding:4px 8px; font-size:0.7rem;">PAUSE</button>
+          <button class="cyber-btn cyber-btn-subtle" id="clearLogBtn" style="padding:4px 8px; font-size:0.7rem;">CLEAR</button>
+        </div>
+      </div>
+      <div class="terminal-body" id="terminalBody">
+        <!-- Log Lines -->
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODALS -->
+
+<!-- Modal 1: Downscope Diff & Confirmation -->
+<div class="modal-overlay" id="downscopeModal" data-testid="downscope-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="lum-icon lum-icon-ruby">⚖️</span> IAM Least-Privilege Policy Downscoping
+      </div>
+      <button class="modal-close-btn" id="closeDownscopeModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div>Principal: <b id="downscopePrincipal" style="color:#fff; font-family:var(--font-mono)"></b></div>
+      <div>Project: <b id="downscopeProject" style="color:var(--cyan-cyber); font-family:var(--font-mono)"></b></div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px;">
+        <div style="padding:10px; background:rgba(239,68,68,0.1); border:1px solid var(--red-alert); border-radius:8px;">
+          <div style="font-size:0.7rem; color:#fca5a5; font-family:var(--font-mono);">CURRENT BROAD BINDING</div>
+          <div id="downscopeCurrentRole" style="font-weight:700; font-size:0.85rem; color:#fff; font-family:var(--font-mono); margin:4px 0;">roles/editor</div>
+          <div style="font-size:0.7rem; color:#f87171;">2,450 Granted Permissions (84% Unused)</div>
+        </div>
+        <div style="padding:10px; background:rgba(16,185,129,0.1); border:1px solid var(--green-neon); border-radius:8px;">
+          <div style="font-size:0.7rem; color:#a7f3d0; font-family:var(--font-mono);">RECOMMENDED GRANULAR ROLES</div>
+          <div id="downscopeNewRoles" style="font-weight:700; font-size:0.82rem; color:#fff; font-family:var(--font-mono); margin:4px 0;">
+            roles/storage.objectAdmin<br>roles/pubsub.publisher
+          </div>
+          <div style="font-size:0.7rem; color:#34d399;">42 Granular Permissions (100% Utilized)</div>
+        </div>
+      </div>
+
+      <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;">
+        Applying this recommendation will update the project IAM policy via <code>google.iam.v1.SetIamPolicy</code>, stripping over-privileged administrative entitlements while preserving verified production access.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="cyber-btn cyber-btn-subtle" id="cancelDownscopeBtn">CANCEL</button>
+      <button class="cyber-btn cyber-btn-ruby" id="applyDownscopeConfirmBtn" data-testid="downscope-apply-btn">
+        <span class="lum-icon lum-icon-ruby">✔</span> APPLY RECOMMENDED POLICY
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 2: Create Secret Version Modal -->
+<div class="modal-overlay" id="createSecretVersionModal" data-testid="create-version-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="lum-icon lum-icon-green">🔒</span> Add New Secret Version
+      </div>
+      <button class="modal-close-btn" id="closeCreateSecretModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Target Secret</label>
+        <input type="text" id="newVersionSecretName" class="form-input" readonly value="prod-payment-rsa-private-key">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Secret Payload Data</label>
+        <textarea id="newVersionPayload" class="form-textarea" placeholder="Paste sensitive credential or RSA private key bytes..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deprecate Previous Active Version</label>
+        <select id="deprecatePreviousSelect" class="form-select">
+          <option value="true">Yes, automatically set prior version to DEPRECATED</option>
+          <option value="false">No, keep dual active versions</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="cyber-btn cyber-btn-subtle" id="cancelCreateVersionBtn">CANCEL</button>
+      <button class="cyber-btn cyber-btn-green" id="confirmCreateVersionBtn" data-testid="create-version-submit-btn">
+        <span class="lum-icon lum-icon-green">+</span> CREATE VERSION
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- SOUND & APPLICATION LOGIC SCRIPT -->
+<script>
+/**
+ * GCP IAM Security & Secret Vault Auditor Engine
+ * R4 Implementation - Pure ES6 Vanilla Javascript
+ */
+(function() {
+  'use strict';
+
+  // --- AUDIO SYNTHESIZER ---
+  class CyberAudio {
+    constructor() {
+      this.enabled = true;
+      this.ctx = null;
+    }
+
+    init() {
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) this.ctx = new AudioCtx();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    }
+
+    playTone(freq, type, duration, gainVal = 0.1) {
+      if (!this.enabled) return;
+      try {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
+    beep() { this.playTone(880, 'sine', 0.12, 0.08); }
+    success() {
+      this.playTone(587.33, 'sine', 0.1, 0.08);
+      setTimeout(() => this.playTone(880, 'sine', 0.2, 0.08), 100);
+    }
+    alert() {
+      this.playTone(300, 'sawtooth', 0.25, 0.15);
+      setTimeout(() => this.playTone(250, 'sawtooth', 0.35, 0.15), 180);
+    }
+    click() { this.playTone(1200, 'triangle', 0.05, 0.04); }
+  }
+
+  const audio = new CyberAudio();
+
+  // --- STATE DEFINITIONS ---
+  const state = {
+    selectedProject: 'ALL',
+    securityScore: 78,
+    isScanning: false,
+    threatActive: true,
+    audioMuted: false,
+    activeTab: 'tab-posture',
+    selectedSecretId: 'sec-payment-rsa-key',
+    selectedVersionId: 'v3',
+    payloadRevealed: false,
+    quotaSpikeActive: false,
+    backoffStep: 0,
+    
+    // Core Principals with Least-Privilege Telemetry
+    principals: [
+      {
+        id: 'p1',
+        email: 'sa-ci-cd-deployer@prj-prod-payments-9941.iam.gserviceaccount.com',
+        type: 'SERVICE_ACCOUNT',
+        project: 'prj-prod-payments-9941',
+        assignedRole: 'roles/editor',
+        grantedPerms: 2450,
+        utilizedPerms: 38,
+        excessPercent: 98.4,
+        severity: 'CRITICAL',
+        remediated: false,
+        recRoles: ['roles/storage.objectAdmin', 'roles/pubsub.publisher', 'roles/cloudkms.cryptoKeyEncrypter'],
+        reason: 'Broad editor role grants project-wide modification; workload only accesses Storage & Pub/Sub topics.'
+      },
+      {
+        id: 'p2',
+        email: 'developer-alice@acme-corp.org',
+        type: 'USER',
+        project: 'prj-prod-payments-9941',
+        assignedRole: 'roles/owner',
+        grantedPerms: 4890,
+        utilizedPerms: 120,
+        excessPercent: 97.5,
+        severity: 'HIGH',
+        remediated: false,
+        recRoles: ['roles/viewer', 'roles/cloudsql.client'],
+        reason: 'Permanent owner binding on production project; should use JIT privileged access broker.'
+      },
+      {
+        id: 'p3',
+        email: 'billing-engine-sa@prj-prod-payments-9941.iam.gserviceaccount.com',
+        type: 'SERVICE_ACCOUNT',
+        project: 'prj-prod-payments-9941',
+        assignedRole: 'roles/resourcemanager.organizationAdmin',
+        grantedPerms: 180,
+        utilizedPerms: 14,
+        excessPercent: 92.2,
+        severity: 'HIGH',
+        remediated: false,
+        recRoles: ['roles/billing.viewer', 'roles/bigquery.dataViewer'],
+        reason: 'Org admin role grant allows modifying organization-wide hierarchy policies.'
+      },
+      {
+        id: 'p4',
+        email: 'analytics-worker@prj-dev-sandbox-1029.iam.gserviceaccount.com',
+        type: 'SERVICE_ACCOUNT',
+        project: 'prj-dev-sandbox-1029',
+        assignedRole: 'roles/bigquery.admin',
+        grantedPerms: 95,
+        utilizedPerms: 28,
+        excessPercent: 70.5,
+        severity: 'MEDIUM',
+        remediated: false,
+        recRoles: ['roles/bigquery.dataEditor', 'roles/bigquery.jobUser'],
+        reason: 'Admin role allows deleting all datasets; worker only runs scheduled SQL transform queries.'
+      }
+    ],
+
+    // Service Account Keys Inventory
+    saKeys: [
+      {
+        id: 'key-9941-deploy-sec8',
+        saEmail: 'sa-ci-cd-deployer@prj-prod-payments-9941.iam.gserviceaccount.com',
+        algo: 'RSA_2048',
+        ageDays: 142,
+        status: 'COMPROMISED',
+        created: '2026-03-30',
+        expires: '2026-09-30',
+        lastUsed: '2 mins ago'
+      },
+      {
+        id: 'key-1029-dev-w991',
+        saEmail: 'analytics-worker@prj-dev-sandbox-1029.iam.gserviceaccount.com',
+        algo: 'RSA_2048',
+        ageDays: 110,
+        status: 'EXPIRED',
+        created: '2026-05-01',
+        expires: '2026-08-01',
+        lastUsed: '4 hours ago'
+      },
+      {
+        id: 'key-7721-vault-sync4',
+        saEmail: 'vault-sync@prj-prod-vault-7721.iam.gserviceaccount.com',
+        algo: 'RSA_2048',
+        ageDays: 18,
+        status: 'ACTIVE',
+        created: '2026-08-01',
+        expires: '2026-11-01',
+        lastUsed: 'Just now'
+      }
+    ],
+
+    // Secret Manager Vault Secrets & Versions
+    secrets: {
+      'sec-payment-rsa-key': {
+        name: 'prod-payment-rsa-private-key',
+        replication: 'Dual-Region (us-east4, us-central1)',
+        cmek: 'key-vault-secrets-cmek',
+        rotation: '60 Days Automatic',
+        versions: [
+          { id: 'v1', state: 'DESTROYED', created: '2026-02-10', checksum: 'a819b91c0e3...', size: '2,048 Bytes', payload: '[DESTROYED SECRET DATA - IRREVERSIBLE]' },
+          { id: 'v2', state: 'DEPRECATED', created: '2026-05-15', checksum: 'c39029bf481...', size: '2,048 Bytes', payload: '-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0984...OLD_KEY_V2...\n-----END RSA PRIVATE KEY-----' },
+          { id: 'v3', state: 'ACTIVE', created: '2026-08-10', checksum: 'e3b0c44298fc1...', size: '2,048 Bytes', payload: '-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA7612...PRODUCTION_PAYMENT_RSA_PRIVATE_KEY_SECURE_PAYLOAD...\n-----END RSA PRIVATE KEY-----' }
+        ]
+      },
+      'sec-postgres-creds': {
+        name: 'cloudsql-pg-master-credentials',
+        replication: 'Regional (us-east4)',
+        cmek: 'key-cloudsql-postgres-cmek',
+        rotation: '30 Days Automatic',
+        versions: [
+          { id: 'v1', state: 'DEPRECATED', created: '2026-07-01', checksum: '88a91c002...', size: '48 Bytes', payload: 'postgres://master_admin:OldPass9981@10.200.0.5:5432/payments' },
+          { id: 'v2', state: 'ACTIVE', created: '2026-08-01', checksum: 'f1048bca1...', size: '52 Bytes', payload: 'postgres://master_admin:CyberAuth_SecurePass_2026!@10.200.0.5:5432/payments' }
+        ]
+      },
+      'sec-stripe-webhook': {
+        name: 'stripe-live-webhook-secret',
+        replication: 'Automatic Global',
+        cmek: 'GOOGLE_DEFAULT',
+        rotation: '90 Days',
+        versions: [
+          { id: 'v1', state: 'ACTIVE', created: '2026-07-20', checksum: '99201bd4...', size: '32 Bytes', payload: 'whsec_Live9941PayloadSecretStripeSignature' }
+        ]
+      },
+      'sec-oauth-jwt-seed': {
+        name: 'oauth-jwt-signing-hmac',
+        replication: 'Dual-Region',
+        cmek: 'key-jwt-rsa-signing-hsm',
+        rotation: '180 Days',
+        versions: [
+          { id: 'v1', state: 'ACTIVE', created: '2026-06-15', checksum: '44a19b88...', size: '64 Bytes', payload: 'jwt_hmac_sha512_seed_key_secret_vault_88920194' }
+        ]
+      }
+    },
+
+    // Quotas & Telemetry
+    quotas: {
+      'iam': { rps: 145, limit: 500, name: 'iam.googleapis.com' },
+      'secretmanager': { rps: 260, limit: 300, name: 'secretmanager.googleapis.com' },
+      'cloudkms': { rps: 120, limit: 400, name: 'cloudkms.googleapis.com' },
+      'cloudresourcemanager': { rps: 45, limit: 200, name: 'cloudresourcemanager.googleapis.com' },
+      'serviceusage': { rps: 25, limit: 150, name: 'serviceusage.googleapis.com' }
+    },
+    quotaHistory: [],
+    
+    // Cloud Audit Logs
+    logs: [],
+    logsPaused: false
+  };
+
+  // Pre-seed 60-point Quota History
+  for (let i = 0; i < 60; i++) {
+    state.quotaHistory.push({
+      time: i,
+      secretmanager: 240 + Math.floor(Math.sin(i * 0.2) * 20),
+      iam: 140 + Math.floor(Math.cos(i * 0.15) * 15),
+      limit: 300
+    });
+  }
+
+  // Pre-seed Initial Audit Logs
+  const initialLogs = [
+    { time: '17:15:02', sev: 'INFO', method: 'google.iam.v1.GetIamPolicy', msg: 'Caller: auditor-worker | Resource: prj-prod-payments-9941' },
+    { time: '17:15:08', sev: 'WARN', method: 'recommender.googleapis.com/GetInsight', msg: 'Identified over-privileged role binding for sa-ci-cd-deployer' },
+    { time: '17:15:15', sev: 'SEC_ALERT', method: 'securitycentermanager.googleapis.com/Finding', msg: 'CRITICAL: Leaked SA private key detected on public git repository!' },
+    { time: '17:15:22', sev: 'INFO', method: 'secretmanager.googleapis.com/AccessSecretVersion', msg: 'Caller: pg-pool-connector | Version: prod-payment-rsa-private-key/v3' },
+    { time: '17:15:30', sev: 'INFO', method: 'cloudkms.googleapis.com/Encrypt', msg: 'CMEK encryption verified on key-cloudsql-postgres-cmek/cryptoKeyVersions/3' }
+  ];
+  state.logs = initialLogs;
+
+  // --- LOGGING ENGINE ---
+  function appendAuditLog(sev, method, msg) {
+    if (state.logsPaused) return;
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+    state.logs.unshift({ time: timeStr, sev, method, msg });
+    if (state.logs.length > 200) state.logs.pop();
+    renderLogs();
+  }
+
+  function renderLogs() {
+    const term = document.getElementById('terminalBody');
+    if (!term) return;
+    term.innerHTML = state.logs.map(l => {
+      let sevClass = 'log-sev-info';
+      if (l.sev === 'WARN') sevClass = 'log-sev-warn';
+      if (l.sev === 'ERROR') sevClass = 'log-sev-error';
+      if (l.sev === 'SEC_ALERT') sevClass = 'log-sev-alert';
+      return `<div class="log-line">
+        <span class="log-time">[${l.time}]</span>
+        <span class="${sevClass}">[${l.sev}]</span>
+        <span class="log-method">${l.method}</span>
+        <span class="log-msg">— ${l.msg}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // --- TOAST ENGINE ---
+  function showToast(msg, type = 'ruby') {
+    const c = document.getElementById('toastContainer');
+    if (!c) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    let icon = '🛡️';
+    if (type === 'green') icon = '🟢';
+    if (type === 'red') icon = '🚨';
+    if (type === 'cyan') icon = '⚡';
+    toast.innerHTML = `<span class="lum-icon lum-icon-${type}">${icon}</span> <span>${msg}</span>`;
+    c.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
+  // --- SCORE RECALCULATION ENGINE ---
+  function recalculateScore() {
+    let score = 100;
+
+    // Penalty for threat active / leaked keys
+    const leakedCount = state.saKeys.filter(k => k.status === 'COMPROMISED').length;
+    score -= (leakedCount * 14);
+
+    // Penalty for expired keys
+    const expiredCount = state.saKeys.filter(k => k.status === 'EXPIRED').length;
+    score -= (expiredCount * 4);
+
+    // Penalty for over-privileged IAM bindings
+    const unremediated = state.principals.filter(p => !p.remediated).length;
+    score -= (unremediated * 4);
+
+    // Bound score
+    if (score < 40) score = 40;
+    if (score > 100) score = 100;
+    state.securityScore = score;
+
+    // Update UI elements
+    const scoreVal = document.getElementById('headerScoreVal');
+    const scorePath = document.getElementById('headerScorePath');
+    const scoreGrade = document.getElementById('headerScoreGrade');
+    const kpiVal = document.getElementById('kpiScoreVal');
+    const kpiBadge = document.getElementById('kpiScoreBadge');
+    const tabBadge = document.getElementById('tabBadgePosture');
+
+    if (scoreVal) scoreVal.textContent = score + '%';
+    if (kpiVal) kpiVal.textContent = score + '/100';
+    if (tabBadge) tabBadge.textContent = score + '%';
+
+    if (scorePath) {
+      scorePath.setAttribute('stroke-dasharray', `${score}, 100`);
+      if (score >= 90) scorePath.setAttribute('stroke', 'var(--green-neon)');
+      else if (score >= 75) scorePath.setAttribute('stroke', 'var(--ruby-accent)');
+      else scorePath.setAttribute('stroke', 'var(--red-alert)');
+    }
+
+    let grade = 'GRADE: C+';
+    let badgeClass = 'badge-alert';
+    let badgeText = 'ATTENTION';
+
+    if (score >= 95) { grade = 'GRADE: A+'; badgeClass = 'badge-ok'; badgeText = 'EXEMPLARY'; }
+    else if (score >= 88) { grade = 'GRADE: A'; badgeClass = 'badge-ok'; badgeText = 'HEALTHY'; }
+    else if (score >= 80) { grade = 'GRADE: B+'; badgeClass = 'badge-warn'; badgeText = 'MODERATE'; }
+    else if (score >= 70) { grade = 'GRADE: C+'; badgeClass = 'badge-alert'; badgeText = 'ATTENTION'; }
+    else { grade = 'GRADE: F'; badgeClass = 'badge-alert'; badgeText = 'CRITICAL'; }
+
+    if (scoreGrade) {
+      scoreGrade.textContent = grade;
+      scoreGrade.style.color = (score >= 90 ? 'var(--green-neon)' : (score >= 80 ? 'var(--amber-warn)' : 'var(--red-alert)'));
+    }
+    if (kpiBadge) {
+      kpiBadge.className = 'kpi-badge ' + badgeClass;
+      kpiBadge.textContent = badgeText;
+    }
+
+    renderRadarChart();
+  }
+
+  // --- RENDER LEAST-PRIVILEGE TABLE ---
+  function renderLeastPrivilegeTable(filter = 'ALL', search = '') {
+    const tbody = document.getElementById('leastPrivilegeTableBody');
+    if (!tbody) return;
+
+    const term = search.toLowerCase();
+    const filtered = state.principals.filter(p => {
+      const matchFilter = (filter === 'ALL') ||
+        (filter === 'REMEDIATED' && p.remediated) ||
+        (!p.remediated && p.severity === filter);
+      const matchSearch = !term || p.email.toLowerCase().includes(term) || p.assignedRole.toLowerCase().includes(term) || p.project.toLowerCase().includes(term);
+      return matchFilter && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:24px;">No matching principals found for filter [${filter}]</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(p => {
+      let sevBadge = `<span class="badge-alert">${p.severity}</span>`;
+      let fillClass = 'fill-critical';
+      if (p.severity === 'HIGH') { sevBadge = `<span class="badge-warn">${p.severity}</span>`; fillClass = 'fill-high'; }
+      if (p.severity === 'MEDIUM') { sevBadge = `<span class="badge-warn">${p.severity}</span>`; fillClass = 'fill-medium'; }
+      if (p.remediated) { sevBadge = `<span class="badge-ok">REMEDIATED</span>`; fillClass = 'fill-low'; }
+
+      let actionBtn = `<button class="cyber-btn cyber-btn-ruby downscope-btn" data-id="${p.id}" data-testid="downscope-btn-${p.id}">
+        <span class="lum-icon lum-icon-ruby">⚡</span> DOWNSCOPE
+      </button>`;
+      if (p.remediated) {
+        actionBtn = `<button class="cyber-btn cyber-btn-subtle revert-btn" data-id="${p.id}">
+          <span class="lum-icon lum-icon-cyan">↺</span> REVERT
+        </button>`;
+      }
+
+      const excessDisplay = p.remediated ? '0% Excess (Granular)' : `${p.excessPercent}% Unused (${p.grantedPerms - p.utilizedPerms} perms)`;
+      const fillWidth = p.remediated ? 100 : p.excessPercent;
+
+      return `<tr>
+        <td>
+          <div style="font-weight:600; font-family:var(--font-mono); color:#fff;">${p.email}</div>
+          <div style="font-size:0.7rem; color:var(--text-muted);">${p.project} | ${p.type}</div>
+        </td>
+        <td>
+          <code style="color:${p.remediated ? 'var(--green-neon)' : 'var(--ruby-accent)'}">${p.remediated ? p.recRoles.join(' + ') : p.assignedRole}</code>
+        </td>
+        <td style="font-family:var(--font-mono); font-weight:700;">${p.remediated ? '100%' : (100 - p.excessPercent).toFixed(1) + '%'}</td>
+        <td style="min-width:180px;">
+          <div class="risk-meter">
+            <div class="risk-bar-bg">
+              <div class="risk-bar-fill ${fillClass}" style="width:${fillWidth}%"></div>
+            </div>
+            <span style="font-size:0.7rem; font-family:var(--font-mono); color:var(--text-muted);">${p.remediated ? '0%' : p.excessPercent + '%'}</span>
+          </div>
+          <div style="font-size:0.68rem; color:var(--text-muted); margin-top:2px;">${excessDisplay}</div>
+        </td>
+        <td>${sevBadge}</td>
+        <td>
+          <div style="font-size:0.75rem; color:var(--cyan-cyber); font-family:var(--font-mono);">
+            ${p.recRoles.join(', ')}
+          </div>
+        </td>
+        <td>${actionBtn}</td>
+      </tr>`;
+    }).join('');
+
+    // Attach click listeners to downscope buttons
+    tbody.querySelectorAll('.downscope-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        openDownscopeModal(id);
+      });
+    });
+
+    tbody.querySelectorAll('.revert-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        revertDownscope(id);
+      });
+    });
+  }
+
+  // --- DOWN-SCOPE ACTION ---
+  function openDownscopeModal(principalId) {
+    const p = state.principals.find(x => x.id === principalId);
+    if (!p) return;
+    audio.click();
+    document.getElementById('downscopePrincipal').textContent = p.email;
+    document.getElementById('downscopeProject').textContent = p.project;
+    document.getElementById('downscopeCurrentRole').textContent = p.assignedRole;
+    document.getElementById('downscopeNewRoles').innerHTML = p.recRoles.join('<br>');
+    document.getElementById('applyDownscopeConfirmBtn').setAttribute('data-id', p.id);
+    document.getElementById('downscopeModal').classList.add('active');
+  }
+
+  function applyDownscope(principalId) {
+    const p = state.principals.find(x => x.id === principalId);
+    if (!p) return;
+    audio.success();
+    p.remediated = true;
+    appendAuditLog('INFO', 'google.iam.v1.SetIamPolicy', `Downscoped IAM policy on ${p.project} for ${p.email} -> ${p.recRoles.join(', ')}`);
+    showToast(`Least-privilege policy applied to ${p.email.split('@')[0]}`, 'green');
+    
+    // Update KPI and Score
+    const unremediated = state.principals.filter(x => !x.remediated).length;
+    document.getElementById('kpiExcessVal').textContent = `${unremediated} Flagged`;
+    document.getElementById('tabBadgeMatrix').textContent = `${unremediated} Over-Priv`;
+    
+    recalculateScore();
+    renderLeastPrivilegeTable();
+  }
+
+  function revertDownscope(principalId) {
+    const p = state.principals.find(x => x.id === principalId);
+    if (!p) return;
+    audio.alert();
+    p.remediated = false;
+    appendAuditLog('WARN', 'google.iam.v1.SetIamPolicy', `Reverted IAM downscoping on ${p.project} for ${p.email} -> ${p.assignedRole}`);
+    showToast(`Reverted policy for ${p.email.split('@')[0]}`, 'red');
+    
+    const unremediated = state.principals.filter(x => !x.remediated).length;
+    document.getElementById('kpiExcessVal').textContent = `${unremediated} Flagged`;
+    document.getElementById('tabBadgeMatrix').textContent = `${unremediated} Over-Priv`;
+
+    recalculateScore();
+    renderLeastPrivilegeTable();
+  }
+
+  // --- RENDER SERVICE ACCOUNT KEYS ---
+  function renderSaKeysTable() {
+    const tbody = document.getElementById('saKeysTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = state.saKeys.map(k => {
+      let statusBadge = `<span class="badge-ok">ACTIVE</span>`;
+      if (k.status === 'EXPIRED') statusBadge = `<span class="badge-warn">EXPIRED (${k.ageDays}d)</span>`;
+      if (k.status === 'COMPROMISED') statusBadge = `<span class="badge-alert">🚨 COMPROMISED (LEAKED)</span>`;
+      if (k.status === 'REVOKED') statusBadge = `<span class="badge-info">REVOKED (DELETED)</span>`;
+
+      let actions = ``;
+      if (k.status === 'COMPROMISED' || k.status === 'EXPIRED') {
+        actions = `<div style="display:flex; gap:6px;">
+          <button class="cyber-btn cyber-btn-red revoke-key-btn" data-id="${k.id}" data-testid="revoke-key-btn-${k.id}" style="padding:4px 8px; font-size:0.7rem;">
+            <span class="lum-icon lum-icon-red">⚡</span> REVOKE
+          </button>
+          <button class="cyber-btn cyber-btn-ruby rotate-key-btn" data-id="${k.id}" style="padding:4px 8px; font-size:0.7rem;">
+            <span class="lum-icon lum-icon-ruby">🔄</span> ROTATE
+          </button>
+        </div>`;
+      } else if (k.status === 'ACTIVE') {
+        actions = `<button class="cyber-btn cyber-btn-subtle rotate-key-btn" data-id="${k.id}" style="padding:4px 8px; font-size:0.7rem;">
+          <span class="lum-icon lum-icon-cyan">🔄</span> ROTATE
+        </button>`;
+      } else {
+        actions = `<span style="color:var(--text-muted); font-size:0.7rem;">Key Destroyed</span>`;
+      }
+
+      return `<tr>
+        <td>
+          <div style="font-weight:600; font-family:var(--font-mono); color:#fff; font-size:0.78rem;">${k.saEmail}</div>
+          <div style="font-size:0.68rem; color:var(--text-muted);">Last used: ${k.lastUsed} | Created: ${k.created}</div>
+        </td>
+        <td>
+          <code style="color:var(--cyan-cyber)">${k.id}</code>
+          <div style="font-size:0.68rem; color:var(--text-muted);">${k.algo}</div>
+        </td>
+        <td style="font-family:var(--font-mono); font-weight:700; color:${k.ageDays > 90 ? 'var(--red-alert)' : 'var(--green-neon)'}">${k.ageDays} Days</td>
+        <td>${statusBadge}</td>
+        <td>${actions}</td>
+      </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('.revoke-key-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        revokeKey(id);
+      });
+    });
+
+    tbody.querySelectorAll('.rotate-key-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        executeKeyRotationWizard();
+      });
+    });
+  }
+
+  // --- KEY REVOCATION & ROTATION ---
+  function revokeKey(keyId) {
+    const k = state.saKeys.find(x => x.id === keyId);
+    if (!k) return;
+    audio.success();
+    k.status = 'REVOKED';
+    appendAuditLog('SEC_ALERT', 'iam.serviceAccountKeys.delete', `Permanently destroyed key ${keyId} for ${k.saEmail}`);
+    showToast(`Key ${keyId} revoked and permanently deleted!`, 'red');
+
+    // Dismiss threat banner if compromised key was revoked
+    if (keyId === 'key-9941-deploy-sec8') {
+      state.threatActive = false;
+      document.getElementById('threatBanner').classList.remove('active');
+      document.getElementById('kpiKeysVal').textContent = '0 Leaked / 1 Exp';
+      document.getElementById('kpiKeysBadge').className = 'kpi-badge badge-ok';
+      document.getElementById('kpiKeysBadge').textContent = 'SECURE';
+      document.getElementById('tabBadgeKeys').textContent = '0 Threats';
+    }
+
+    recalculateScore();
+    renderSaKeysTable();
+  }
+
+  function executeKeyRotationWizard() {
+    audio.click();
+    state.activeTab = 'tab-sa-keys';
+    switchTab('tab-sa-keys');
+
+    const steps = [
+      document.getElementById('step1'),
+      document.getElementById('step2'),
+      document.getElementById('step3'),
+      document.getElementById('step4')
+    ];
+
+    // Reset steps
+    steps.forEach(s => { s.className = 'stepper-step'; });
+    steps[0].classList.add('active');
+    appendAuditLog('INFO', 'iam.serviceAccountKeys.create', 'Phase 1/4: Generating 2048-bit RSA key pair for sa-ci-cd-deployer...');
+
+    setTimeout(() => {
+      audio.beep();
+      steps[0].className = 'stepper-step completed';
+      steps[1].className = 'stepper-step active';
+      appendAuditLog('INFO', 'secretmanager.googleapis.com/CreateSecretVersion', 'Phase 2/4: Uploading new key to secretmanager://prod-payment-rsa-private-key...');
+      
+      setTimeout(() => {
+        audio.beep();
+        steps[1].className = 'stepper-step completed';
+        steps[2].className = 'stepper-step active';
+        appendAuditLog('INFO', 'healthcheck.googleapis.com/Probe', 'Phase 3/4: Workload authentication probe verified 200 OK...');
+        
+        setTimeout(() => {
+          audio.success();
+          steps[2].className = 'stepper-step completed';
+          steps[3].className = 'stepper-step completed';
+          
+          // Complete rotation in state
+          const oldKey = state.saKeys.find(x => x.id === 'key-9941-deploy-sec8');
+          if (oldKey) oldKey.status = 'REVOKED';
+
+          const newKeyId = 'key-9941-deploy-sec9-v2';
+          if (!state.saKeys.find(x => x.id === newKeyId)) {
+            state.saKeys.unshift({
+              id: newKeyId,
+              saEmail: 'sa-ci-cd-deployer@prj-prod-payments-9941.iam.gserviceaccount.com',
+              algo: 'RSA_2048',
+              ageDays: 0,
+              status: 'ACTIVE',
+              created: '2026-08-20',
+              expires: '2026-11-20',
+              lastUsed: 'Just now'
+            });
+          }
+
+          state.threatActive = false;
+          document.getElementById('threatBanner').classList.remove('active');
+          document.getElementById('kpiKeysVal').textContent = '0 Leaked / 1 Exp';
+          document.getElementById('kpiKeysBadge').className = 'kpi-badge badge-ok';
+          document.getElementById('kpiKeysBadge').textContent = 'SECURE';
+          document.getElementById('tabBadgeKeys').textContent = '0 Threats';
+
+          appendAuditLog('INFO', 'iam.serviceAccountKeys.delete', `Phase 4/4: Decommissioned old compromised key key-9941-deploy-sec8`);
+          showToast('Zero-downtime key rotation completed successfully!', 'green');
+
+          recalculateScore();
+          renderSaKeysTable();
+        }, 800);
+      }, 800);
+    }, 800);
+  }
+
+  // --- RENDER SECRET VAULT TIMELINE ---
+  function renderSecretVaultTimeline() {
+    const sec = state.secrets[state.selectedSecretId];
+    if (!sec) return;
+
+    document.getElementById('secretReplication').textContent = sec.replication;
+    document.getElementById('secretCmek').textContent = sec.cmek;
+    document.getElementById('secretRotation').textContent = sec.rotation;
+    document.getElementById('secretVersionCount').textContent = `${sec.versions.length} (${sec.versions.filter(v => v.state === 'ACTIVE').length} Active)`;
+
+    const track = document.getElementById('secretTimelineTrack');
+    if (!track) return;
+
+    track.innerHTML = sec.versions.map(v => {
+      let dotClass = 'active';
+      let icon = '🟢';
+      if (v.state === 'DEPRECATED') { dotClass = 'deprecated'; icon = '🟡'; }
+      if (v.state === 'DESTROYED') { dotClass = 'destroyed'; icon = '🔴'; }
+
+      const isSelected = v.id === state.selectedVersionId;
+      return `<div class="timeline-node" data-id="${v.id}" style="${isSelected ? 'transform:scale(1.1); font-weight:700;' : ''}">
+        <div class="node-dot ${dotClass}" style="${isSelected ? 'border-width:3px; box-shadow:0 0 20px var(--cyan-glow);' : ''}">
+          <span class="lum-icon">${icon}</span>
+        </div>
+        <div class="node-label" style="color:${isSelected ? 'var(--cyan-cyber)' : 'var(--text-primary)'}">${v.id}</div>
+        <div class="node-state" style="color:var(--text-muted)">${v.state}</div>
+      </div>`;
+    }).join('');
+
+    track.querySelectorAll('.timeline-node').forEach(n => {
+      n.addEventListener('click', () => {
+        state.selectedVersionId = n.getAttribute('data-id');
+        audio.click();
+        renderSecretVaultTimeline();
+      });
+    });
+
+    renderVersionInspector();
+  }
+
+  function renderVersionInspector() {
+    const sec = state.secrets[state.selectedSecretId];
+    if (!sec) return;
+    const v = sec.versions.find(x => x.id === state.selectedVersionId) || sec.versions[sec.versions.length - 1];
+    if (!v) return;
+
+    document.getElementById('inspVersionTitle').textContent = `Version: ${v.id} (${v.state})`;
+    document.getElementById('inspCreatedAt').textContent = v.created;
+    document.getElementById('inspChecksum').textContent = v.checksum;
+    document.getElementById('inspPayloadSize').textContent = v.size;
+
+    const iconEl = document.getElementById('inspStateIcon');
+    if (v.state === 'ACTIVE') { iconEl.textContent = '🟢'; iconEl.className = 'lum-icon lum-icon-green'; }
+    else if (v.state === 'DEPRECATED') { iconEl.textContent = '🟡'; iconEl.className = 'lum-icon lum-icon-amber'; }
+    else { iconEl.textContent = '🔴'; iconEl.className = 'lum-icon lum-icon-red'; }
+
+    const toggleBtn = document.getElementById('toggleVersionStateBtn');
+    const destroyBtn = document.getElementById('destroyVersionBtn');
+    
+    if (v.state === 'DESTROYED') {
+      toggleBtn.disabled = true;
+      toggleBtn.textContent = 'DESTROYED (IRREVERSIBLE)';
+      destroyBtn.disabled = true;
+    } else {
+      toggleBtn.disabled = false;
+      toggleBtn.textContent = v.state === 'ACTIVE' ? 'DISABLE / DEPRECATE' : 'ENABLE / ACTIVATE';
+      destroyBtn.disabled = false;
+    }
+
+    const preview = document.getElementById('inspPayloadPreview');
+    if (state.payloadRevealed) {
+      preview.textContent = v.payload;
+    } else {
+      preview.textContent = '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••';
+    }
+  }
+
+  // --- SECRET ACTIONS ---
+  function createSecretVersion(payload, deprecatePrior = true) {
+    const sec = state.secrets[state.selectedSecretId];
+    if (!sec) return;
+    audio.success();
+
+    if (deprecatePrior) {
+      sec.versions.forEach(v => {
+        if (v.state === 'ACTIVE') v.state = 'DEPRECATED';
+      });
+    }
+
+    const nextNum = sec.versions.length + 1;
+    const newVer = {
+      id: `v${nextNum}`,
+      state: 'ACTIVE',
+      created: new Date().toISOString().split('T')[0],
+      checksum: 'e7a' + Math.random().toString(16).substr(2, 8) + '99b2...',
+      size: `${payload.length} Bytes`,
+      payload: payload
+    };
+    sec.versions.push(newVer);
+    state.selectedVersionId = newVer.id;
+
+    appendAuditLog('INFO', 'secretmanager.googleapis.com/AddSecretVersion', `Created secret version ${sec.name}/${newVer.id}`);
+    showToast(`Created version ${newVer.id} for ${sec.name}`, 'green');
+    renderSecretVaultTimeline();
+  }
+
+  function destroySecretVersion() {
+    const sec = state.secrets[state.selectedSecretId];
+    if (!sec) return;
+    const v = sec.versions.find(x => x.id === state.selectedVersionId);
+    if (!v || v.state === 'DESTROYED') return;
+
+    audio.alert();
+    v.state = 'DESTROYED';
+    v.payload = '[DESTROYED SECRET DATA - IRREVERSIBLE]';
+
+    appendAuditLog('WARN', 'secretmanager.googleapis.com/DestroySecretVersion', `Permanently destroyed version ${sec.name}/${v.id}`);
+    showToast(`Destroyed secret version ${v.id}`, 'red');
+    renderSecretVaultTimeline();
+  }
+
+  function toggleSecretVersionState() {
+    const sec = state.secrets[state.selectedSecretId];
+    if (!sec) return;
+    const v = sec.versions.find(x => x.id === state.selectedVersionId);
+    if (!v || v.state === 'DESTROYED') return;
+
+    audio.click();
+    if (v.state === 'ACTIVE') {
+      v.state = 'DEPRECATED';
+      appendAuditLog('INFO', 'secretmanager.googleapis.com/DisableSecretVersion', `Disabled version ${sec.name}/${v.id}`);
+    } else {
+      v.state = 'ACTIVE';
+      appendAuditLog('INFO', 'secretmanager.googleapis.com/EnableSecretVersion', `Enabled version ${sec.name}/${v.id}`);
+    }
+    renderSecretVaultTimeline();
+  }
+
+  // --- CLOUD KMS FORCE ROTATION ---
+  function forceKmsRotation() {
+    audio.success();
+    appendAuditLog('INFO', 'cloudkms.googleapis.com/CryptoKeyVersions.create', 'Generated new CMEK primary version key-cloudsql-postgres-cmek/cryptoKeyVersions/4 (HSM)');
+    document.getElementById('kmsDaysCount').textContent = '90';
+    document.getElementById('kmsCirclePath').setAttribute('stroke-dasharray', '100, 100');
+    showToast('KMS Primary CryptoKey rotated to v4 (HSM FIPS 140-2)', 'cyan');
+  }
+
+  // --- API QUOTA SPIKE & EXPONENTIAL BACKOFF SIMULATION ---
+  function simulateQuotaSpike() {
+    if (state.quotaSpikeActive) return;
+    state.quotaSpikeActive = true;
+    audio.alert();
+
+    state.activeTab = 'tab-api-quotas';
+    switchTab('tab-api-quotas');
+
+    appendAuditLog('SEC_ALERT', 'serviceusage.googleapis.com/RateLimitExceeded', 'HTTP 429 RESOURCE_EXHAUSTED on secretmanager.googleapis.com (365 RPS vs 300 RPS limit)');
+    showToast('Simulating API Traffic Surge & 429 Backoff Recovery...', 'cyan');
+
+    // Surge Secret Manager RPS to 365
+    state.quotas.secretmanager.rps = 365;
+    updateQuotaUI();
+
+    const statusLabel = document.getElementById('backoffStatusLabel');
+    if (statusLabel) {
+      statusLabel.innerHTML = '<span style="color:#ef4444; font-weight:700;">🚨 429 RESOURCE_EXHAUSTED — ACTIVATING EXPONENTIAL BACKOFF WITH JITTER</span>';
+    }
+
+    // Exponential Backoff Steps: 100ms -> 300ms -> 650ms -> 1200ms
+    setTimeout(() => {
+      audio.beep();
+      state.quotas.secretmanager.rps = 330;
+      updateQuotaUI();
+      appendAuditLog('WARN', 'client.backoff', 'Retry Attempt 1 (Backoff: 120ms + 18ms jitter) — Throttle reduced to 330 RPS');
+
+      setTimeout(() => {
+        audio.beep();
+        state.quotas.secretmanager.rps = 295;
+        updateQuotaUI();
+        appendAuditLog('WARN', 'client.backoff', 'Retry Attempt 2 (Backoff: 300ms + 42ms jitter) — Throttle reduced to 295 RPS');
+
+        setTimeout(() => {
+          audio.success();
+          state.quotas.secretmanager.rps = 210;
+          state.quotaSpikeActive = false;
+          updateQuotaUI();
+          appendAuditLog('INFO', 'serviceusage.googleapis.com/Recovered', 'Traffic stabilized to 210 RPS (70% quota). HTTP 200 OK restored.');
+          showToast('Exponential backoff successful! Traffic restored to green.', 'green');
+
+          if (statusLabel) {
+            statusLabel.innerHTML = '<span style="color:var(--green-neon); font-weight:700;">✔ STABLE TELEMETRY (0 THROTTLED RPS) — RECOVERED</span>';
+          }
+        }, 1200);
+      }, 800);
+    }, 800);
+  }
+
+  function updateQuotaUI() {
+    const sm = state.quotas.secretmanager;
+    const rpsEl = document.getElementById('rps-secretmanager');
+    const fillEl = document.getElementById('fill-secretmanager');
+    const satEl = document.getElementById('sat-secretmanager');
+    const kpiVal = document.getElementById('kpiQuotaVal');
+
+    const satPct = ((sm.rps / sm.limit) * 100).toFixed(1);
+    if (rpsEl) rpsEl.textContent = sm.rps;
+    if (satEl) satEl.textContent = satPct + '%';
+    if (fillEl) {
+      fillEl.style.width = Math.min(satPct, 100) + '%';
+      if (satPct > 100) fillEl.className = 'risk-bar-fill fill-critical';
+      else if (satPct > 80) fillEl.className = 'risk-bar-fill fill-high';
+      else fillEl.className = 'risk-bar-fill fill-low';
+    }
+    if (kpiVal) kpiVal.textContent = satPct + '% Peak';
+  }
+
+  // --- FULL HIERARCHY SCANNER ---
+  function runFullSecurityScan() {
+    if (state.isScanning) return;
+    state.isScanning = true;
+    audio.click();
+
+    const prog = document.getElementById('scannerProgress');
+    const fill = document.getElementById('scannerFill');
+    if (prog) prog.classList.add('active');
+    if (fill) fill.style.width = '10%';
+
+    appendAuditLog('INFO', 'cloudresourcemanager.googleapis.com/ScanHierarchy', 'Initiating full-stack GCP hierarchy & policy scan...');
+    showToast('Scanning Organization, Projects, IAM & Vaults...', 'ruby');
+
+    setTimeout(() => {
+      audio.beep();
+      if (fill) fill.style.width = '40%';
+      appendAuditLog('INFO', 'iam.googleapis.com/EvaluatePolicies', 'Evaluating 4 Service Accounts & 8 Cryptographic Keys...');
+
+      setTimeout(() => {
+        audio.beep();
+        if (fill) fill.style.width = '75%';
+        appendAuditLog('INFO', 'secretmanager.googleapis.com/AuditReplication', 'Auditing 4 Secret Vaults and 3 KMS Key Rings...');
+
+        setTimeout(() => {
+          audio.success();
+          if (fill) fill.style.width = '100%';
+          state.isScanning = false;
+          recalculateScore();
+          appendAuditLog('INFO', 'audit.report', `Scan completed! Security Posture Score: ${state.securityScore}/100`);
+          showToast(`Scan complete! Overall Posture Score: ${state.securityScore}%`, 'green');
+
+          setTimeout(() => {
+            if (prog) prog.classList.remove('active');
+            if (fill) fill.style.width = '0%';
+          }, 400);
+        }, 600);
+      }, 600);
+    }, 600);
+  }
+
+  // --- RADAR / SPIDER CHART CANVAS ---
+  function renderRadarChart() {
+    const canvas = document.getElementById('postureRadarCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+    const cx = w / 2;
+    const cy = h / 2;
+    const radius = Math.min(cx, cy) - 24;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const categories = ['Hierarchy', 'Least-Priv', 'SA Keys', 'Secret Vault', 'KMS CMEK', 'API Quotas'];
+    const count = categories.length;
+    
+    // Dynamic values based on state
+    const values = [
+      0.95, // Hierarchy
+      state.principals.filter(p => p.remediated).length / state.principals.length, // Least priv
+      state.saKeys.filter(k => k.status === 'ACTIVE').length / state.saKeys.length, // SA Keys
+      0.92, // Vault
+      1.0,  // KMS CMEK
+      state.quotaSpikeActive ? 0.4 : 0.85 // Quotas
+    ];
+
+    // Draw polygon web rings
+    for (let r = 0.25; r <= 1.0; r += 0.25) {
+      ctx.beginPath();
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 / count) * i - Math.PI / 2;
+        const x = cx + Math.cos(angle) * radius * r;
+        const y = cy + Math.sin(angle) * radius * r;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = 'rgba(244, 63, 94, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Draw Spokes
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 / count) * i - Math.PI / 2;
+      const x = cx + Math.cos(angle) * radius;
+      const y = cy + Math.sin(angle) * radius;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = 'rgba(244, 63, 94, 0.2)';
+      ctx.stroke();
+
+      // Labels
+      const lx = cx + Math.cos(angle) * (radius + 14);
+      const ly = cy + Math.sin(angle) * (radius + 14);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '9px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(categories[i], lx, ly);
+    }
+
+    // Draw filled radar polygon
+    ctx.beginPath();
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 / count) * i - Math.PI / 2;
+      const val = Math.max(values[i], 0.15);
+      const x = cx + Math.cos(angle) * radius * val;
+      const y = cy + Math.sin(angle) * radius * val;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(244, 63, 94, 0.25)';
+    ctx.fill();
+    ctx.strokeStyle = 'var(--ruby-accent)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw vertex dots
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 / count) * i - Math.PI / 2;
+      const val = Math.max(values[i], 0.15);
+      const x = cx + Math.cos(angle) * radius * val;
+      const y = cy + Math.sin(angle) * radius * val;
+      ctx.beginPath();
+      ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.strokeStyle = 'var(--ruby-accent)';
+      ctx.stroke();
+    }
+  }
+
+  // --- QUOTA 60-SECOND TELEMETRY CANVAS ---
+  function renderQuotaChart() {
+    const canvas = document.getElementById('quotaChartCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+    const padL = 40;
+    const padR = 20;
+    const padT = 20;
+    const padB = 30;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Grid lines & labels
+    const maxRps = 400;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#64748b';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'right';
+
+    [100, 200, 300, 400].forEach(level => {
+      const y = h - padB - ((level / maxRps) * (h - padT - padB));
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(w - padR, y);
+      ctx.stroke();
+      ctx.fillText(level + ' rps', padL - 6, y + 3);
+    });
+
+    // Draw Quota Limit Line (300 RPS)
+    const limitY = h - padB - ((300 / maxRps) * (h - padT - padB));
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(padL, limitY);
+    ctx.lineTo(w - padR, limitY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#fca5a5';
+    ctx.fillText('QUOTA CEILING (300 RPS)', w - padR - 10, limitY - 5);
+
+    // Draw Secret Manager RPS Line
+    const pts = state.quotaHistory;
+    const stepX = (w - padL - padR) / (pts.length - 1);
+
+    ctx.beginPath();
+    pts.forEach((pt, i) => {
+      const x = padL + (i * stepX);
+      const y = h - padB - ((pt.secretmanager / maxRps) * (h - padT - padB));
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = 'var(--cyan-cyber)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Area Fill under curve
+    const lastX = padL + ((pts.length - 1) * stepX);
+    ctx.lineTo(lastX, h - padB);
+    ctx.lineTo(padL, h - padB);
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(0, padT, 0, h - padB);
+    grad.addColorStop(0, 'rgba(0, 229, 255, 0.25)');
+    grad.addColorStop(1, 'rgba(0, 229, 255, 0.0)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+
+  // --- TAB SWITCHING ---
+  function switchTab(tabId) {
+    state.activeTab = tabId;
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+    });
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+      pane.classList.toggle('active', pane.id === tabId);
+    });
+
+    if (tabId === 'tab-posture') renderRadarChart();
+    if (tabId === 'tab-api-quotas') renderQuotaChart();
+    if (tabId === 'tab-least-privilege') renderLeastPrivilegeTable();
+    if (tabId === 'tab-sa-keys') renderSaKeysTable();
+    if (tabId === 'tab-secret-vault') renderSecretVaultTimeline();
+  }
+
+  // --- EXPORT JSON REPORT ---
+  function exportAuditReport() {
+    audio.click();
+    const report = {
+      reportType: 'GCP_IAM_SECRET_VAULT_SECURITY_AUDIT',
+      generatedAt: new Date().toISOString(),
+      organization: 'acme-corp.org (org-984214589)',
+      securityScore: state.securityScore,
+      fipsCompliance: 'FIPS 140-2 Level 3 HSM Enforced',
+      principalsAudited: state.principals,
+      saKeysInventory: state.saKeys,
+      secretVaults: state.secrets,
+      quotasTelemetry: state.quotas,
+      recentAuditLogs: state.logs.slice(0, 50),
+      sha256Attestation: '9a81c009bf4418a0029b' + Math.random().toString(16).substr(2, 12)
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(report, null, 2));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", `gcp-iam-security-audit-${Date.now()}.json`);
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+
+    appendAuditLog('INFO', 'audit.export', 'Exported JSON security posture audit report');
+    showToast('Exported complete security audit JSON report!', 'cyan');
+    return report;
+  }
+
+  // --- SIMULATE THREAT TRIGGER ---
+  function simulateThreatLeak() {
+    state.threatActive = true;
+    audio.alert();
+
+    const compromisedKey = state.saKeys.find(x => x.id === 'key-9941-deploy-sec8');
+    if (compromisedKey) compromisedKey.status = 'COMPROMISED';
+
+    document.getElementById('threatBanner').classList.add('active');
+    document.getElementById('kpiKeysVal').textContent = '1 Leaked / 1 Exp';
+    document.getElementById('kpiKeysBadge').className = 'kpi-badge badge-alert';
+    document.getElementById('kpiKeysBadge').textContent = 'CRITICAL';
+    document.getElementById('tabBadgeKeys').textContent = '1 Threat';
+
+    appendAuditLog('SEC_ALERT', 'securitycentermanager.googleapis.com/Finding', 'CRITICAL THREAT: Public git leak detected for sa-ci-cd-deployer key!');
+    showToast('🚨 Alert: Simulated Compromised Service Account Key Detected!', 'red');
+
+    recalculateScore();
+    renderSaKeysTable();
+  }
+
+  // --- BACKGROUND TELEMETRY TICKER ---
+  setInterval(() => {
+    // Push new point into Quota History
+    const smRps = state.quotas.secretmanager.rps + Math.floor((Math.random() - 0.5) * 8);
+    const iamRps = state.quotas.iam.rps + Math.floor((Math.random() - 0.5) * 6);
+    state.quotaHistory.push({
+      time: Date.now(),
+      secretmanager: Math.max(smRps, 50),
+      iam: Math.max(iamRps, 30),
+      limit: 300
+    });
+    if (state.quotaHistory.length > 60) state.quotaHistory.shift();
+
+    if (state.activeTab === 'tab-api-quotas') {
+      renderQuotaChart();
+    }
+  }, 1000);
+
+  // --- ATTACH EVENT HANDLERS ---
+  function attachEventHandlers() {
+    // Tabs Navigation
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        audio.click();
+        switchTab(btn.getAttribute('data-tab'));
+      });
+    });
+
+    // Header Controls
+    document.getElementById('scanBtn')?.addEventListener('click', runFullSecurityScan);
+    document.getElementById('threatBtn')?.addEventListener('click', simulateThreatLeak);
+    document.getElementById('quotaSpikeBtn')?.addEventListener('click', simulateQuotaSpike);
+    document.getElementById('simulateSpikeTabBtn')?.addEventListener('click', simulateQuotaSpike);
+    document.getElementById('exportReportBtn')?.addEventListener('click', exportAuditReport);
+
+    // Audio Toggle
+    document.getElementById('audioToggleBtn')?.addEventListener('click', () => {
+      audio.enabled = !audio.enabled;
+      state.audioMuted = !audio.enabled;
+      document.getElementById('audioIcon').textContent = audio.enabled ? '🔊' : '🔇';
+      showToast(audio.enabled ? 'Sound FX Enabled' : 'Sound FX Muted', 'ruby');
+    });
+
+    // Threat Banner Buttons
+    document.getElementById('instantRevokeThreatBtn')?.addEventListener('click', () => revokeKey('key-9941-deploy-sec8'));
+    document.getElementById('threatRotateBtn')?.addEventListener('click', executeKeyRotationWizard);
+    document.getElementById('dismissThreatBtn')?.addEventListener('click', () => {
+      document.getElementById('threatBanner').classList.remove('active');
+    });
+
+    // Least-Privilege Filters & Search
+    document.getElementById('matrixFilterPills')?.querySelectorAll('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        audio.click();
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        renderLeastPrivilegeTable(pill.getAttribute('data-filter'), document.getElementById('matrixSearchInput').value);
+      });
+    });
+
+    document.getElementById('matrixSearchInput')?.addEventListener('input', (e) => {
+      const activePill = document.querySelector('.filter-pill.active')?.getAttribute('data-filter') || 'ALL';
+      renderLeastPrivilegeTable(activePill, e.target.value);
+    });
+
+    document.getElementById('autoRemediateAllBtn')?.addEventListener('click', () => {
+      audio.success();
+      state.principals.forEach(p => { p.remediated = true; });
+      appendAuditLog('INFO', 'google.iam.v1.SetIamPolicy', 'Batch auto-downscoped all 4 over-privileged IAM bindings');
+      showToast('All over-privileged IAM bindings auto-remediated to Least-Privilege!', 'green');
+      document.getElementById('kpiExcessVal').textContent = '0 Flagged';
+      document.getElementById('kpiExcessBadge').className = 'kpi-badge badge-ok';
+      document.getElementById('kpiExcessBadge').textContent = '0% UNUSED';
+      document.getElementById('tabBadgeMatrix').textContent = '0 Over-Priv';
+      recalculateScore();
+      renderLeastPrivilegeTable();
+    });
+
+    // Downscope Modal Actions
+    document.getElementById('closeDownscopeModal')?.addEventListener('click', () => {
+      document.getElementById('downscopeModal').classList.remove('active');
+    });
+    document.getElementById('cancelDownscopeBtn')?.addEventListener('click', () => {
+      document.getElementById('downscopeModal').classList.remove('active');
+    });
+    document.getElementById('applyDownscopeConfirmBtn')?.addEventListener('click', (e) => {
+      const id = e.currentTarget.getAttribute('data-id');
+      applyDownscope(id);
+      document.getElementById('downscopeModal').classList.remove('active');
+    });
+
+    // Key Rotation Wizard Start
+    document.getElementById('startKeyRotationBtn')?.addEventListener('click', executeKeyRotationWizard);
+
+    // Secret Vault Selector & Controls
+    document.getElementById('secretSelect')?.addEventListener('change', (e) => {
+      state.selectedSecretId = e.target.value;
+      const sec = state.secrets[state.selectedSecretId];
+      if (sec && sec.versions.length > 0) {
+        state.selectedVersionId = sec.versions[sec.versions.length - 1].id;
+      }
+      renderSecretVaultTimeline();
+    });
+
+    document.getElementById('revealPayloadBtn')?.addEventListener('click', () => {
+      state.payloadRevealed = !state.payloadRevealed;
+      document.getElementById('revealPayloadBtn').textContent = state.payloadRevealed ? 'HIDE PAYLOAD' : 'REVEAL PAYLOAD';
+      renderVersionInspector();
+    });
+
+    document.getElementById('destroyVersionBtn')?.addEventListener('click', destroySecretVersion);
+    document.getElementById('toggleVersionStateBtn')?.addEventListener('click', toggleSecretVersionState);
+
+    // Add Secret Version Modal
+    document.getElementById('addSecretVersionBtn')?.addEventListener('click', () => {
+      audio.click();
+      const sec = state.secrets[state.selectedSecretId];
+      document.getElementById('newVersionSecretName').value = sec ? sec.name : '';
+      document.getElementById('newVersionPayload').value = '';
+      document.getElementById('createSecretVersionModal').classList.add('active');
+    });
+
+    document.getElementById('closeCreateSecretModal')?.addEventListener('click', () => {
+      document.getElementById('createSecretVersionModal').classList.remove('active');
+    });
+    document.getElementById('cancelCreateVersionBtn')?.addEventListener('click', () => {
+      document.getElementById('createSecretVersionModal').classList.remove('active');
+    });
+    document.getElementById('confirmCreateVersionBtn')?.addEventListener('click', () => {
+      const payload = document.getElementById('newVersionPayload').value || 'SECURE_VAULT_PAYLOAD_' + Date.now();
+      const deprecatePrior = document.getElementById('deprecatePreviousSelect').value === 'true';
+      createSecretVersion(payload, deprecatePrior);
+      document.getElementById('createSecretVersionModal').classList.remove('active');
+    });
+
+    // KMS Force Rotation
+    document.getElementById('forceKmsRotationBtn')?.addEventListener('click', forceKmsRotation);
+
+    // Audit Logs Terminal Controls
+    document.getElementById('pauseLogBtn')?.addEventListener('click', (e) => {
+      state.logsPaused = !state.logsPaused;
+      e.target.textContent = state.logsPaused ? 'RESUME' : 'PAUSE';
+    });
+    document.getElementById('clearLogBtn')?.addEventListener('click', () => {
+      state.logs = [];
+      renderLogs();
+    });
+
+    // Window Resize Handling
+    window.addEventListener('resize', () => {
+      renderRadarChart();
+      renderQuotaChart();
+    });
+  }
+
+  // --- AUTOMATED TESTING HARNESS API ---
+  window.__GCP_IAM_SECURITY__ = {
+    getState: () => JSON.parse(JSON.stringify(state)),
+    scanHierarchy: () => runFullSecurityScan(),
+    applyDownscope: (principalId) => applyDownscope(principalId),
+    revertDownscope: (principalId) => revertDownscope(principalId),
+    revokeKey: (keyId) => revokeKey(keyId),
+    rotateKey: () => executeKeyRotationWizard(),
+    createSecretVersion: (payload) => createSecretVersion(payload),
+    destroySecretVersion: () => destroySecretVersion(),
+    toggleSecretVersionState: () => toggleSecretVersionState(),
+    forceKmsRotation: () => forceKmsRotation(),
+    simulateQuotaSpike: () => simulateQuotaSpike(),
+    simulateThreatLeak: () => simulateThreatLeak(),
+    exportReport: () => exportAuditReport(),
+    switchTab: (tabId) => switchTab(tabId),
+
+    // Comprehensive Self-Contained Test Runner
+    runTests: async function() {
+      const results = [];
+      let passed = 0;
+      let failed = 0;
+
+      function assert(name, condition, errorMsg = '') {
+        if (condition) {
+          passed++;
+          results.push({ name, status: 'PASS' });
+          console.log(`%c✔ PASS: ${name}`, 'color:#10b981; font-weight:bold;');
+        } else {
+          failed++;
+          results.push({ name, status: 'FAIL', error: errorMsg });
+          console.error(`✖ FAIL: ${name} - ${errorMsg}`);
+        }
+      }
+
+      console.log('%c--- STARTING GCP IAM SECURITY TEST SUITE ---', 'color:#00e5ff; font-weight:bold;');
+
+      // 1. Initial State & Elements
+      assert('Header and score dial render', !!document.getElementById('headerScoreVal') && !!document.getElementById('headerScorePath'));
+      assert('KPI summary cards render', !!document.getElementById('kpiScoreVal') && !!document.getElementById('kpiExcessVal'));
+      assert('Least privilege table renders', document.getElementById('leastPrivilegeTableBody').children.length > 0);
+
+      // 2. Tab Navigation
+      switchTab('tab-least-privilege');
+      assert('Switch to least-privilege tab', document.getElementById('tab-least-privilege').classList.contains('active'));
+      switchTab('tab-sa-keys');
+      assert('Switch to SA keys tab', document.getElementById('tab-sa-keys').classList.contains('active'));
+      switchTab('tab-secret-vault');
+      assert('Switch to Secret Vault tab', document.getElementById('tab-secret-vault').classList.contains('active'));
+
+      // 3. Secret Version Creation & Destruction
+      const initialVerCount = state.secrets['sec-payment-rsa-key'].versions.length;
+      createSecretVersion('TEST_PAYLOAD_E2E_VERIFICATION_BYTES');
+      assert('Secret version creation increments count', state.secrets['sec-payment-rsa-key'].versions.length === initialVerCount + 1);
+      destroySecretVersion();
+      assert('Destroy version updates state to DESTROYED', state.secrets['sec-payment-rsa-key'].versions[state.secrets['sec-payment-rsa-key'].versions.length - 1].state === 'DESTROYED');
+
+      // 4. Downscoping IAM Policy
+      const p = state.principals[0];
+      applyDownscope(p.id);
+      assert('Downscoping applies remediated state', p.remediated === true);
+
+      // 5. Key Revocation
+      revokeKey('key-9941-deploy-sec8');
+      assert('Compromised key marked REVOKED', state.saKeys.find(k => k.id === 'key-9941-deploy-sec8').status === 'REVOKED');
+
+      // 6. KMS Rotation
+      forceKmsRotation();
+      assert('KMS countdown reset to 90 days', document.getElementById('kmsDaysCount').textContent === '90');
+
+      // 7. Audit Log Stream
+      assert('Audit logs recorded events', state.logs.length >= 5);
+
+      // 8. Restore tab
+      switchTab('tab-posture');
+
+      console.log(`%c--- TESTS COMPLETED: ${passed} PASSED / ${failed} FAILED ---`, `color:${failed === 0 ? '#10b981' : '#ef4444'}; font-weight:bold;`);
+      return { total: passed + failed, passed, failed, results };
+    }
+  };
+
+  // --- INITIALIZATION ---
+  window.addEventListener('DOMContentLoaded', () => {
+    attachEventHandlers();
+    recalculateScore();
+    renderLeastPrivilegeTable();
+    renderSaKeysTable();
+    renderSecretVaultTimeline();
+    renderLogs();
+    renderRadarChart();
+    renderQuotaChart();
+    console.log('%c[GCP IAM Security & Secret Vault Auditor] Initialized successfully in Cyberpunk Mode.', 'color:#f43f5e; font-weight:bold;');
+  });
+
+})();
+</script>
+
+</body>
+</html>

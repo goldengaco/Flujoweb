@@ -1,0 +1,1085 @@
+{
+  "sistemas/tv-diagnostic/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* \u2500\u2500 BG \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */\n    .scene",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* \u2500\u2500 LAYOUT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */\n    .hub",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* Track \u2014 thin, subtle, fades when done */\n    .track",
+        "z_index": "1"
+      },
+      {
+        "selector": "/* \u2500\u2500 NODE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */\n    .node",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* EMOJI \u2014 always visible */\n    .node__emoji",
+        "z_index": "2"
+      },
+      {
+        "selector": ".footer",
+        "z_index": "1"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": "/* \u2500\u2500 LAYOUT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */\n    .hub",
+        "property": "padding",
+        "value": "clamp(28px, 5vw, 56px) clamp(12px, 3vw, 24px) clamp(24px, 4vw, 40px)"
+      },
+      {
+        "selector": ".hdr__pill",
+        "property": "font-size",
+        "value": "clamp(0.62rem, 1.4vw, 0.75rem)"
+      },
+      {
+        "selector": ".hdr__title",
+        "property": "font-size",
+        "value": "clamp(1.4rem, 4vw, 2.6rem)"
+      },
+      {
+        "selector": ".hdr__sub",
+        "property": "font-size",
+        "value": "clamp(0.8rem, 1.8vw, 0.95rem)"
+      },
+      {
+        "selector": ".hdr__status",
+        "property": "font-size",
+        "value": "clamp(0.75rem, 1.6vw, 0.88rem)"
+      },
+      {
+        "selector": "/* Track \u2014 thin, subtle, fades when done */\n    .track",
+        "property": "top",
+        "value": "calc(clamp(66px, 14vw, 112px) / 2)"
+      },
+      {
+        "selector": "/* Track \u2014 thin, subtle, fades when done */\n    .track",
+        "property": "left",
+        "value": "calc(clamp(66px, 14vw, 112px) / 2)"
+      },
+      {
+        "selector": "/* Track \u2014 thin, subtle, fades when done */\n    .track",
+        "property": "right",
+        "value": "calc(clamp(66px, 14vw, 112px) / 2)"
+      },
+      {
+        "selector": "/* Ambient glow behind node */\n    .node__glow",
+        "property": "width",
+        "value": "clamp(78px, 16vw, 130px)"
+      },
+      {
+        "selector": "/* Ambient glow behind node */\n    .node__glow",
+        "property": "height",
+        "value": "clamp(78px, 16vw, 130px)"
+      },
+      {
+        "selector": "/* Circle \u2014 Netflix-sized, clean */\n    .node__circle",
+        "property": "width",
+        "value": "clamp(66px, 14vw, 112px)"
+      },
+      {
+        "selector": "/* Circle \u2014 Netflix-sized, clean */\n    .node__circle",
+        "property": "height",
+        "value": "clamp(66px, 14vw, 112px)"
+      },
+      {
+        "selector": "/* EMOJI \u2014 always visible */\n    .node__emoji",
+        "property": "font-size",
+        "value": "clamp(1.5rem, 3.5vw, 2.6rem)"
+      },
+      {
+        "selector": "/* Label */\n    .node__label",
+        "property": "font-size",
+        "value": "clamp(0.68rem, 1.6vw, 0.85rem)"
+      },
+      {
+        "selector": "/* Label */\n    .node__label",
+        "property": "max-width",
+        "value": "clamp(70px, 18vw, 125px)"
+      },
+      {
+        "selector": "/* Metric */\n    .node__metric",
+        "property": "font-size",
+        "value": "clamp(0.65rem, 1.4vw, 0.78rem)"
+      },
+      {
+        "selector": ".btn-primary",
+        "property": "padding",
+        "value": "clamp(12px, 2.5vw, 16px) clamp(36px, 6vw, 56px)"
+      },
+      {
+        "selector": ".btn-primary",
+        "property": "font-size",
+        "value": "clamp(0.85rem, 2vw, 0.98rem)"
+      },
+      {
+        "selector": ".btn-secondary",
+        "property": "font-size",
+        "value": "clamp(0.72rem, 1.5vw, 0.82rem)"
+      },
+      {
+        "selector": ".logs__title",
+        "property": "font-size",
+        "value": "clamp(0.7rem, 1.5vw, 0.82rem)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/network-health/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* \u2500\u2500 Hex grid \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */\nbody::before",
+        "z_index": "0"
+      },
+      {
+        "selector": "body::after",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* \u2500\u2500 Layout \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */\n.app",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* Track */\n.trk",
+        "z_index": "1"
+      },
+      {
+        "selector": "/* \u2500\u2500 Node \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */\n.nd",
+        "z_index": "2"
+      },
+      {
+        "selector": ".nd__c .em",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* Glow pad */\n.nd__c::after",
+        "z_index": "-1"
+      },
+      {
+        "selector": ".footer",
+        "z_index": "2"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": "/* \u2500\u2500 Layout \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */\n.app",
+        "property": "padding",
+        "value": "clamp(24px, 4vw, 44px) clamp(12px, 3vw, 20px) 36px"
+      },
+      {
+        "selector": ".hdr h1",
+        "property": "font-size",
+        "value": "clamp(1.4rem,3.8vw,2.3rem)"
+      },
+      {
+        "selector": ".hdr__sub",
+        "property": "font-size",
+        "value": "clamp(0.75rem, 1.6vw, 0.88rem)"
+      },
+      {
+        "selector": ".pill",
+        "property": "font-size",
+        "value": "clamp(0.62rem, 1.3vw, 0.72rem)"
+      },
+      {
+        "selector": "/* Track */\n.trk",
+        "property": "top",
+        "value": "calc(clamp(52px, 12vw, 88px) / 2)"
+      },
+      {
+        "selector": "/* Track */\n.trk",
+        "property": "left",
+        "value": "calc(clamp(52px, 12vw, 88px) / 2)"
+      },
+      {
+        "selector": "/* Track */\n.trk",
+        "property": "right",
+        "value": "calc(clamp(52px, 12vw, 88px) / 2)"
+      },
+      {
+        "selector": ".nd__c",
+        "property": "width",
+        "value": "clamp(52px, 12vw, 88px)"
+      },
+      {
+        "selector": ".nd__c",
+        "property": "height",
+        "value": "clamp(52px, 12vw, 88px)"
+      },
+      {
+        "selector": ".nd__c .em",
+        "property": "font-size",
+        "value": "clamp(1.1rem, 2.8vw, 1.9rem)"
+      },
+      {
+        "selector": "/* Labels */\n.nd__lb",
+        "property": "font-size",
+        "value": "clamp(0.6rem, 1.4vw, 0.75rem)"
+      },
+      {
+        "selector": "/* Labels */\n.nd__lb",
+        "property": "max-width",
+        "value": "clamp(56px, 16vw, 95px)"
+      },
+      {
+        "selector": ".nd__mt",
+        "property": "font-size",
+        "value": "clamp(0.58rem, 1.3vw, 0.7rem)"
+      },
+      {
+        "selector": ".summary__head",
+        "property": "font-size",
+        "value": "clamp(0.72rem, 1.6vw, 0.85rem)"
+      },
+      {
+        "selector": ".s-card__value",
+        "property": "font-size",
+        "value": "clamp(0.95rem, 2.5vw, 1.25rem)"
+      },
+      {
+        "selector": ".btn",
+        "property": "padding",
+        "value": "clamp(12px, 2.5vw, 14px) clamp(28px, 5vw, 40px)"
+      },
+      {
+        "selector": ".btn",
+        "property": "font-size",
+        "value": "clamp(0.8rem, 2vw, 0.95rem)"
+      },
+      {
+        "selector": ".btn2",
+        "property": "font-size",
+        "value": "clamp(0.65rem, 1.4vw, 0.75rem)"
+      },
+      {
+        "selector": ".logs__t",
+        "property": "font-size",
+        "value": "clamp(0.68rem, 1.4vw, 0.78rem)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/security-audit/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* Ambient Hexagonal & Cyberpunk Grid Background */\n    body::before",
+        "z_index": "0"
+      },
+      {
+        "selector": "body::after",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* Layout Container */\n    .app-container",
+        "z_index": "1"
+      },
+      {
+        "selector": "/* Progress Connection Track behind nodes */\n    .stepper-track-bg",
+        "z_index": "1"
+      },
+      {
+        "selector": ".stepper-track-fill",
+        "z_index": "1"
+      },
+      {
+        "selector": "/* Stepper Node Item */\n    .stepper-node",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* Slide-Over Telemetry Inspection Drawer */\n    .drawer-overlay",
+        "z_index": "99"
+      },
+      {
+        "selector": ".inspection-drawer",
+        "z_index": "100"
+      },
+      {
+        "selector": "/* Executive Summary Modal */\n    .modal-overlay",
+        "z_index": "100"
+      },
+      {
+        "selector": "/* Toast Notification */\n    .toast-container",
+        "z_index": "100"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": ".brand-titles h1",
+        "property": "font-size",
+        "value": "clamp(1.05rem, 2.5vw, 1.4rem)"
+      },
+      {
+        "selector": ".brand-titles h1 .badge-v",
+        "property": "font-size",
+        "value": "clamp(0.6rem, 1.2vw, 0.7rem)"
+      },
+      {
+        "selector": ".brand-titles p",
+        "property": "font-size",
+        "value": "clamp(0.72rem, 1.4vw, 0.85rem)"
+      },
+      {
+        "selector": ".target-pill",
+        "property": "font-size",
+        "value": "clamp(0.68rem, 1.3vw, 0.78rem)"
+      },
+      {
+        "selector": ".btn",
+        "property": "font-size",
+        "value": "clamp(0.75rem, 1.5vw, 0.85rem)"
+      },
+      {
+        "selector": ".section-title",
+        "property": "font-size",
+        "value": "clamp(0.82rem, 1.8vw, 0.98rem)"
+      },
+      {
+        "selector": ".stepper-status-badge",
+        "property": "font-size",
+        "value": "clamp(0.68rem, 1.3vw, 0.78rem)"
+      },
+      {
+        "selector": "/* Progress Connection Track behind nodes */\n    .stepper-track-bg",
+        "property": "top",
+        "value": "calc(clamp(48px, 10vw, 60px) / 2 + 10px)"
+      },
+      {
+        "selector": ".stepper-track-fill",
+        "property": "top",
+        "value": "calc(clamp(48px, 10vw, 60px) / 2 + 10px)"
+      },
+      {
+        "selector": "/* Node Circle & Glowing Emojis */\n    .node-circle-wrap",
+        "property": "width",
+        "value": "clamp(48px, 10vw, 60px)"
+      },
+      {
+        "selector": "/* Node Circle & Glowing Emojis */\n    .node-circle-wrap",
+        "property": "height",
+        "value": "clamp(48px, 10vw, 60px)"
+      },
+      {
+        "selector": ".node-circle",
+        "property": "width",
+        "value": "clamp(48px, 10vw, 60px)"
+      },
+      {
+        "selector": ".node-circle",
+        "property": "height",
+        "value": "clamp(48px, 10vw, 60px)"
+      },
+      {
+        "selector": ".node-circle",
+        "property": "font-size",
+        "value": "clamp(18px, 3.5vw, 24px)"
+      },
+      {
+        "selector": ".gauge-score-value",
+        "property": "font-size",
+        "value": "clamp(1.8rem, 4.5vw, 2.6rem)"
+      },
+      {
+        "selector": ".metric-value",
+        "property": "font-size",
+        "value": "clamp(1.3rem, 3.5vw, 1.9rem)"
+      },
+      {
+        "selector": ".drawer-titles h3",
+        "property": "font-size",
+        "value": "clamp(0.95rem, 2vw, 1.2rem)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/server-status/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* Ambient Cyberpunk Grid Background */\n    body::before",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* Radial Ambient Vignette */\n    body::after",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* Scanline Subtle Effect */\n    .scanlines",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* Layout Wrapper */\n    .app-container",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* ==========================================================================\n       HEADER & NAVIGATION\n       ========================================================================== */\n    .noc-header",
+        "z_index": "50"
+      },
+      {
+        "selector": ".sparkline-header",
+        "z_index": "2"
+      },
+      {
+        "selector": ".sla-segment:hover",
+        "z_index": "10"
+      },
+      {
+        "selector": "/* ==========================================================================\n       CHAOS CONTROL MODAL & 5-STEP AUTO-HEALING WORKFLOW\n       ========================================================================== */\n    .chaos-overlay",
+        "z_index": "100"
+      },
+      {
+        "selector": "/* ==========================================================================\n       ANSI LIVE STREAMING TERMINAL CONSOLE (COLLAPSIBLE DRAWER)\n       ========================================================================== */\n    .terminal-drawer",
+        "z_index": "100"
+      },
+      {
+        "selector": "/* ==========================================================================\n       CYBERPUNK 90-DAY SLA TOOLTIP\n       ========================================================================== */\n    .sla-tooltip",
+        "z_index": "100"
+      },
+      {
+        "selector": "/* ==========================================================================\n       TOAST NOTIFICATIONS\n       ========================================================================== */\n    .toast-container",
+        "z_index": "100"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": "/* ==========================================================================\n       HEADER & NAVIGATION\n       ========================================================================== */\n    .noc-header",
+        "property": "padding",
+        "value": "0.75rem clamp(1rem, 3vw, 2rem)"
+      },
+      {
+        "selector": ".brand-title",
+        "property": "font-size",
+        "value": "clamp(1rem, 2.2vw, 1.35rem)"
+      },
+      {
+        "selector": ".brand-sub",
+        "property": "font-size",
+        "value": "clamp(0.65rem, 1.2vw, 0.75rem)"
+      },
+      {
+        "selector": ".global-status-badge",
+        "property": "font-size",
+        "value": "clamp(0.72rem, 1.5vw, 0.82rem)"
+      },
+      {
+        "selector": ".kpi-label",
+        "property": "font-size",
+        "value": "clamp(0.68rem, 1.2vw, 0.75rem)"
+      },
+      {
+        "selector": ".kpi-value",
+        "property": "font-size",
+        "value": "clamp(1.3rem, 3.5vw, 1.85rem)"
+      },
+      {
+        "selector": ".service-name",
+        "property": "font-size",
+        "value": "clamp(0.88rem, 2vw, 1.1rem)"
+      },
+      {
+        "selector": ".service-tag",
+        "property": "font-size",
+        "value": "clamp(0.62rem, 1.1vw, 0.7rem)"
+      },
+      {
+        "selector": ".stat-value",
+        "property": "font-size",
+        "value": "clamp(0.8rem, 1.8vw, 0.95rem)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/transaction-flow/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* Ambient Hex Grid Overlay */\n    .ambient-glow",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* App Container */\n    .app-container",
+        "z_index": "1"
+      },
+      {
+        "selector": ".stepper-tracks-svg",
+        "z_index": "1"
+      },
+      {
+        "selector": "/* Primary Pipeline Grid */\n    .nodes-grid",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* Permanent Glowing Emoji Icon */\n    .node-icon",
+        "z_index": "2"
+      },
+      {
+        "selector": ".node-step-index",
+        "z_index": "3"
+      },
+      {
+        "selector": "/* Retry Badge for Node 5 */\n    .node-retry-badge",
+        "z_index": "4"
+      },
+      {
+        "selector": "/* ==========================================================================\n       BIFURCATION BRANCHES CONTAINER (Node 3B & Node 4B)\n       ========================================================================== */\n    .bifurcations-container",
+        "z_index": "2"
+      },
+      {
+        "selector": ".card-top-row",
+        "z_index": "2"
+      },
+      {
+        "selector": ".card-pan-display",
+        "z_index": "2"
+      },
+      {
+        "selector": ".card-bottom-row",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* Toast Notification */\n    .toast-container",
+        "z_index": "100"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": ".brand-title h1",
+        "property": "font-size",
+        "value": "clamp(1.1rem, 2.8vw, 1.5rem)"
+      },
+      {
+        "selector": ".brand-title p",
+        "property": "font-size",
+        "value": "clamp(0.7rem, 1.4vw, 0.82rem)"
+      },
+      {
+        "selector": "/* Live Pipeline Status Pill */\n    .status-pill",
+        "property": "font-size",
+        "value": "clamp(0.68rem, 1.3vw, 0.78rem)"
+      },
+      {
+        "selector": ".ledger-value",
+        "property": "font-size",
+        "value": "clamp(1.15rem, 2.5vw, 1.5rem)"
+      },
+      {
+        "selector": ".pipeline-section-title h2",
+        "property": "font-size",
+        "value": "clamp(0.85rem, 1.8vw, 0.98rem)"
+      },
+      {
+        "selector": "/* Node Circle Hub */\n    .node-circle",
+        "property": "width",
+        "value": "clamp(58px, 12vw, 78px)"
+      },
+      {
+        "selector": "/* Node Circle Hub */\n    .node-circle",
+        "property": "height",
+        "value": "clamp(58px, 12vw, 78px)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/gcp-serverless-pipeline/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* Interactive Drawer Modal for Stage Detail */\n    .drawer-modal",
+        "z_index": "100"
+      },
+      {
+        "selector": ".drawer-backdrop",
+        "z_index": "99"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": ".brand-title",
+        "property": "font-size",
+        "value": "clamp(15px, 2.5vw, 20px)"
+      },
+      {
+        "selector": ".brand-subtitle",
+        "property": "font-size",
+        "value": "clamp(10px, 1.4vw, 12.5px)"
+      },
+      {
+        "selector": ".stat-label",
+        "property": "font-size",
+        "value": "clamp(9.5px, 1.2vw, 11px)"
+      },
+      {
+        "selector": ".stat-value",
+        "property": "font-size",
+        "value": "clamp(13px, 2vw, 17px)"
+      },
+      {
+        "selector": ".section-title",
+        "property": "font-size",
+        "value": "clamp(12px, 1.8vw, 15px)"
+      },
+      {
+        "selector": ".step-name",
+        "property": "font-size",
+        "value": "clamp(11.5px, 1.5vw, 13.5px)"
+      },
+      {
+        "selector": ".step-api",
+        "property": "font-size",
+        "value": "clamp(9.5px, 1.2vw, 11px)"
+      },
+      {
+        "selector": "/* Particle Canvas Canvas Box */\n    .canvas-container",
+        "property": "height",
+        "value": "clamp(180px, 22vw, 240px)"
+      },
+      {
+        "selector": ".gauge-number",
+        "property": "font-size",
+        "value": "clamp(18px, 3vw, 26px)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/gcp-event-pubsub/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* ==========================================================================\n       HEADER & MISSION CONTROL BAR\n       ========================================================================== */\n    .app-header",
+        "z_index": "50"
+      },
+      {
+        "selector": ".chart-crosshair-tooltip",
+        "z_index": "3"
+      },
+      {
+        "selector": ".dlq-table th",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* ==========================================================================\n       DLQ INSPECTOR & PAYLOAD MODAL\n       ========================================================================== */\n    .modal-overlay",
+        "z_index": "100"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": ".brand-title",
+        "property": "font-size",
+        "value": "clamp(14px, 2.2vw, 18px)"
+      },
+      {
+        "selector": ".brand-subtitle",
+        "property": "font-size",
+        "value": "clamp(10px, 1.2vw, 12px)"
+      },
+      {
+        "selector": ".ticker-val",
+        "property": "font-size",
+        "value": "clamp(11.5px, 1.5vw, 14px)"
+      },
+      {
+        "selector": ".section-title",
+        "property": "font-size",
+        "value": "clamp(13px, 1.8vw, 16px)"
+      },
+      {
+        "selector": ".node-name",
+        "property": "font-size",
+        "value": "clamp(11.5px, 1.5vw, 13.5px)"
+      },
+      {
+        "selector": ".node-metric-num",
+        "property": "font-size",
+        "value": "clamp(11.5px, 1.5vw, 14px)"
+      },
+      {
+        "selector": ".stream-canvas-container",
+        "property": "height",
+        "value": "clamp(140px, 18vw, 180px)"
+      },
+      {
+        "selector": ".card-header-title",
+        "property": "font-size",
+        "value": "clamp(12px, 1.6vw, 15px)"
+      },
+      {
+        "selector": ".chart-canvas-container",
+        "property": "height",
+        "value": "clamp(180px, 24vw, 240px)"
+      },
+      {
+        "selector": ".gauge-main-val",
+        "property": "font-size",
+        "value": "clamp(18px, 2.8vw, 24px)"
+      },
+      {
+        "selector": ".histogram-bars-wrapper",
+        "property": "height",
+        "value": "clamp(110px, 15vw, 140px)"
+      },
+      {
+        "selector": ".modal-title",
+        "property": "font-size",
+        "value": "clamp(13px, 1.8vw, 16px)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/gcp-sql-networking/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* Ambient Background Glow Header */\n    .ambient-glow",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* App Container */\n    .app-container",
+        "z_index": "1"
+      },
+      {
+        "selector": ".sql-table th",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* Interactive Modals */\n    .modal-backdrop",
+        "z_index": "99"
+      },
+      {
+        "selector": ".modal-window",
+        "z_index": "100"
+      },
+      {
+        "selector": "/* Toast Container */\n    .toast-container",
+        "z_index": "100"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": ".brand-text h1",
+        "property": "font-size",
+        "value": "clamp(1.05rem, 2.5vw, 1.35rem)"
+      },
+      {
+        "selector": ".brand-subtitle",
+        "property": "font-size",
+        "value": "clamp(0.72rem, 1.3vw, 0.84rem)"
+      },
+      {
+        "selector": ".kpi-value",
+        "property": "font-size",
+        "value": "clamp(1.25rem, 2.8vw, 1.7rem)"
+      },
+      {
+        "selector": ".panel-title",
+        "property": "font-size",
+        "value": "clamp(0.9rem, 1.8vw, 1.08rem)"
+      },
+      {
+        "selector": "/* Canvas Network Topology Section */\n    .topology-container",
+        "property": "height",
+        "value": "clamp(280px, 35vw, 400px)"
+      },
+      {
+        "selector": ".gauge-percent",
+        "property": "font-size",
+        "value": "clamp(1.3rem, 2.5vw, 1.8rem)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/gcp-iam-security/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* Ambient Hexagonal & Cyberpunk Grid Background */\n    body::before",
+        "z_index": "0"
+      },
+      {
+        "selector": "body::after",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* App Container */\n    .app-container",
+        "z_index": "1"
+      },
+      {
+        "selector": ".timeline-track::before",
+        "z_index": "0"
+      },
+      {
+        "selector": ".timeline-node",
+        "z_index": "1"
+      },
+      {
+        "selector": "/* Modals & Dialogs */\n    .modal-overlay",
+        "z_index": "999"
+      },
+      {
+        "selector": "/* Toast Notification */\n    .toast-container",
+        "z_index": "100"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": ".brand-info h1",
+        "property": "font-size",
+        "value": "clamp(1rem, 2.2vw, 1.3rem)"
+      },
+      {
+        "selector": ".brand-info .subtitle",
+        "property": "font-size",
+        "value": "clamp(0.68rem, 1.2vw, 0.78rem)"
+      },
+      {
+        "selector": ".threat-text-title",
+        "property": "font-size",
+        "value": "clamp(0.78rem, 1.5vw, 0.95rem)"
+      },
+      {
+        "selector": ".kpi-value",
+        "property": "font-size",
+        "value": "clamp(1.2rem, 2.5vw, 1.6rem)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/gcp-cloudops-cockpit/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* Ambient Cyberpunk Grid Background */\n    body::before",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* Radial Ambient Vignette */\n    body::after",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* Top Scanline Pulse */\n    .scanline-pulse",
+        "z_index": "50"
+      },
+      {
+        "selector": "/* ==========================================================================\n       CONTAINER & HEADER\n       ========================================================================== */\n    .cockpit-container",
+        "z_index": "1"
+      },
+      {
+        "selector": "/* Paused scroll notification banner */\n    .paused-scroll-badge",
+        "z_index": "10"
+      },
+      {
+        "selector": "/* ==========================================================================\n       DRAWERS & MODALS\n       ========================================================================== */\n    .drawer-overlay",
+        "z_index": "99"
+      },
+      {
+        "selector": ".hud-drawer",
+        "z_index": "100"
+      },
+      {
+        "selector": "/* Modal for Automated SRE Runbook Terminal */\n    .modal-overlay",
+        "z_index": "100"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": ".signal-big-value",
+        "property": "font-size",
+        "value": "clamp(1.4rem, 2.8vw, 2rem)"
+      },
+      {
+        "selector": ".submetric-val",
+        "property": "font-size",
+        "value": "clamp(0.78rem, 1.3vw, 0.92rem)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/mulesoft-observability/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* Background Ambient */\nbody::before",
+        "z_index": "0"
+      },
+      {
+        "selector": "body::after",
+        "z_index": "0"
+      },
+      {
+        "selector": ".app",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* Connective Flow Lines */\n.flow-arrow",
+        "z_index": "1"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": ".hdr h1",
+        "property": "font-size",
+        "value": "clamp(1.4rem,3.2vw,2.2rem)"
+      },
+      {
+        "selector": ".hdr p",
+        "property": "font-size",
+        "value": "clamp(0.78rem,1.4vw,0.88rem)"
+      },
+      {
+        "selector": ".card__title",
+        "property": "font-size",
+        "value": "clamp(0.8rem,1.4vw,0.92rem)"
+      },
+      {
+        "selector": ".api-node__name",
+        "property": "font-size",
+        "value": "clamp(0.7rem,1.2vw,0.78rem)"
+      },
+      {
+        "selector": ".btn",
+        "property": "font-size",
+        "value": "clamp(0.75rem,1.3vw,0.85rem)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/apigee-mulesoft-hybrid/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* Ambient Cyberpunk Grid & Vignette */\nbody::before",
+        "z_index": "0"
+      },
+      {
+        "selector": "body::after",
+        "z_index": "0"
+      },
+      {
+        "selector": ".cockpit-app",
+        "z_index": "1"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": ".hdr__title-box h1",
+        "property": "font-size",
+        "value": "clamp(1.25rem, 2.8vw, 1.7rem)"
+      },
+      {
+        "selector": ".hdr__title-box p",
+        "property": "font-size",
+        "value": "clamp(0.7rem, 1.2vw, 0.8rem)"
+      },
+      {
+        "selector": ".canvas-container",
+        "property": "height",
+        "value": "clamp(240px, 30vw, 320px)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/emergency-evacuation-v1/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* Ambient Background Grid */\n    body::before",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* Emergency Strobe Overlay */\n    #strobe-overlay",
+        "z_index": "90"
+      },
+      {
+        "selector": "/* Header Bar */\n    header.tactical-header",
+        "z_index": "50"
+      },
+      {
+        "selector": "/* Main Container Layout */\n    main.tactical-main",
+        "z_index": "1"
+      },
+      {
+        "selector": "/* MODALS */\n    .modal-backdrop",
+        "z_index": "100"
+      },
+      {
+        "selector": "/* Footer & System Signature */\n    footer.tactical-footer",
+        "z_index": "10"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": ".branding-title",
+        "property": "font-size",
+        "value": "clamp(1rem, 2.2vw, 1.25rem)"
+      },
+      {
+        "selector": ".branding-subtitle",
+        "property": "font-size",
+        "value": "clamp(0.68rem, 1.2vw, 0.78rem)"
+      },
+      {
+        "selector": "/* Tactical Building Cross Section Canvas/SVG */\n    .schematic-box",
+        "property": "height",
+        "value": "clamp(160px, 20vw, 220px)"
+      }
+    ],
+    "inline_clamps_count": 0
+  },
+  "sistemas/emergency-evacuation-v2/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* Scanline effect */\n    body::before",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* Ambient noise & grid */\n    .ambient-grid",
+        "z_index": "0"
+      },
+      {
+        "selector": "/* ==========================================================================\n       CONTAINER & PHONE FRAME / FULLSCREEN / RESPONSIVE COCKPIT MODES\n       ========================================================================== */\n    .app-viewport",
+        "z_index": "2"
+      },
+      {
+        "selector": "/* Dynamic Notch / Island */\n    .phone-notch-area",
+        "z_index": "20"
+      },
+      {
+        "selector": "/* ==========================================================================\n       MODALS & OVERLAYS: SOS TRIAGE & SAFE CERTIFICATE\n       ========================================================================== */\n    .modal-overlay",
+        "z_index": "100"
+      },
+      {
+        "selector": "/* ==========================================================================\n       TOAST NOTIFICATION NOTICES\n       ========================================================================== */\n    .toast-container",
+        "z_index": "100"
+      }
+    ],
+    "clamp_rules": [],
+    "inline_clamps_count": 0
+  },
+  "sistemas/emergency-evacuation-v3/index.html": {
+    "z_rules": [
+      {
+        "selector": "/* ==========================================================================\n       TOP TACTICAL HEADER & TELEMETRY HUD BAR\n       ========================================================================== */\n    .tactical-header",
+        "z_index": "50"
+      },
+      {
+        "selector": "/* Canvas Tactical HUD Overlay elements */\n    .canvas-overlay-legend",
+        "z_index": "10"
+      },
+      {
+        "selector": ".canvas-node-inspector",
+        "z_index": "20"
+      }
+    ],
+    "clamp_rules": [
+      {
+        "selector": ".brand-title-group h1",
+        "property": "font-size",
+        "value": "clamp(14px, 2.4vw, 18px)"
+      },
+      {
+        "selector": "/* Latency Histogram Panel */\n    .histogram-container",
+        "property": "height",
+        "value": "clamp(180px, 22vw, 240px)"
+      },
+      {
+        "selector": ".sla-item .value",
+        "property": "font-size",
+        "value": "clamp(11px, 1.5vw, 14px)"
+      }
+    ],
+    "inline_clamps_count": 0
+  }
+}

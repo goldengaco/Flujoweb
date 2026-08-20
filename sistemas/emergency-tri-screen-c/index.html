@@ -1,0 +1,3330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ISO-COMMAND // 2.5D Isometric Mission Control Tri-Panel</title>
+  
+  <!-- Google Fonts Preconnect & Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & INDUSTRIAL ISOMETRIC PALETTE
+       ========================================================================== */
+    :root {
+      --bg-base: #060911;
+      --bg-surface: #0a101d;
+      --bg-card: #0e172a;
+      --bg-card-alt: #131f38;
+      --bg-card-highlight: #1a2b4c;
+      
+      --accent-mint: #00f5d4;
+      --accent-cyan: #00e5ff;
+      --accent-sky: #38bdf8;
+      --accent-amber: #f59e0b;
+      --accent-orange: #ff7b00;
+      --accent-crimson: #ff0054;
+      --accent-red: #ef4444;
+      --accent-emerald: #10b981;
+      --accent-purple: #a855f7;
+      
+      --text-main: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --text-accent: #00f5d4;
+      
+      --border-subtle: rgba(0, 245, 212, 0.12);
+      --border-medium: rgba(0, 245, 212, 0.25);
+      --border-glow: rgba(0, 245, 212, 0.5);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --border-crimson-glow: rgba(255, 0, 84, 0.5);
+      
+      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      
+      --shadow-isometric: 0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 245, 212, 0.08);
+      --shadow-glow: 0 0 25px rgba(0, 245, 212, 0.35);
+      --shadow-alarm: 0 0 35px rgba(255, 0, 84, 0.45);
+    }
+
+    /* CSS Reset */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(0, 245, 212, 0.04) 0%, transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 32px 32px, 32px 32px;
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      line-height: 1.4;
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100vw;
+      box-sizing: border-box;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(10, 16, 29, 0.8);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 245, 212, 0.25);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 245, 212, 0.5);
+    }
+
+    /* ==========================================================================
+       TOP COMMAND HEADER
+       ========================================================================== */
+    .top-command-header {
+      height: 64px;
+      background: rgba(10, 16, 29, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-medium);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-back-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+    .nav-back-link:hover {
+      color: var(--accent-mint);
+      border-color: var(--accent-mint);
+      background: rgba(0, 245, 212, 0.08);
+      box-shadow: 0 0 12px rgba(0, 245, 212, 0.2);
+    }
+
+    .system-branding {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .system-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .system-badge-icon {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #00f5d4, #0077b6);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 13px;
+      color: #030712;
+      box-shadow: 0 0 10px rgba(0, 245, 212, 0.5);
+    }
+
+    .system-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #f8fafc, #00f5d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .system-subtitle {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+
+    .header-center-telemetry {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .hud-stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(14, 23, 42, 0.7);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 5px 12px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+
+    .hud-stat-label {
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .hud-stat-val {
+      font-weight: 700;
+      color: var(--accent-mint);
+    }
+
+    .incident-status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: rgba(0, 245, 212, 0.1);
+      border: 1px solid var(--accent-mint);
+      color: var(--accent-mint);
+      box-shadow: 0 0 15px rgba(0, 245, 212, 0.25);
+      transition: all 0.3s ease;
+    }
+
+    .incident-status-indicator.alarm-active {
+      background: rgba(255, 0, 84, 0.18);
+      border-color: var(--accent-crimson);
+      color: var(--accent-crimson);
+      box-shadow: var(--shadow-alarm);
+      animation: alertPulse 1.2s infinite alternate;
+    }
+
+    @keyframes alertPulse {
+      0% { box-shadow: 0 0 10px rgba(255, 0, 84, 0.3); }
+      100% { box-shadow: 0 0 28px rgba(255, 0, 84, 0.8); }
+    }
+
+    .status-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-card);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .header-btn:hover {
+      color: var(--text-main);
+      border-color: var(--border-medium);
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .header-btn.active {
+      color: var(--accent-mint);
+      border-color: var(--accent-mint);
+      background: rgba(0, 245, 212, 0.12);
+    }
+
+    .btn-reset-sim {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: var(--accent-amber);
+    }
+    .btn-reset-sim:hover {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--accent-amber);
+      color: #fbbf24;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+    }
+
+    /* ==========================================================================
+       MOBILE RESPONSIVE NAVIGATION TABS
+       ========================================================================== */
+    .mobile-tab-nav {
+      display: none;
+      background: rgba(10, 16, 29, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 6px 12px;
+      gap: 8px;
+      position: sticky;
+      top: 64px;
+      z-index: 90;
+    }
+
+    .mobile-tab-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+    .mobile-tab-btn.active {
+      color: var(--accent-mint);
+      background: rgba(0, 245, 212, 0.12);
+      border-color: var(--accent-mint);
+      box-shadow: 0 0 10px rgba(0, 245, 212, 0.25);
+    }
+
+    /* ==========================================================================
+       MASTER 3-COLUMN WORKSPACE
+       ========================================================================== */
+    .tri-workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 360px 1fr 380px;
+      gap: 16px;
+      padding: 16px 20px 20px;
+      height: calc(100vh - 64px);
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    /* Column Containers */
+    .panel-col {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+      position: relative;
+    }
+
+    /* ==========================================================================
+       LEFT PANEL: RUGGEDIZED TACTICAL TABLET (PHONE A)
+       ========================================================================== */
+    .tablet-chassis {
+      flex: 1;
+      background: #090e18;
+      border-radius: 20px;
+      border: 3px solid #1a2942;
+      box-shadow: 
+        0 0 0 2px rgba(0, 0, 0, 0.8),
+        0 20px 50px rgba(0, 0, 0, 0.9),
+        0 0 30px rgba(0, 245, 212, 0.08);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Rugged Bumpers & Hex Bolts */
+    .tablet-bumper {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: #1e3352;
+      border: 2px solid #334e77;
+      z-index: 20;
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.8);
+    }
+    .tablet-bumper.top-left { top: -2px; left: -2px; border-radius: 18px 0 14px 0; }
+    .tablet-bumper.top-right { top: -2px; right: -2px; border-radius: 0 18px 0 14px; }
+    .tablet-bumper.bottom-left { bottom: -2px; left: -2px; border-radius: 0 14px 0 18px; }
+    .tablet-bumper.bottom-right { bottom: -2px; right: -2px; border-radius: 14px 0 18px 0; }
+
+    .hex-bolt {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #475569;
+      border-radius: 50%;
+      border: 1px solid #1e293b;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
+    }
+    .hex-bolt.b1 { top: 6px; left: 6px; }
+    .hex-bolt.b2 { top: 6px; right: 6px; }
+    .hex-bolt.b3 { bottom: 6px; left: 6px; }
+    .hex-bolt.b4 { bottom: 6px; right: 6px; }
+
+    .tablet-side-grip-left, .tablet-side-grip-right {
+      position: absolute;
+      top: 30%;
+      width: 4px;
+      height: 100px;
+      background: repeating-linear-gradient(to bottom, #334155, #334155 4px, #0f172a 4px, #0f172a 8px);
+      border-radius: 2px;
+      z-index: 10;
+    }
+    .tablet-side-grip-left { left: 2px; }
+    .tablet-side-grip-right { right: 2px; }
+
+    /* Tablet Screen */
+    .tablet-screen {
+      flex: 1;
+      margin: 10px;
+      background: #080d17;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 245, 212, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 12px;
+      gap: 12px;
+      position: relative;
+    }
+
+    .tablet-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+    }
+
+    .tablet-id-tag {
+      color: var(--accent-mint);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tablet-signal-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+    }
+
+    /* Rotary Incident Level Dial Section */
+    .rotary-dial-card {
+      background: rgba(14, 23, 42, 0.6);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+    }
+
+    .card-label-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .rotary-dial-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .rotary-dial-canvas {
+      width: 150px;
+      height: 150px;
+      cursor: grab;
+    }
+    .rotary-dial-canvas:active {
+      cursor: grabbing;
+    }
+
+    .rotary-level-badge {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #0c1424;
+      border: 2px solid var(--accent-mint);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      box-shadow: 0 0 15px rgba(0, 245, 212, 0.3);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .rotary-level-num {
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: var(--accent-mint);
+      line-height: 1;
+    }
+
+    .rotary-level-tag {
+      font-family: var(--font-mono);
+      font-size: 0.52rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .incident-pills-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      width: 100%;
+    }
+
+    .level-pill-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 5px 2px;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .level-pill-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+    .level-pill-btn.active[data-lvl="1"] {
+      color: #00f5d4;
+      border-color: #00f5d4;
+      background: rgba(0, 245, 212, 0.15);
+      box-shadow: 0 0 8px rgba(0, 245, 212, 0.3);
+    }
+    .level-pill-btn.active[data-lvl="2"] {
+      color: #f59e0b;
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.15);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+    }
+    .level-pill-btn.active[data-lvl="3"] {
+      color: #ff7b00;
+      border-color: #ff7b00;
+      background: rgba(255, 123, 0, 0.15);
+      box-shadow: 0 0 8px rgba(255, 123, 0, 0.3);
+    }
+    .level-pill-btn.active[data-lvl="4"] {
+      color: #ff0054;
+      border-color: #ff0054;
+      background: rgba(255, 0, 84, 0.2);
+      box-shadow: 0 0 10px rgba(255, 0, 84, 0.4);
+    }
+
+    /* Push-To-Talk PA Broadcast Card */
+    .ptt-broadcast-card {
+      background: rgba(14, 23, 42, 0.6);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ptt-waveform-wrapper {
+      height: 44px;
+      background: #060a12;
+      border: 1px solid rgba(0, 245, 212, 0.15);
+      border-radius: var(--radius-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ptt-waveform-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .ptt-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .ptt-status-text {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ptt-status-text.transmitting {
+      color: var(--accent-mint);
+      font-weight: 700;
+    }
+
+    .ptt-button {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(180deg, #1e293b, #0f172a);
+      border: 1px solid var(--border-medium);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s ease;
+    }
+    .ptt-button:hover {
+      border-color: var(--accent-mint);
+      color: var(--accent-mint);
+    }
+    .ptt-button.active {
+      background: linear-gradient(180deg, rgba(0, 245, 212, 0.3), rgba(0, 119, 182, 0.3));
+      border-color: var(--accent-mint);
+      color: #00f5d4;
+      box-shadow: 0 0 15px rgba(0, 245, 212, 0.4);
+    }
+
+    /* Channel Selector Chips */
+    .channel-select-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .channel-chip {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 6px 8px;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .channel-chip:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text-main);
+    }
+    .channel-chip.active {
+      background: rgba(0, 245, 212, 0.1);
+      border-color: var(--accent-mint);
+      color: var(--accent-mint);
+    }
+
+    /* Emergency Trigger Action Button */
+    .dispatch-trigger-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #ff0054, #d90429);
+      border: 1px solid #ff4d88;
+      border-radius: var(--radius-md);
+      color: #ffffff;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(255, 0, 84, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.25s ease;
+    }
+    .dispatch-trigger-btn:hover {
+      background: linear-gradient(135deg, #ff1a6b, #ef233c);
+      box-shadow: 0 0 30px rgba(255, 0, 84, 0.7);
+      transform: translateY(-1px);
+    }
+    .dispatch-trigger-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* Hazard Injector Quick Matrix */
+    .hazard-injector-card {
+      background: rgba(14, 23, 42, 0.5);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .hazard-btn-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+
+    .hazard-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 6px 4px;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-secondary);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .hazard-btn:hover {
+      background: rgba(255, 0, 84, 0.1);
+      border-color: rgba(255, 0, 84, 0.4);
+      color: #ff7b90;
+    }
+    .hazard-btn.active {
+      background: rgba(255, 0, 84, 0.25);
+      border-color: var(--accent-crimson);
+      color: #ffffff;
+      box-shadow: 0 0 8px rgba(255, 0, 84, 0.4);
+    }
+
+    /* ==========================================================================
+       CENTER PANEL: 2.5D ISOMETRIC MISSION CONTROL FLOORPLAN
+       ========================================================================== */
+    .center-canvas-wrapper {
+      flex: 1;
+      background: #04070e;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-medium);
+      box-shadow: var(--shadow-isometric);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .canvas-hud-top {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    .canvas-title-box {
+      background: rgba(10, 16, 29, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .canvas-title-text {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-mint);
+      letter-spacing: 0.05em;
+    }
+
+    .canvas-tools-group {
+      display: flex;
+      gap: 6px;
+      pointer-events: auto;
+    }
+
+    .canvas-tool-btn {
+      width: 32px;
+      height: 32px;
+      background: rgba(10, 16, 29, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .canvas-tool-btn:hover {
+      color: var(--accent-mint);
+      border-color: var(--accent-mint);
+      background: rgba(0, 245, 212, 0.1);
+    }
+
+    .iso-main-canvas {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+    }
+    .iso-main-canvas:active {
+      cursor: grabbing;
+    }
+
+    /* Canvas HUD Bottom Info Overlay */
+    .canvas-hud-bottom {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    .canvas-legend-box {
+      background: rgba(10, 16, 29, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      display: flex;
+      gap: 12px;
+      pointer-events: auto;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text-secondary);
+    }
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .legend-dot.working { background: #00e5ff; box-shadow: 0 0 6px #00e5ff; }
+    .legend-dot.evacuating { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+    .legend-dot.safe { background: #10b981; box-shadow: 0 0 6px #10b981; }
+    .legend-dot.hazard { background: #ff0054; box-shadow: 0 0 6px #ff0054; }
+
+    .canvas-telemetry-cluster {
+      background: rgba(10, 16, 29, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      display: flex;
+      gap: 14px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      pointer-events: auto;
+    }
+
+    .cluster-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .cluster-item .lbl {
+      color: var(--text-muted);
+      font-size: 0.55rem;
+      text-transform: uppercase;
+    }
+    .cluster-item .val {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .cluster-item .val.mint { color: var(--accent-mint); }
+    .cluster-item .val.amber { color: var(--accent-amber); }
+    .cluster-item .val.emerald { color: var(--accent-emerald); }
+
+    /* ==========================================================================
+       RIGHT PANEL: RECIPIENT TELEMETRY DEVICES (PHONES B, C & D)
+       ========================================================================== */
+    .recipients-scroll-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    /* Device Card Frame */
+    .recipient-device-card {
+      background: #090e18;
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+    .recipient-device-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--border-medium), transparent);
+    }
+
+    .device-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 6px;
+    }
+
+    .device-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .device-icon-badge {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      background: rgba(0, 245, 212, 0.1);
+      border: 1px solid var(--border-subtle);
+      color: var(--accent-mint);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .device-icon-badge.brigade {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: var(--accent-amber);
+    }
+    .device-icon-badge.hub {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: var(--accent-emerald);
+    }
+
+    .device-name-text {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .device-role-tag {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text-muted);
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .telemetry-box {
+      background: rgba(14, 23, 42, 0.6);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 5px 8px;
+      display: flex;
+      flex-direction: column;
+    }
+    .telemetry-box .k {
+      font-family: var(--font-mono);
+      font-size: 0.55rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .telemetry-box .v {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .rssi-bars {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 10px;
+    }
+    .rssi-bar {
+      width: 2px;
+      background: var(--text-muted);
+      border-radius: 1px;
+    }
+    .rssi-bar:nth-child(1) { height: 3px; }
+    .rssi-bar:nth-child(2) { height: 5px; }
+    .rssi-bar:nth-child(3) { height: 8px; }
+    .rssi-bar:nth-child(4) { height: 10px; }
+    .rssi-bar.filled { background: var(--accent-mint); }
+
+    /* Phone B Alert Action Button */
+    .btn-checkin-safe {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: 1px solid #34d399;
+      border-radius: var(--radius-sm);
+      color: #ffffff;
+      padding: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+    }
+    .btn-checkin-safe:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.5);
+    }
+    .btn-checkin-safe.checked {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--accent-emerald);
+      color: var(--accent-emerald);
+      cursor: default;
+      box-shadow: none;
+    }
+
+    /* Phone C Stairwell Toggles */
+    .stairwell-toggle-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .stairwell-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 6px 8px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--accent-emerald);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .stairwell-btn.blocked {
+      color: var(--accent-crimson);
+      border-color: rgba(255, 0, 84, 0.4);
+      background: rgba(255, 0, 84, 0.1);
+    }
+
+    /* Phone D Survivor Triage Log Table */
+    .triage-table-wrapper {
+      max-height: 110px;
+      overflow-y: auto;
+      background: #060a12;
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+    }
+
+    .triage-log-list {
+      list-style: none;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+    }
+
+    .triage-log-item {
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .triage-log-item:last-child {
+      border-bottom: none;
+    }
+
+    .triage-log-item .time { color: var(--text-muted); }
+    .triage-log-item .id { color: var(--text-main); font-weight: 600; }
+    .triage-log-item .tag {
+      padding: 1px 4px;
+      border-radius: 2px;
+      font-size: 0.55rem;
+      font-weight: 700;
+    }
+    .triage-log-item .tag.safe {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+    }
+    .triage-log-item .tag.evac {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+
+    /* ==========================================================================
+       TACTICAL TOAST & CAPTION OVERLAY
+       ========================================================================== */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .tactical-toast {
+      background: rgba(10, 16, 29, 0.95);
+      border: 1px solid var(--accent-mint);
+      border-radius: var(--radius-sm);
+      padding: 10px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--accent-mint);
+      box-shadow: 0 0 20px rgba(0, 245, 212, 0.3);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastSlideIn 0.25s ease-out;
+    }
+    .tactical-toast.danger {
+      border-color: var(--accent-crimson);
+      color: #ff4d88;
+      box-shadow: 0 0 20px rgba(255, 0, 84, 0.4);
+    }
+
+    @keyframes toastSlideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Strobe Alert Overlay */
+    .strobe-alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 80;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .strobe-alert-overlay.active {
+      animation: tacticalStrobe 1.5s infinite;
+    }
+    @keyframes tacticalStrobe {
+      0%, 100% { background: transparent; opacity: 0; }
+      50% { background: radial-gradient(circle, transparent 60%, rgba(255, 0, 84, 0.12) 100%); opacity: 1; }
+    }
+
+    /* ==========================================================================
+       RESPONSIVE BREAKPOINTS
+       ========================================================================== */
+    @media (max-width: 1400px) {
+      .tri-workspace {
+        grid-template-columns: 320px 1fr 340px;
+        gap: 12px;
+        padding: 12px;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      body {
+        overflow-y: auto;
+      }
+      .tri-workspace {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        height: auto;
+        overflow-y: visible;
+      }
+      .panel-center-col {
+        grid-column: 1 / -1;
+        height: 520px;
+        order: -1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .top-command-header {
+        padding: 0 8px;
+        height: 52px;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+      }
+      .header-left {
+        gap: 8px;
+        min-width: 0;
+        flex: 1;
+      }
+      .system-branding {
+        min-width: 0;
+      }
+      .system-title-row {
+        gap: 6px;
+      }
+      .system-title {
+        font-size: 0.78rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 130px;
+      }
+      .system-subtitle {
+        display: none;
+      }
+      .nav-back-link {
+        padding: 4px 6px;
+        font-size: 0.68rem;
+      }
+      .nav-back-link span:last-child {
+        display: none;
+      }
+      .header-right {
+        gap: 4px;
+        flex-shrink: 0;
+      }
+      .header-btn {
+        padding: 5px 6px;
+        font-size: 0.65rem;
+      }
+      #audio-label, .btn-reset-sim span:last-child {
+        display: none;
+      }
+      .header-center-telemetry {
+        display: none;
+      }
+      .mobile-tab-nav {
+        display: flex;
+        top: 52px;
+        padding: 6px 8px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .tri-workspace {
+        display: block;
+        padding: 8px;
+        height: auto;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+      }
+      .panel-col {
+        display: none;
+        height: auto;
+        min-height: 480px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      .panel-col.active-mobile-tab {
+        display: flex;
+      }
+      .tablet-chassis {
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      .tablet-screen {
+        margin: 6px;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+      .center-canvas-wrapper {
+        min-height: 420px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .canvas-hud-bottom {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        bottom: 8px;
+        left: 8px;
+        right: 8px;
+      }
+      .canvas-legend-box {
+        padding: 4px 6px;
+        font-size: 0.55rem;
+        gap: 6px;
+        justify-content: center;
+      }
+      .canvas-telemetry-cluster {
+        padding: 4px 6px;
+        font-size: 0.58rem;
+        gap: 6px;
+        justify-content: space-around;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Strobe Effect Overlay -->
+  <div class="strobe-alert-overlay" id="strobe-overlay"></div>
+
+  <!-- TOP COMMAND HEADER -->
+  <header class="top-command-header">
+    <div class="header-left">
+      <a href="../index.html" class="nav-back-link">
+        <span>←</span>
+        <span>PORTAL</span>
+      </a>
+      <div class="system-branding">
+        <div class="system-title-row">
+          <div class="system-badge-icon">3C</div>
+          <span class="system-title">ISO-COMMAND // 2.5D MISSION CONTROL</span>
+        </div>
+        <span class="system-subtitle">TACTICAL TABLET • 2.5D ISOMETRIC FLOORPLAN • BLE TELEMETRY MESH</span>
+      </div>
+    </div>
+
+    <div class="header-center-telemetry">
+      <div class="hud-stat-pill">
+        <span class="hud-stat-label">TIME</span>
+        <span class="hud-stat-val" id="hud-clock">00:00:00</span>
+      </div>
+      <div class="hud-stat-pill">
+        <span class="hud-stat-label">HEADCOUNT</span>
+        <span class="hud-stat-val" id="hud-headcount">0 / 45 SAFE</span>
+      </div>
+      <div class="incident-status-indicator" id="header-incident-badge">
+        <span class="status-pulse-dot"></span>
+        <span id="header-incident-text">LVL 1 - STANDBY</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="header-btn" id="btn-audio-toggle" title="Toggle Procedural Audio">
+        <span id="audio-icon">🔊</span>
+        <span id="audio-label">AUDIO ON</span>
+      </button>
+      <button class="header-btn btn-reset-sim" id="btn-master-reset" title="Reset Entire Simulation">
+        <span>↺</span>
+        <span>RESET</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MOBILE RESPONSIVE TAB SELECTOR -->
+  <nav class="mobile-tab-nav" id="mobile-tabs">
+    <button class="mobile-tab-btn" data-tab="left">📱 TABLET A</button>
+    <button class="mobile-tab-btn active" data-tab="center">🗺️ 2.5D MAP</button>
+    <button class="mobile-tab-btn" data-tab="right">📡 TELEMETRY</button>
+  </nav>
+
+  <!-- MASTER 3-COLUMN WORKSPACE -->
+  <main class="tri-workspace">
+
+    <!-- LEFT PANEL: RUGGEDIZED TACTICAL TABLET (PHONE A) -->
+    <section class="panel-col" id="col-left">
+      <div class="tablet-chassis">
+        <!-- Shock Bumpers & Bolts -->
+        <div class="tablet-bumper top-left"></div>
+        <div class="tablet-bumper top-right"></div>
+        <div class="tablet-bumper bottom-left"></div>
+        <div class="tablet-bumper bottom-right"></div>
+        <div class="hex-bolt b1"></div>
+        <div class="hex-bolt b2"></div>
+        <div class="hex-bolt b3"></div>
+        <div class="hex-bolt b4"></div>
+        <div class="tablet-side-grip-left"></div>
+        <div class="tablet-side-grip-right"></div>
+
+        <div class="tablet-screen">
+          <!-- Tablet Status Bar -->
+          <div class="tablet-header-bar">
+            <div class="tablet-id-tag">
+              <span>⚡</span>
+              <span>CMD-TAB // UNIT 01</span>
+            </div>
+            <div class="tablet-signal-group">
+              <span id="tablet-net-mode">BLE MESH 5.4</span>
+              <span>🔋 96%</span>
+            </div>
+          </div>
+
+          <!-- Rotary Incident Level Dial Card -->
+          <div class="rotary-dial-card">
+            <div class="card-label-row">
+              <span>INCIDENT SEVERITY DIAL</span>
+              <span id="rotary-dial-angle-label">ANGLE: 0°</span>
+            </div>
+
+            <div class="rotary-dial-container" id="rotary-dial-wrapper">
+              <canvas class="rotary-dial-canvas" id="rotary-canvas" width="150" height="150"></canvas>
+              <div class="rotary-level-badge" id="rotary-center-badge">
+                <span class="rotary-level-num" id="rotary-badge-num">1</span>
+                <span class="rotary-level-tag" id="rotary-badge-tag">STBY</span>
+              </div>
+            </div>
+
+            <div class="incident-pills-row">
+              <button class="level-pill-btn active" data-lvl="1">LVL 1<br><span style="font-size:0.5rem">STBY</span></button>
+              <button class="level-pill-btn" data-lvl="2">LVL 2<br><span style="font-size:0.5rem">WARN</span></button>
+              <button class="level-pill-btn" data-lvl="3">LVL 3<br><span style="font-size:0.5rem">EVAC</span></button>
+              <button class="level-pill-btn" data-lvl="4">LVL 4<br><span style="font-size:0.5rem">LOCK</span></button>
+            </div>
+          </div>
+
+          <!-- Push-To-Talk PA Broadcast Card -->
+          <div class="ptt-broadcast-card">
+            <div class="card-label-row">
+              <span>PA DISPATCH & VOICE SYNTH</span>
+              <span class="ptt-status-text" id="ptt-status-label">READY</span>
+            </div>
+
+            <div class="ptt-waveform-wrapper">
+              <canvas class="ptt-waveform-canvas" id="ptt-canvas"></canvas>
+            </div>
+
+            <div class="ptt-toggle-row">
+              <button class="ptt-button" id="btn-ptt-toggle">
+                <span>🎙️</span>
+                <span id="ptt-btn-label">PUSH TO TALK (PA)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Broadcast Channel Selector -->
+          <div class="card-label-row" style="margin-top:2px;">
+            <span>TRANSMISSION MEDIUM</span>
+          </div>
+          <div class="channel-select-group">
+            <button class="channel-chip active" data-channel="BLE_MESH">
+              <span>📡</span>
+              <span>BLE Mesh</span>
+            </button>
+            <button class="channel-chip" data-channel="LORAWAN_SIREN">
+              <span>📢</span>
+              <span>LoRa Siren</span>
+            </button>
+            <button class="channel-chip" data-channel="VHF_BRIGADE">
+              <span>📻</span>
+              <span>VHF Brigade</span>
+            </button>
+            <button class="channel-chip" data-channel="5G_PUSH">
+              <span>📶</span>
+              <span>5G Push</span>
+            </button>
+          </div>
+
+          <!-- Emergency Action Trigger Button -->
+          <button class="dispatch-trigger-btn" id="btn-dispatch-alarm">
+            <span>⚠️</span>
+            <span>TRANSMIT DISPATCH</span>
+          </button>
+
+          <!-- Hazard Injector Card -->
+          <div class="hazard-injector-card">
+            <div class="card-label-row">
+              <span>MANUAL HAZARD INJECTION</span>
+            </div>
+            <div class="hazard-btn-grid">
+              <button class="hazard-btn" data-zone="SERVER_ROOM">🔥 Vault Fire</button>
+              <button class="hazard-btn" data-zone="BREAKROOM">💨 Canteen Smoke</button>
+              <button class="hazard-btn" data-zone="LABS">☣️ Lab Breach</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER PANEL: 2.5D ISOMETRIC FLOORPLAN SIMULATION -->
+    <section class="panel-col panel-center-col" id="col-center">
+      <div class="center-canvas-wrapper">
+        <!-- Top HUD Overlay -->
+        <div class="canvas-hud-top">
+          <div class="canvas-title-box">
+            <span class="status-pulse-dot" style="background:var(--accent-mint)"></span>
+            <span class="canvas-title-text">2.5D ISOMETRIC FACILITY MATRIX</span>
+          </div>
+
+          <div class="canvas-tools-group">
+            <button class="canvas-tool-btn" id="btn-zoom-in" title="Zoom In">+</button>
+            <button class="canvas-tool-btn" id="btn-zoom-out" title="Zoom Out">−</button>
+            <button class="canvas-tool-btn" id="btn-zoom-reset" title="Reset View">⊙</button>
+          </div>
+        </div>
+
+        <!-- Main 2.5D Isometric HTML5 Canvas -->
+        <canvas class="iso-main-canvas" id="iso-canvas"></canvas>
+
+        <!-- Bottom HUD Overlay -->
+        <div class="canvas-hud-bottom">
+          <div class="canvas-legend-box">
+            <div class="legend-item">
+              <div class="legend-dot working"></div>
+              <span>At Work</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot evacuating"></div>
+              <span>Evacuating</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot safe"></div>
+              <span>Safe</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot hazard"></div>
+              <span>Hazard</span>
+            </div>
+          </div>
+
+          <div class="canvas-telemetry-cluster">
+            <div class="cluster-item">
+              <span class="lbl">FPS</span>
+              <span class="val mint" id="hud-fps">60</span>
+            </div>
+            <div class="cluster-item">
+              <span class="lbl">Evacuating</span>
+              <span class="val amber" id="hud-evacuating-count">0</span>
+            </div>
+            <div class="cluster-item">
+              <span class="lbl">Safe Assembly</span>
+              <span class="val emerald" id="hud-safe-count">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: RECIPIENT TELEMETRY DEVICES (PHONES B, C & D) -->
+    <section class="panel-col" id="col-right">
+      <div class="recipients-scroll-container">
+
+        <!-- PHONE B: RESIDENT FIELD UNIT (PHONE B) -->
+        <div class="recipient-device-card" id="card-phone-b">
+          <div class="device-card-header">
+            <div class="device-title-wrap">
+              <div class="device-icon-badge">B</div>
+              <div>
+                <div class="device-name-text">Resident Phone B</div>
+                <div class="device-role-tag">Unit 04 • Bullpen Seat 12</div>
+              </div>
+            </div>
+            <span class="status-pulse-dot" style="background:#00e5ff" id="phone-b-status-dot"></span>
+          </div>
+
+          <div class="telemetry-grid">
+            <div class="telemetry-box">
+              <span class="k">BLE Beacon RSSI</span>
+              <div class="v">
+                <span id="phone-b-rssi">-54 dBm</span>
+                <span class="rssi-bars">
+                  <span class="rssi-bar filled"></span>
+                  <span class="rssi-bar filled"></span>
+                  <span class="rssi-bar filled"></span>
+                  <span class="rssi-bar"></span>
+                </span>
+              </div>
+            </div>
+            <div class="telemetry-box">
+              <span class="k">Battery / Volt</span>
+              <span class="v" id="phone-b-battery">🔋 84% • 4.08V</span>
+            </div>
+            <div class="telemetry-box">
+              <span class="k">GPS Fix</span>
+              <span class="v" style="font-size:0.62rem" id="phone-b-gps">19.4326°N 99.1332°W</span>
+            </div>
+            <div class="telemetry-box">
+              <span class="k">Exit Guidance</span>
+              <span class="v" style="color:var(--accent-mint); font-size:0.62rem" id="phone-b-guidance">FOLLOW LED TO EXIT A</span>
+            </div>
+          </div>
+
+          <button class="btn-checkin-safe" id="btn-phone-b-checkin">
+            <span>✓</span>
+            <span>ESTOY A SALVO (CONFIRM SAFE)</span>
+          </button>
+        </div>
+
+        <!-- PHONE C: SAFETY BRIGADE LEAD HANDHELD (PHONE C) -->
+        <div class="recipient-device-card" id="card-phone-c">
+          <div class="device-card-header">
+            <div class="device-title-wrap">
+              <div class="device-icon-badge brigade">C</div>
+              <div>
+                <div class="device-name-text">Brigade Lead Phone C</div>
+                <div class="device-role-tag">Cmdr. Soto • Tactical Radio Ch 4</div>
+              </div>
+            </div>
+            <span class="status-pulse-dot" style="background:var(--accent-amber)"></span>
+          </div>
+
+          <div class="telemetry-grid">
+            <div class="telemetry-box">
+              <span class="k">Mesh Gateway Link</span>
+              <span class="v" id="phone-c-link">42.8 kbps • -38dBm</span>
+            </div>
+            <div class="telemetry-box">
+              <span class="k">SCBA Oxygen</span>
+              <span class="v" id="phone-c-scba">🫁 4150 PSI (88%)</span>
+            </div>
+            <div class="telemetry-box">
+              <span class="k">Thermal Sensor</span>
+              <span class="v" id="phone-c-thermal">Vault: 24°C • Labs: 22°C</span>
+            </div>
+            <div class="telemetry-box">
+              <span class="k">Battery Gauge</span>
+              <span class="v" id="phone-c-battery">🔋 92% (LiFePO4)</span>
+            </div>
+          </div>
+
+          <div class="card-label-row" style="margin-top:2px;">
+            <span>STAIRWELL EGRESS CONTROLS</span>
+          </div>
+          <div class="stairwell-toggle-row">
+            <button class="stairwell-btn" id="btn-stairwell-a" data-stairwell="STAIRWELL_A">
+              <span>Stairwell A</span>
+              <span class="status" id="status-stairwell-a">[CLEAR]</span>
+            </button>
+            <button class="stairwell-btn" id="btn-stairwell-b" data-stairwell="STAIRWELL_B">
+              <span>Stairwell B</span>
+              <span class="status" id="status-stairwell-b">[CLEAR]</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- PHONE D: OUTDOOR ASSEMBLY HUB & TRIAGE (PHONE D) -->
+        <div class="recipient-device-card" id="card-phone-d">
+          <div class="device-card-header">
+            <div class="device-title-wrap">
+              <div class="device-icon-badge hub">D</div>
+              <div>
+                <div class="device-name-text">Outdoor Assembly Hub D</div>
+                <div class="device-role-tag">Triage Station • Safe Muster Zone</div>
+              </div>
+            </div>
+            <span class="status-pulse-dot" style="background:var(--accent-emerald)"></span>
+          </div>
+
+          <div class="telemetry-grid">
+            <div class="telemetry-box">
+              <span class="k">Assembly Beacon</span>
+              <span class="v" id="phone-d-rssi">-28 dBm (LoS)</span>
+            </div>
+            <div class="telemetry-box">
+              <span class="k">Confirmed Safe</span>
+              <span class="v" style="color:var(--accent-emerald)" id="phone-d-tally">0 / 45 (0%)</span>
+            </div>
+          </div>
+
+          <div class="card-label-row" style="margin-top:2px;">
+            <span>SURVIVOR TRIAGE CHECK-IN LOG</span>
+          </div>
+          <div class="triage-table-wrapper">
+            <ul class="triage-log-list" id="triage-log-feed">
+              <li class="triage-log-item">
+                <span class="time">SYS-INIT</span>
+                <span class="id">Station Online</span>
+                <span class="tag safe">READY</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- TACTICAL TOAST CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <script>
+    /* ==========================================================================
+       1. STATE MANAGEMENT & EVENT BUS
+       ========================================================================== */
+    class EmergencySyncBus {
+      constructor(channelName = 'flujoweb_emergency_tri_screen') {
+        this.channelName = channelName;
+        this.subscribers = new Map();
+        this.broadcastChannel = null;
+
+        if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+          try {
+            this.broadcastChannel = new BroadcastChannel(this.channelName);
+            this.broadcastChannel.onmessage = (event) => {
+              this.dispatchLocal(event.data.type, event.data, false);
+            };
+          } catch (e) {
+            console.warn('[SyncBus] BroadcastChannel not supported:', e);
+          }
+        }
+      }
+
+      on(eventType, callback) {
+        if (!this.subscribers.has(eventType)) {
+          this.subscribers.set(eventType, new Set());
+        }
+        this.subscribers.get(eventType).add(callback);
+        return () => this.subscribers.get(eventType).delete(callback);
+      }
+
+      emit(eventType, payload = {}, broadcast = true) {
+        const event = {
+          id: 'EVT-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+          type: eventType,
+          timestamp: Date.now(),
+          origin: payload.origin || 'SIM_C',
+          payload
+        };
+        this.dispatchLocal(eventType, event, true);
+        if (broadcast && this.broadcastChannel) {
+          try {
+            this.broadcastChannel.postMessage(event);
+          } catch (e) {}
+        }
+      }
+
+      dispatchLocal(eventType, eventData, isLocalOrigin) {
+        if (this.subscribers.has(eventType)) {
+          this.subscribers.get(eventType).forEach(cb => {
+            try { cb(eventData, isLocalOrigin); } catch (err) { console.error(err); }
+          });
+        }
+      }
+    }
+
+    const syncBus = new EmergencySyncBus();
+
+    /* Global Emergency State Object */
+    const emergencyState = {
+      alarmState: 'STANDBY', // 'STANDBY' | 'COUNTDOWN' | 'ACTIVE' | 'RESET'
+      channel: 'BLE_MESH',
+      severity: 'LVL 1 - ADVISORY',
+      incidentLevel: 1, // 1, 2, 3, 4
+      isPttActive: false,
+      isAudioMuted: false,
+      stairwells: {
+        'STAIRWELL_A': 'CLEAR',
+        'STAIRWELL_B': 'CLEAR'
+      },
+      hazards: [],
+      occupants: [],
+      phoneBCheckedIn: false,
+      triageLogs: []
+    };
+
+    /* ==========================================================================
+       2. PROCEDURAL WEB AUDIO SYNTHESIZER
+       ========================================================================== */
+    class ProceduralTacticalAudio {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+        this.sirenGain = null;
+        this.sirenOsc = null;
+        this.sirenLfo = null;
+        this.isSirenRunning = false;
+      }
+
+      initContext() {
+        if (!this.ctx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) this.ctx = new AudioContextClass();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      // Military Warning Horn Burst
+      playMilitaryHornBurst() {
+        if (this.isMuted) return;
+        this.initContext();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        [0, 0.16, 0.32].forEach((delay, idx) => {
+          const osc1 = this.ctx.createOscillator();
+          const osc2 = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc1.type = 'sawtooth';
+          osc2.type = 'square';
+
+          const baseFreq = idx % 2 === 0 ? 520 : 440;
+          osc1.frequency.setValueAtTime(baseFreq, now + delay);
+          osc2.frequency.setValueAtTime(baseFreq * 0.5, now + delay);
+
+          gain.gain.setValueAtTime(0.18, now + delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.14);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc1.start(now + delay);
+          osc2.start(now + delay);
+          osc1.stop(now + delay + 0.15);
+          osc2.stop(now + delay + 0.15);
+        });
+      }
+
+      // Continuous Tactical Warble Siren
+      startTacticalSiren() {
+        if (this.isMuted) return;
+        this.initContext();
+        if (!this.ctx || this.isSirenRunning) return;
+
+        const now = this.ctx.currentTime;
+        this.sirenGain = this.ctx.createGain();
+        this.sirenGain.gain.setValueAtTime(0.01, now);
+        this.sirenGain.gain.linearRampToValueAtTime(0.2, now + 0.2);
+        this.sirenGain.connect(this.ctx.destination);
+
+        this.sirenOsc = this.ctx.createOscillator();
+        this.sirenOsc.type = 'sawtooth';
+        this.sirenOsc.frequency.setValueAtTime(840, now);
+
+        this.sirenLfo = this.ctx.createOscillator();
+        this.sirenLfo.type = 'sine';
+        this.sirenLfo.frequency.setValueAtTime(3.2, now);
+
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.setValueAtTime(320, now);
+
+        this.sirenLfo.connect(lfoGain);
+        lfoGain.connect(this.sirenOsc.frequency);
+        this.sirenOsc.connect(this.sirenGain);
+
+        this.sirenOsc.start(now);
+        this.sirenLfo.start(now);
+        this.isSirenRunning = true;
+      }
+
+      stopTacticalSiren() {
+        if (!this.isSirenRunning || !this.sirenGain) return;
+        const now = this.ctx.currentTime;
+        this.sirenGain.gain.cancelScheduledValues(now);
+        this.sirenGain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+        setTimeout(() => {
+          if (this.sirenOsc) {
+            try {
+              this.sirenOsc.stop();
+              this.sirenLfo.stop();
+              this.sirenOsc.disconnect();
+              this.sirenLfo.disconnect();
+            } catch(e){}
+            this.isSirenRunning = false;
+          }
+        }, 220);
+      }
+
+      // VHF Brigade Radio Squelch Burst
+      playRadioSquelch() {
+        if (this.isMuted) return;
+        this.initContext();
+        if (!this.ctx) return;
+
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.08);
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1800;
+        filter.Q.value = 3.5;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        noise.start();
+      }
+
+      // Haptic Click / Dial Step
+      playHapticClick() {
+        if (this.isMuted) return;
+        this.initContext();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.04);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
+      }
+    }
+
+    const tacticalAudio = new ProceduralTacticalAudio();
+
+    /* ==========================================================================
+       3. WEB SPEECH DISPATCHER & TOAST CAPTIONS
+       ========================================================================== */
+    class TacticalVoiceDispatcher {
+      constructor() {
+        this.synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+      }
+
+      speak(text, onEnd) {
+        showToast(text, false);
+        if (tacticalAudio.isMuted || !this.synth) {
+          if (onEnd) setTimeout(onEnd, 1200);
+          return;
+        }
+
+        try {
+          this.synth.cancel();
+          tacticalAudio.playRadioSquelch();
+
+          setTimeout(() => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-ES';
+            utterance.rate = 1.05;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+
+            const voices = this.synth.getVoices();
+            const esVoice = voices.find(v => v.lang && v.lang.startsWith('es'));
+            if (esVoice) utterance.voice = esVoice;
+
+            utterance.onend = () => {
+              tacticalAudio.playRadioSquelch();
+              if (onEnd) onEnd();
+            };
+            utterance.onerror = () => {
+              if (onEnd) onEnd();
+            };
+
+            this.synth.speak(utterance);
+          }, 100);
+        } catch(e) {
+          if (onEnd) onEnd();
+        }
+      }
+    }
+
+    const voiceDispatcher = new TacticalVoiceDispatcher();
+
+    function showToast(message, isDanger = false) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `tactical-toast ${isDanger ? 'danger' : ''}`;
+      toast.innerHTML = `<span>${isDanger ? '⚠️' : '📢'}</span><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    /* ==========================================================================
+       4. TOPOLOGICAL 2.5D NAVMESH, ROOM SUITES & PATHFINDING
+       ========================================================================== */
+    // Logical World Dimensions: 600 x 420 (Z: 0..40)
+    const SUITES = [
+      { id: 'ROOM_EXEC', name: 'Executive Suite', x1: 30, y1: 30, x2: 170, y2: 150, doorX: 170, doorY: 90, color: '#0f2438' },
+      { id: 'ROOM_ENG', name: 'Engineering Bullpen', x1: 190, y1: 30, x2: 410, y2: 150, doorX: 300, doorY: 150, doorX2: 300, doorY2: 30, color: '#0d2238' },
+      { id: 'ROOM_VAULT', name: 'Server Vault', x1: 430, y1: 30, x2: 570, y2: 150, doorX: 430, doorY: 90, color: '#162035' },
+      { id: 'ROOM_LABS', name: 'Hardware Labs', x1: 30, y1: 230, x2: 170, y2: 370, doorX: 170, doorY: 300, color: '#0f2334' },
+      { id: 'ROOM_CANTEEN', name: 'Canteen / Breakroom', x1: 190, y1: 230, x2: 360, y2: 370, doorX: 275, doorY: 230, color: '#112236' },
+      { id: 'ROOM_EAST', name: 'East Wing / Core', x1: 380, y1: 230, x2: 570, y2: 370, doorX: 380, doorY: 300, doorX2: 550, doorY2: 300, color: '#12253c' }
+    ];
+
+    // NavMesh Waypoints Graph
+    const NAV_NODES = {
+      // Room Spawns & Doors
+      'EXEC_DOOR': { x: 170, y: 90, zone: 'ROOM_EXEC', neighbors: ['SPINE_W1'] },
+      'ENG_DOOR_S': { x: 300, y: 150, zone: 'ROOM_ENG', neighbors: ['SPINE_CTR'] },
+      'ENG_DOOR_N': { x: 300, y: 30, zone: 'ROOM_ENG', neighbors: ['EXIT_A_DOOR'] },
+      'VAULT_DOOR': { x: 430, y: 90, zone: 'ROOM_VAULT', neighbors: ['SPINE_E1'] },
+      'LABS_DOOR': { x: 170, y: 300, zone: 'ROOM_LABS', neighbors: ['SPINE_W2'] },
+      'CANTEEN_DOOR': { x: 275, y: 230, zone: 'ROOM_CANTEEN', neighbors: ['SPINE_CTR'] },
+      'EAST_DOOR_W': { x: 380, y: 300, zone: 'ROOM_EAST', neighbors: ['SPINE_E2'] },
+      'EAST_DOOR_E': { x: 550, y: 300, zone: 'ROOM_EAST', neighbors: ['EXIT_B_DOOR'] },
+
+      // Central Corridor Spine
+      'SPINE_W1': { x: 170, y: 190, zone: 'CORRIDOR', neighbors: ['EXEC_DOOR', 'SPINE_CTR', 'SPINE_W2'] },
+      'SPINE_W2': { x: 170, y: 260, zone: 'CORRIDOR', neighbors: ['LABS_DOOR', 'SPINE_W1', 'SPINE_CTR'] },
+      'SPINE_CTR': { x: 300, y: 190, zone: 'CORRIDOR', neighbors: ['SPINE_W1', 'SPINE_E1', 'ENG_DOOR_S', 'CANTEEN_DOOR', 'EXIT_A_DOOR'] },
+      'SPINE_E1': { x: 430, y: 190, zone: 'CORRIDOR', neighbors: ['VAULT_DOOR', 'SPINE_CTR', 'SPINE_E2', 'EXIT_B_DOOR'] },
+      'SPINE_E2': { x: 430, y: 260, zone: 'CORRIDOR', neighbors: ['EAST_DOOR_W', 'SPINE_E1', 'EXIT_B_DOOR'] },
+
+      // Exit Portals & Outdoor Paths
+      'EXIT_A_DOOR': { x: 300, y: 10, zone: 'EXIT_A', neighbors: ['ENG_DOOR_N', 'SPINE_CTR', 'SAFE_ASSEMBLY_1'] },
+      'EXIT_B_DOOR': { x: 570, y: 200, zone: 'EXIT_B', neighbors: ['SPINE_E1', 'SPINE_E2', 'EAST_DOOR_E', 'PERIMETER_PATH_1'] },
+
+      'PERIMETER_PATH_1': { x: 570, y: -40, zone: 'OUTDOOR', neighbors: ['EXIT_B_DOOR', 'SAFE_ASSEMBLY_2'] },
+      'SAFE_ASSEMBLY_1': { x: 280, y: -80, zone: 'OUTDOOR', neighbors: ['EXIT_A_DOOR', 'SAFE_MUSTER'] },
+      'SAFE_ASSEMBLY_2': { x: 340, y: -80, zone: 'OUTDOOR', neighbors: ['PERIMETER_PATH_1', 'SAFE_MUSTER'] },
+      'SAFE_MUSTER': { x: 310, y: -90, zone: 'SAFE_ZONE', neighbors: ['SAFE_ASSEMBLY_1', 'SAFE_ASSEMBLY_2'] }
+    };
+
+    // A* Pathfinding Engine
+    function findShortestPath(startPos, targetExitId, blockedZones = new Set()) {
+      // Find closest node to startPos
+      let nearestStartNode = null;
+      let minStartDist = Infinity;
+      for (const [nodeId, node] of Object.entries(NAV_NODES)) {
+        if (blockedZones.has(node.zone)) continue;
+        const d = Math.hypot(node.x - startPos.x, node.y - startPos.y);
+        if (d < minStartDist) {
+          minStartDist = d;
+          nearestStartNode = nodeId;
+        }
+      }
+
+      if (!nearestStartNode) return [NAV_NODES['SAFE_MUSTER']];
+
+      const targetNode = 'SAFE_MUSTER';
+      const openSet = new Set([nearestStartNode]);
+      const cameFrom = new Map();
+      const gScore = new Map();
+      const fScore = new Map();
+
+      for (const nodeId of Object.keys(NAV_NODES)) {
+        gScore.set(nodeId, Infinity);
+        fScore.set(nodeId, Infinity);
+      }
+      gScore.set(nearestStartNode, 0);
+      fScore.set(nearestStartNode, Math.hypot(NAV_NODES[nearestStartNode].x - NAV_NODES[targetNode].x, NAV_NODES[nearestStartNode].y - NAV_NODES[targetNode].y));
+
+      while (openSet.size > 0) {
+        let current = null;
+        let lowestF = Infinity;
+        for (const nodeId of openSet) {
+          if (fScore.get(nodeId) < lowestF) {
+            lowestF = fScore.get(nodeId);
+            current = nodeId;
+          }
+        }
+
+        if (current === targetNode) {
+          // Reconstruct path
+          const path = [NAV_NODES[current]];
+          while (cameFrom.has(current)) {
+            current = cameFrom.get(current);
+            path.unshift(NAV_NODES[current]);
+          }
+          return path;
+        }
+
+        openSet.delete(current);
+        const currNode = NAV_NODES[current];
+
+        for (const neighborId of currNode.neighbors) {
+          const neighbor = NAV_NODES[neighborId];
+          if (!neighbor) continue;
+
+          // Check if neighbor zone is blocked or stairwell is blocked
+          if (blockedZones.has(neighbor.zone)) continue;
+          if (targetExitId === 'EXIT_B' && neighborId === 'EXIT_A_DOOR' && emergencyState.stairwells['STAIRWELL_A'] === 'BLOCKED') continue;
+          if (neighborId === 'EXIT_B_DOOR' && emergencyState.stairwells['STAIRWELL_B'] === 'BLOCKED') continue;
+          if (neighborId === 'EXIT_A_DOOR' && emergencyState.stairwells['STAIRWELL_A'] === 'BLOCKED') continue;
+
+          const dist = Math.hypot(currNode.x - neighbor.x, currNode.y - neighbor.y);
+          const tentativeG = gScore.get(current) + dist;
+
+          if (tentativeG < gScore.get(neighborId)) {
+            cameFrom.set(neighborId, current);
+            gScore.set(neighborId, tentativeG);
+            const h = Math.hypot(neighbor.x - NAV_NODES[targetNode].x, neighbor.y - NAV_NODES[targetNode].y);
+            fScore.set(neighborId, tentativeG + h);
+            openSet.add(neighborId);
+          }
+        }
+      }
+
+      // Fallback direct path to outdoor
+      return [NAV_NODES['SAFE_MUSTER']];
+    }
+
+    /* ==========================================================================
+       5. 45 OCCUPANT PARTICLES & INITIALIZATION
+       ========================================================================== */
+    function initializeOccupants(count = 45) {
+      emergencyState.occupants = [];
+      const distribution = [
+        { suite: SUITES[0], count: Math.round(count * 0.14) }, // Exec
+        { suite: SUITES[1], count: Math.round(count * 0.36) }, // Eng
+        { suite: SUITES[2], count: Math.round(count * 0.10) }, // Vault
+        { suite: SUITES[3], count: Math.round(count * 0.14) }, // Labs
+        { suite: SUITES[4], count: Math.round(count * 0.16) }, // Canteen
+        { suite: SUITES[5], count: count - (Math.round(count * 0.14) + Math.round(count * 0.36) + Math.round(count * 0.10) + Math.round(count * 0.14) + Math.round(count * 0.16)) } // East
+      ];
+
+      let idCounter = 1;
+      distribution.forEach(group => {
+        for (let i = 0; i < group.count; i++) {
+          const s = group.suite;
+          const px = s.x1 + 15 + Math.random() * (s.x2 - s.x1 - 30);
+          const py = s.y1 + 15 + Math.random() * (s.y2 - s.y1 - 30);
+          const targetExit = (px > 350 || s.id === 'ROOM_EAST' || s.id === 'ROOM_VAULT') ? 'EXIT_B' : 'EXIT_A';
+
+          emergencyState.occupants.push({
+            id: idCounter++,
+            homeSuite: s.id,
+            homeX: px,
+            homeY: py,
+            x: px,
+            y: py,
+            z: 0,
+            vx: 0,
+            vy: 0,
+            speed: 1.6 + Math.random() * 0.8,
+            state: 'working', // 'working' | 'evacuating' | 'safe'
+            exitId: targetExit,
+            path: [],
+            pathIndex: 0,
+            rssi: -50 - Math.floor(Math.random() * 25),
+            battery: 75 + Math.floor(Math.random() * 24),
+            name: `Occ #${idCounter - 1}`
+          });
+        }
+      });
+      updateHeadcountStats();
+    }
+
+    /* ==========================================================================
+       6. 2.5D ISOMETRIC CANVAS RENDERER & SIMULATION LOOP
+       ========================================================================== */
+    class IsometricFloorplanCanvas {
+      constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.zoom = 1.0;
+        this.panX = 0;
+        this.panY = 0;
+        this.isDragging = false;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
+        this.lastFrameTime = performance.now();
+        this.fps = 60;
+        this.frameCount = 0;
+        this.fpsTimer = performance.now();
+        
+        // Directional LED guide offset
+        this.ledAnimOffset = 0;
+        this.hazardPulse = 0;
+
+        this.initCanvasSize();
+        this.bindEvents();
+      }
+
+      initCanvasSize() {
+        const rect = this.canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        this.width = rect.width;
+        this.height = rect.height;
+        this.canvas.width = Math.floor(rect.width * dpr);
+        this.canvas.height = Math.floor(rect.height * dpr);
+        this.ctx.scale(dpr, dpr);
+
+        // Center projection
+        this.originX = this.width * 0.5;
+        this.originY = this.height * 0.28;
+      }
+
+      bindEvents() {
+        window.addEventListener('resize', () => this.initCanvasSize());
+
+        this.canvas.addEventListener('mousedown', (e) => {
+          this.isDragging = true;
+          this.dragStartX = e.clientX - this.panX;
+          this.dragStartY = e.clientY - this.panY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (!this.isDragging) return;
+          this.panX = e.clientX - this.dragStartX;
+          this.panY = e.clientY - this.dragStartY;
+        });
+
+        window.addEventListener('mouseup', () => {
+          this.isDragging = false;
+        });
+
+        this.canvas.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+          this.zoom = Math.min(Math.max(this.zoom * zoomFactor, 0.55), 2.2);
+        }, { passive: false });
+
+        document.getElementById('btn-zoom-in')?.addEventListener('click', () => {
+          this.zoom = Math.min(this.zoom * 1.15, 2.2);
+        });
+        document.getElementById('btn-zoom-out')?.addEventListener('click', () => {
+          this.zoom = Math.max(this.zoom * 0.85, 0.55);
+        });
+        document.getElementById('btn-zoom-reset')?.addEventListener('click', () => {
+          this.zoom = 1.0;
+          this.panX = 0;
+          this.panY = 0;
+        });
+      }
+
+      // Mathematical 2.5D Isometric Projection Function
+      toIso(x, y, z = 0) {
+        const cos30 = 0.8660254;
+        const sin30 = 0.5000000;
+        const scaledX = x * this.zoom;
+        const scaledY = y * this.zoom;
+        const scaledZ = z * this.zoom;
+
+        const screenX = this.originX + this.panX + (scaledX - scaledY) * cos30;
+        const screenY = this.originY + this.panY + (scaledX + scaledY) * sin30 - scaledZ;
+        return { x: screenX, y: screenY };
+      }
+
+      // Depth metric for Painter's Algorithm Depth-Sorting
+      getDepth(x, y, z = 0) {
+        return x + y + z * 0.001;
+      }
+
+      // Update simulation physics (60 FPS)
+      updatePhysics(dt) {
+        this.ledAnimOffset = (this.ledAnimOffset + dt * 45) % 100;
+        this.hazardPulse += dt * 3;
+
+        // Occupant Movement & Steering
+        emergencyState.occupants.forEach(occ => {
+          if (occ.state === 'evacuating') {
+            if (!occ.path || occ.path.length === 0 || occ.pathIndex >= occ.path.length) {
+              // Path reached or needs recalculation
+              const blockedZones = new Set(emergencyState.hazards.filter(h => h.blocked).map(h => h.zone));
+              let effectiveExit = occ.exitId;
+              if (effectiveExit === 'EXIT_B' && emergencyState.stairwells['STAIRWELL_B'] === 'BLOCKED') {
+                effectiveExit = 'EXIT_A';
+              } else if (effectiveExit === 'EXIT_A' && emergencyState.stairwells['STAIRWELL_A'] === 'BLOCKED') {
+                effectiveExit = 'EXIT_B';
+              }
+              occ.path = findShortestPath({ x: occ.x, y: occ.y }, effectiveExit, blockedZones);
+              occ.pathIndex = 0;
+            }
+
+            const targetNode = occ.path[occ.pathIndex];
+            if (targetNode) {
+              const dx = targetNode.x - occ.x;
+              const dy = targetNode.y - occ.y;
+              const dist = Math.hypot(dx, dy);
+
+              if (dist < 8) {
+                occ.pathIndex++;
+                if (occ.pathIndex >= occ.path.length) {
+                  // Check if in Safe Outdoor Zone
+                  if (occ.y < 0) {
+                    occ.state = 'safe';
+                    occ.vx = 0;
+                    occ.vy = 0;
+                    updateHeadcountStats();
+                    syncBus.emit('OCCUPANT_CHECKIN_SAFE', { occupantId: occ.id, name: occ.name, origin: 'CANVAS_SIMULATOR' });
+                  }
+                }
+              } else {
+                // Seek Force
+                const targetVx = (dx / dist) * occ.speed;
+                const targetVy = (dy / dist) * occ.speed;
+                occ.vx += (targetVx - occ.vx) * 0.15;
+                occ.vy += (targetVy - occ.vy) * 0.15;
+                occ.x += occ.vx;
+                occ.y += occ.vy;
+              }
+            }
+          } else if (occ.state === 'working') {
+            // Idle jitter around desk
+            if (Math.random() < 0.04) {
+              occ.x = occ.homeX + (Math.random() - 0.5) * 6;
+              occ.y = occ.homeY + (Math.random() - 0.5) * 6;
+            }
+          }
+        });
+      }
+
+      // Draw Complete 2.5D Isometric Scene
+      render() {
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.width, this.height);
+
+        // Background subtle grid
+        this.renderGroundGrid(ctx);
+
+        // Depth-Sorted Render Queue
+        const renderQueue = [];
+
+        // 1. Suite Floor Polygons
+        SUITES.forEach(s => {
+          renderQueue.push({
+            depth: this.getDepth(s.x1, s.y1, 0) - 200,
+            draw: () => this.drawSuiteFloor(ctx, s)
+          });
+        });
+
+        // 2. Central Corridor Floor & Safe Zone
+        renderQueue.push({
+          depth: -150,
+          draw: () => this.drawCorridorFloor(ctx)
+        });
+
+        renderQueue.push({
+          depth: -100,
+          draw: () => this.drawSafeAssemblyZone(ctx)
+        });
+
+        // 3. Glowing Floor Guide LED Chevrons
+        renderQueue.push({
+          depth: -50,
+          draw: () => this.drawFloorLedChevrons(ctx)
+        });
+
+        // 4. 3D Extruded Room Walls
+        SUITES.forEach(s => {
+          renderQueue.push({
+            depth: this.getDepth((s.x1 + s.x2)/2, (s.y1 + s.y2)/2, 20),
+            draw: () => this.drawExtrudedWalls(ctx, s)
+          });
+        });
+
+        // 5. Furniture & Server Racks
+        SUITES.forEach(s => {
+          renderQueue.push({
+            depth: this.getDepth((s.x1 + s.x2)/2, (s.y1 + s.y2)/2, 10),
+            draw: () => this.drawSuiteFurniture(ctx, s)
+          });
+        });
+
+        // 6. Hazards (Fire & Smoke Plumes)
+        emergencyState.hazards.forEach(h => {
+          renderQueue.push({
+            depth: this.getDepth(h.x, h.y, 30),
+            draw: () => this.drawHazardPlume(ctx, h)
+          });
+        });
+
+        // 7. Occupants
+        emergencyState.occupants.forEach(occ => {
+          renderQueue.push({
+            depth: this.getDepth(occ.x, occ.y, occ.z),
+            draw: () => this.drawOccupant(ctx, occ)
+          });
+        });
+
+        // 8. Assembly Rescue Beacon Mast
+        renderQueue.push({
+          depth: this.getDepth(310, -90, 40),
+          draw: () => this.drawAssemblyBeacon(ctx)
+        });
+
+        // Execute Sorted Draw Calls (Painter's Algorithm)
+        renderQueue.sort((a, b) => a.depth - b.depth);
+        renderQueue.forEach(item => item.draw());
+      }
+
+      renderGroundGrid(ctx) {
+        ctx.strokeStyle = 'rgba(0, 245, 212, 0.03)';
+        ctx.lineWidth = 1;
+        const step = 60;
+        for (let x = -100; x <= 700; x += step) {
+          const p1 = this.toIso(x, -150);
+          const p2 = this.toIso(x, 450);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+        for (let y = -150; y <= 450; y += step) {
+          const p1 = this.toIso(-100, y);
+          const p2 = this.toIso(700, y);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+      }
+
+      drawSuiteFloor(ctx, s) {
+        const p1 = this.toIso(s.x1, s.y1);
+        const p2 = this.toIso(s.x2, s.y1);
+        const p3 = this.toIso(s.x2, s.y2);
+        const p4 = this.toIso(s.x1, s.y2);
+
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.lineTo(p3.x, p3.y);
+        ctx.lineTo(p4.x, p4.y);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(0, 245, 212, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Room Label Text
+        const center = this.toIso((s.x1 + s.x2)/2, (s.y1 + s.y2)/2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.font = `bold ${Math.max(9 * this.zoom, 8)}px "JetBrains Mono"`;
+        ctx.textAlign = 'center';
+        ctx.fillText(`[${s.name.toUpperCase()}]`, center.x, center.y);
+      }
+
+      drawCorridorFloor(ctx) {
+        // Central Spine Floor
+        const p1 = this.toIso(20, 160);
+        const p2 = this.toIso(580, 160);
+        const p3 = this.toIso(580, 220);
+        const p4 = this.toIso(20, 220);
+
+        ctx.fillStyle = '#081220';
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.lineTo(p3.x, p3.y);
+        ctx.lineTo(p4.x, p4.y);
+        ctx.closePath();
+        ctx.fill();
+
+        // North Corridor to Exit A
+        const n1 = this.toIso(270, 0);
+        const n2 = this.toIso(330, 0);
+        const n3 = this.toIso(330, 160);
+        const n4 = this.toIso(270, 160);
+        ctx.beginPath();
+        ctx.moveTo(n1.x, n1.y);
+        ctx.lineTo(n2.x, n2.y);
+        ctx.lineTo(n3.x, n3.y);
+        ctx.lineTo(n4.x, n4.y);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      drawSafeAssemblyZone(ctx) {
+        // Outdoor safe perimeter
+        const p1 = this.toIso(160, -130);
+        const p2 = this.toIso(460, -130);
+        const p3 = this.toIso(460, -30);
+        const p4 = this.toIso(160, -30);
+
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.08)';
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.lineTo(p3.x, p3.y);
+        ctx.lineTo(p4.x, p4.y);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const center = this.toIso(310, -80);
+        ctx.fillStyle = '#10b981';
+        ctx.font = `bold ${Math.max(10 * this.zoom, 9)}px "JetBrains Mono"`;
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ OUTDOOR SAFE ASSEMBLY ZONE ⚡', center.x, center.y + 14);
+      }
+
+      drawFloorLedChevrons(ctx) {
+        const isAlarm = emergencyState.alarmState === 'ACTIVE';
+        const strokeColor = isAlarm ? 'rgba(0, 245, 212, 0.9)' : 'rgba(0, 245, 212, 0.3)';
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = Math.max(2 * this.zoom, 1.5);
+        ctx.lineCap = 'round';
+
+        // Corridor Guide Arrows pointing toward Exit A and Exit B
+        const arrowPoints = [
+          { x: 180, y: 190, dir: 'E' },
+          { x: 230, y: 190, dir: 'E' },
+          { x: 300, y: 130, dir: 'N' },
+          { x: 300, y: 80, dir: 'N' },
+          { x: 300, y: 30, dir: 'N' },
+          { x: 370, y: 190, dir: 'E' },
+          { x: 440, y: 190, dir: 'E' },
+          { x: 500, y: 190, dir: 'E' },
+          { x: 550, y: 240, dir: 'S' }
+        ];
+
+        arrowPoints.forEach((pt, idx) => {
+          const p = this.toIso(pt.x, pt.y);
+          const size = 6 * this.zoom;
+          ctx.beginPath();
+          if (pt.dir === 'N') {
+            const top = this.toIso(pt.x, pt.y - 12);
+            const l = this.toIso(pt.x - 6, pt.y);
+            const r = this.toIso(pt.x + 6, pt.y);
+            ctx.moveTo(l.x, l.y);
+            ctx.lineTo(top.x, top.y);
+            ctx.lineTo(r.x, r.y);
+          } else {
+            const tip = this.toIso(pt.x + 12, pt.y);
+            const l = this.toIso(pt.x, pt.y - 6);
+            const r = this.toIso(pt.x, pt.y + 6);
+            ctx.moveTo(l.x, l.y);
+            ctx.lineTo(tip.x, tip.y);
+            ctx.lineTo(r.x, r.y);
+          }
+          ctx.stroke();
+        });
+      }
+
+      drawExtrudedWalls(ctx, s) {
+        const wallH = 24; // Wall Height
+        const segments = [
+          { x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y1, isDoor: (x) => false },
+          { x1: s.x2, y1: s.y1, x2: s.x2, y2: s.y2, isDoor: (x, y) => s.doorX === s.x2 && Math.abs(y - s.doorY) < 16 },
+          { x1: s.x2, y1: s.y2, x2: s.x1, y2: s.y2, isDoor: (x, y) => s.doorY === s.y2 && Math.abs(x - s.doorX) < 16 },
+          { x1: s.x1, y1: s.y2, x2: s.x1, y2: s.y1, isDoor: (x, y) => s.doorX === s.x1 && Math.abs(y - s.doorY) < 16 }
+        ];
+
+        segments.forEach(seg => {
+          const p1_b = this.toIso(seg.x1, seg.y1, 0);
+          const p2_b = this.toIso(seg.x2, seg.y2, 0);
+          const p1_t = this.toIso(seg.x1, seg.y1, wallH);
+          const p2_t = this.toIso(seg.x2, seg.y2, wallH);
+
+          // Wall face shading
+          ctx.fillStyle = '#101c2d';
+          ctx.beginPath();
+          ctx.moveTo(p1_b.x, p1_b.y);
+          ctx.lineTo(p2_b.x, p2_b.y);
+          ctx.lineTo(p2_t.x, p2_t.y);
+          ctx.lineTo(p1_t.x, p1_t.y);
+          ctx.closePath();
+          ctx.fill();
+
+          // Top Wall Edge Highlight
+          ctx.strokeStyle = 'rgba(0, 245, 212, 0.4)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(p1_t.x, p1_t.y);
+          ctx.lineTo(p2_t.x, p2_t.y);
+          ctx.stroke();
+        });
+      }
+
+      drawSuiteFurniture(ctx, s) {
+        if (s.id === 'ROOM_VAULT') {
+          // 3D Server Racks
+          [60, 90, 120].forEach(yOffset => {
+            const pBase = this.toIso(490, s.y1 + yOffset - 15, 0);
+            const pTop = this.toIso(490, s.y1 + yOffset - 15, 18);
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(pTop.x - 10 * this.zoom, pTop.y, 20 * this.zoom, 18 * this.zoom);
+            ctx.fillStyle = (Math.sin(Date.now() / 200 + yOffset) > 0) ? '#00f5d4' : '#0077b6';
+            ctx.fillRect(pTop.x - 6 * this.zoom, pTop.y + 4 * this.zoom, 3 * this.zoom, 3 * this.zoom);
+          });
+        } else if (s.id === 'ROOM_ENG') {
+          // Dual Engineering Desks
+          [60, 110].forEach(yOff => {
+            [230, 330].forEach(xOff => {
+              const p = this.toIso(xOff, s.y1 + yOff, 6);
+              ctx.fillStyle = '#1e3352';
+              ctx.fillRect(p.x - 14 * this.zoom, p.y, 28 * this.zoom, 8 * this.zoom);
+            });
+          });
+        }
+      }
+
+      drawHazardPlume(ctx, h) {
+        const p = this.toIso(h.x, h.y, 0);
+        const radius = (h.radius + Math.sin(this.hazardPulse) * 4) * this.zoom;
+
+        // Ground Thermal Glow Circle
+        const grad = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, radius);
+        grad.addColorStop(0, 'rgba(255, 0, 84, 0.7)');
+        grad.addColorStop(0.6, 'rgba(255, 123, 0, 0.4)');
+        grad.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3D Rising Smoke Plume
+        for (let i = 0; i < 4; i++) {
+          const puffZ = 10 + i * 12 + ((Date.now() / 40 + i * 20) % 30);
+          const puffIso = this.toIso(h.x + Math.sin(puffZ) * 6, h.y + Math.cos(puffZ) * 6, puffZ);
+          ctx.fillStyle = `rgba(100, 116, 139, ${0.4 - i * 0.08})`;
+          ctx.beginPath();
+          ctx.arc(puffIso.x, puffIso.y, (8 + i * 4) * this.zoom, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      drawOccupant(ctx, occ) {
+        const pShadow = this.toIso(occ.x, occ.y, 0);
+        const pBody = this.toIso(occ.x, occ.y, 6);
+        const dotR = 4.5 * this.zoom;
+
+        // Floor Drop Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.beginPath();
+        ctx.ellipse(pShadow.x, pShadow.y, dotR * 1.4, dotR * 0.7, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Color & Glowing State
+        let fillColor = '#00e5ff';
+        if (occ.state === 'evacuating') {
+          fillColor = '#f59e0b';
+          // Pulsing Alert Aura
+          ctx.fillStyle = 'rgba(245, 158, 11, 0.25)';
+          ctx.beginPath();
+          ctx.arc(pBody.x, pBody.y, dotR * 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (occ.state === 'safe') {
+          fillColor = '#10b981';
+        }
+
+        ctx.fillStyle = fillColor;
+        ctx.beginPath();
+        ctx.arc(pBody.x, pBody.y, dotR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Specular 3D Highlight
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.arc(pBody.x - dotR * 0.3, pBody.y - dotR * 0.3, dotR * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      drawAssemblyBeacon(ctx) {
+        const mastBase = this.toIso(310, -90, 0);
+        const mastTop = this.toIso(310, -90, 36);
+
+        // Mast pole
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2 * this.zoom;
+        ctx.beginPath();
+        ctx.moveTo(mastBase.x, mastBase.y);
+        ctx.lineTo(mastTop.x, mastTop.y);
+        ctx.stroke();
+
+        // Pulsing Radio Rings
+        const ringR = ((Date.now() / 25) % 40) * this.zoom;
+        ctx.strokeStyle = `rgba(16, 185, 129, ${1 - (ringR / (40 * this.zoom))})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(mastTop.x, mastTop.y, ringR * 1.5, ringR * 0.8, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Beacon Light
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(mastTop.x, mastTop.y, 4 * this.zoom, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      startLoop() {
+        const loop = (timestamp) => {
+          const dt = Math.min((timestamp - this.lastFrameTime) / 1000, 0.1);
+          this.lastFrameTime = timestamp;
+
+          // FPS counter
+          this.frameCount++;
+          if (timestamp - this.fpsTimer >= 1000) {
+            this.fps = this.frameCount;
+            this.frameCount = 0;
+            this.fpsTimer = timestamp;
+            const fpsEl = document.getElementById('hud-fps');
+            if (fpsEl) fpsEl.textContent = this.fps;
+          }
+
+          this.updatePhysics(dt);
+          this.render();
+          requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+      }
+    }
+
+    /* ==========================================================================
+       7. TABLET A ROTARY DIAL & AUDIO WAVEFORM VISUALIZER
+       ========================================================================== */
+    class RotaryIncidentDial {
+      constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.level = 1;
+        this.angle = -60; // -60, -20, 20, 60 degrees
+        this.isDragging = false;
+        this.bindEvents();
+        this.draw();
+      }
+
+      bindEvents() {
+        const updateAngleFromPos = (clientX, clientY) => {
+          const rect = this.canvas.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          let deg = Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
+          // Clamp & map to 4 discrete levels
+          if (deg < -40) this.setLevel(1);
+          else if (deg < 0) this.setLevel(2);
+          else if (deg < 40) this.setLevel(3);
+          else this.setLevel(4);
+        };
+
+        this.canvas.addEventListener('mousedown', (e) => {
+          this.isDragging = true;
+          updateAngleFromPos(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (this.isDragging) updateAngleFromPos(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('mouseup', () => {
+          this.isDragging = false;
+        });
+
+        // Pill buttons click handlers
+        document.querySelectorAll('.level-pill-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const lvl = parseInt(btn.getAttribute('data-lvl'), 10);
+            this.setLevel(lvl);
+          });
+        });
+      }
+
+      setLevel(lvl) {
+        if (this.level !== lvl) {
+          this.level = lvl;
+          emergencyState.incidentLevel = lvl;
+          tacticalAudio.playHapticClick();
+          this.updateUI();
+          this.draw();
+          syncBus.emit('INCIDENT_LEVEL_CHANGED', { level: lvl, origin: 'PHONE_A' });
+        }
+      }
+
+      updateUI() {
+        const angles = { 1: -60, 2: -20, 3: 20, 4: 60 };
+        this.angle = angles[this.level] || -60;
+        
+        const angleLabel = document.getElementById('rotary-dial-angle-label');
+        if (angleLabel) angleLabel.textContent = `ANGLE: ${this.angle}°`;
+
+        const badgeNum = document.getElementById('rotary-badge-num');
+        const badgeTag = document.getElementById('rotary-badge-tag');
+        const tags = { 1: 'STBY', 2: 'WARN', 3: 'EVAC', 4: 'LOCK' };
+        if (badgeNum) badgeNum.textContent = this.level;
+        if (badgeTag) badgeTag.textContent = tags[this.level];
+
+        const colors = { 1: '#00f5d4', 2: '#f59e0b', 3: '#ff7b00', 4: '#ff0054' };
+        const badge = document.getElementById('rotary-center-badge');
+        if (badge) {
+          badge.style.borderColor = colors[this.level];
+          badge.style.boxShadow = `0 0 15px ${colors[this.level]}`;
+        }
+        if (badgeNum) badgeNum.style.color = colors[this.level];
+
+        document.querySelectorAll('.level-pill-btn').forEach(btn => {
+          const bLvl = parseInt(btn.getAttribute('data-lvl'), 10);
+          btn.classList.toggle('active', bLvl === this.level);
+        });
+
+        // Update header badge
+        const headerBadge = document.getElementById('header-incident-badge');
+        const headerText = document.getElementById('header-incident-text');
+        const fullLabels = { 1: 'LVL 1 - STANDBY', 2: 'LVL 2 - EVAC WARNING', 3: 'LVL 3 - ACTIVE BREACH', 4: 'LVL 4 - FULL LOCKDOWN' };
+        if (headerText) headerText.textContent = fullLabels[this.level];
+      }
+
+      draw() {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+        const r = w / 2 - 8;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Outer Metallic Ring
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Ticks
+        for (let a = -120; a <= 120; a += 20) {
+          const rad = (a - 90) * (Math.PI / 180);
+          const x1 = cx + Math.cos(rad) * (r - 4);
+          const y1 = cy + Math.sin(rad) * (r - 4);
+          const x2 = cx + Math.cos(rad) * (r - 12);
+          const y2 = cy + Math.sin(rad) * (r - 12);
+
+          ctx.strokeStyle = '#475569';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+
+        // Active Indicator Pointer
+        const pointerRad = (this.angle - 90) * (Math.PI / 180);
+        const px = cx + Math.cos(pointerRad) * (r - 16);
+        const py = cy + Math.sin(pointerRad) * (r - 16);
+
+        const colors = { 1: '#00f5d4', 2: '#f59e0b', 3: '#ff7b00', 4: '#ff0054' };
+        ctx.fillStyle = colors[this.level] || '#00f5d4';
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowColor = colors[this.level] || '#00f5d4';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    // PTT Live Audio Waveform Canvas
+    class PttWaveformVisualizer {
+      constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.phase = 0;
+        this.initSize();
+        this.startLoop();
+      }
+
+      initSize() {
+        const rect = this.canvas.getBoundingClientRect();
+        this.canvas.width = rect.width || 300;
+        this.canvas.height = rect.height || 44;
+      }
+
+      startLoop() {
+        const render = () => {
+          const ctx = this.ctx;
+          const w = this.canvas.width;
+          const h = this.canvas.height;
+          ctx.clearRect(0, 0, w, h);
+
+          this.phase += 0.1;
+          const isActive = emergencyState.isPttActive;
+
+          ctx.strokeStyle = isActive ? '#00f5d4' : 'rgba(0, 245, 212, 0.2)';
+          ctx.lineWidth = isActive ? 2 : 1;
+          ctx.beginPath();
+
+          for (let x = 0; x < w; x += 3) {
+            const amp = isActive ? (Math.sin(x * 0.05 + this.phase) * 12 + Math.cos(x * 0.12 - this.phase) * 6) : (Math.sin(x * 0.04 + this.phase) * 2);
+            const y = h / 2 + amp;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+
+          requestAnimationFrame(render);
+        };
+        requestAnimationFrame(render);
+      }
+    }
+
+    /* ==========================================================================
+       8. UI CONTROLLER & EVENT WIRING
+       ========================================================================== */
+    function updateHeadcountStats() {
+      const total = emergencyState.occupants.length;
+      const safe = emergencyState.occupants.filter(o => o.state === 'safe').length;
+      const evacuating = emergencyState.occupants.filter(o => o.state === 'evacuating').length;
+
+      const hudHeadcount = document.getElementById('hud-headcount');
+      if (hudHeadcount) hudHeadcount.textContent = `${safe} / ${total} SAFE`;
+
+      const hudEvac = document.getElementById('hud-evacuating-count');
+      if (hudEvac) hudEvac.textContent = evacuating;
+
+      const hudSafe = document.getElementById('hud-safe-count');
+      if (hudSafe) hudSafe.textContent = safe;
+
+      const phoneDTally = document.getElementById('phone-d-tally');
+      if (phoneDTally) {
+        const pct = total > 0 ? Math.round((safe / total) * 100) : 0;
+        phoneDTally.textContent = `${safe} / ${total} (${pct}%)`;
+      }
+    }
+
+    function appendTriageLog(id, name, status, role = 'RESIDENT') {
+      const feed = document.getElementById('triage-log-feed');
+      if (!feed) return;
+
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      
+      const item = document.createElement('li');
+      item.className = 'triage-log-item';
+      item.innerHTML = `
+        <span class="time">${timeStr}</span>
+        <span class="id">${name}</span>
+        <span class="tag ${status === 'SAFE' ? 'safe' : 'evac'}">${status}</span>
+      `;
+      feed.insertBefore(item, feed.firstChild);
+
+      emergencyState.triageLogs.unshift({ time: timeStr, id, name, status });
+    }
+
+    function triggerEmergencyAlarm(options = {}) {
+      emergencyState.alarmState = 'ACTIVE';
+      if (options.incidentLevel) rotaryDial.setLevel(options.incidentLevel);
+      if (options.channel) emergencyState.channel = options.channel;
+
+      const strobe = document.getElementById('strobe-overlay');
+      if (strobe) strobe.classList.add('active');
+
+      const headerBadge = document.getElementById('header-incident-badge');
+      if (headerBadge) headerBadge.classList.add('alarm-active');
+
+      // Start sound & voice
+      tacticalAudio.playMilitaryHornBurst();
+      setTimeout(() => tacticalAudio.startTacticalSiren(), 500);
+
+      voiceDispatcher.speak("Atención: Alarma de evacuación activada en Nivel 3. Proceda a las salidas de emergencia de forma ordenada.");
+
+      // Transition occupants to evacuating
+      emergencyState.occupants.forEach(occ => {
+        if (occ.state !== 'safe') {
+          occ.state = 'evacuating';
+          occ.path = [];
+          occ.pathIndex = 0;
+        }
+      });
+      updateHeadcountStats();
+
+      // Update Phone B
+      const phoneBGuidance = document.getElementById('phone-b-guidance');
+      if (phoneBGuidance) phoneBGuidance.textContent = 'ALERTA: SIGA FLECHAS LED A SALIDA A';
+
+      syncBus.emit('ALARM_TRIGGERED', { incidentLevel: emergencyState.incidentLevel, origin: 'PHONE_A' });
+      showToast('EMERGENCY DISPATCH TRANSMITTED // ALL UNITS EVACUATING', true);
+    }
+
+    function resetSimulation() {
+      emergencyState.alarmState = 'STANDBY';
+      emergencyState.incidentLevel = 1;
+      emergencyState.hazards = [];
+      emergencyState.stairwells['STAIRWELL_A'] = 'CLEAR';
+      emergencyState.stairwells['STAIRWELL_B'] = 'CLEAR';
+      emergencyState.phoneBCheckedIn = false;
+
+      tacticalAudio.stopTacticalSiren();
+
+      const strobe = document.getElementById('strobe-overlay');
+      if (strobe) strobe.classList.remove('active');
+
+      const headerBadge = document.getElementById('header-incident-badge');
+      if (headerBadge) headerBadge.classList.remove('alarm-active');
+
+      rotaryDial.setLevel(1);
+      initializeOccupants(45);
+
+      // Reset UI buttons
+      document.querySelectorAll('.hazard-btn').forEach(b => b.classList.remove('active'));
+      const btnStairA = document.getElementById('btn-stairwell-a');
+      const btnStairB = document.getElementById('btn-stairwell-b');
+      if (btnStairA) {
+        btnStairA.classList.remove('blocked');
+        document.getElementById('status-stairwell-a').textContent = '[CLEAR]';
+      }
+      if (btnStairB) {
+        btnStairB.classList.remove('blocked');
+        document.getElementById('status-stairwell-b').textContent = '[CLEAR]';
+      }
+
+      const btnPhoneB = document.getElementById('btn-phone-b-checkin');
+      if (btnPhoneB) {
+        btnPhoneB.classList.remove('checked');
+        btnPhoneB.innerHTML = '<span>✓</span><span>ESTOY A SALVO (CONFIRM SAFE)</span>';
+      }
+
+      showToast('SIMULATION RESET TO PEACE-TIME STANDBY');
+      syncBus.emit('ALARM_RESET', { origin: 'SIM_C' });
+    }
+
+    function injectHazardZone(zone) {
+      let hazardCoord = { x: 500, y: 90, zone: 'ROOM_VAULT' };
+      if (zone === 'BREAKROOM' || zone === 'ROOM_CANTEEN') {
+        hazardCoord = { x: 275, y: 300, zone: 'ROOM_CANTEEN' };
+      } else if (zone === 'LABS' || zone === 'ROOM_LABS') {
+        hazardCoord = { x: 100, y: 300, zone: 'ROOM_LABS' };
+      }
+
+      const existingIndex = emergencyState.hazards.findIndex(h => h.zone === hazardCoord.zone);
+      if (existingIndex >= 0) {
+        emergencyState.hazards.splice(existingIndex, 1);
+        showToast(`Hazard removed in ${zone}`);
+      } else {
+        emergencyState.hazards.push({
+          id: 'HAZARD_' + Date.now(),
+          zone: hazardCoord.zone,
+          x: hazardCoord.x,
+          y: hazardCoord.y,
+          radius: 28,
+          blocked: true
+        });
+        showToast(`⚠️ HAZARD INJECTED: Thermal breach in ${zone}`, true);
+        tacticalAudio.playMilitaryHornBurst();
+
+        // Repath all evacuating occupants
+        emergencyState.occupants.forEach(occ => {
+          if (occ.state === 'evacuating') {
+            occ.path = [];
+            occ.pathIndex = 0;
+          }
+        });
+
+        // Update Phone C Thermal Telemetry
+        const phoneCThermal = document.getElementById('phone-c-thermal');
+        if (phoneCThermal) phoneCThermal.textContent = 'Vault: 68°C 🔥 • Labs: 24°C';
+      }
+
+      // Update hazard button styles
+      document.querySelectorAll('.hazard-btn').forEach(btn => {
+        const bz = btn.getAttribute('data-zone');
+        const isActive = emergencyState.hazards.some(h => h.zone === bz || (bz === 'SERVER_ROOM' && h.zone === 'ROOM_VAULT') || (bz === 'BREAKROOM' && h.zone === 'ROOM_CANTEEN') || (bz === 'LABS' && h.zone === 'ROOM_LABS'));
+        btn.classList.toggle('active', isActive);
+      });
+
+      syncBus.emit('HAZARD_SPAWNED', { zone, origin: 'PHONE_A' });
+    }
+
+    function toggleStairwellStatus(stairwellId, explicitStatus) {
+      const current = emergencyState.stairwells[stairwellId];
+      const nextStatus = explicitStatus || (current === 'CLEAR' ? 'BLOCKED' : 'CLEAR');
+      emergencyState.stairwells[stairwellId] = nextStatus;
+
+      const btn = document.getElementById(stairwellId === 'STAIRWELL_A' ? 'btn-stairwell-a' : 'btn-stairwell-b');
+      const statusSpan = document.getElementById(stairwellId === 'STAIRWELL_A' ? 'status-stairwell-a' : 'status-stairwell-b');
+
+      if (btn && statusSpan) {
+        btn.classList.toggle('blocked', nextStatus === 'BLOCKED');
+        statusSpan.textContent = `[${nextStatus}]`;
+      }
+
+      tacticalAudio.playHapticClick();
+      showToast(`Stairwell ${stairwellId.replace('STAIRWELL_','')} set to ${nextStatus}`, nextStatus === 'BLOCKED');
+
+      // Repath occupants
+      emergencyState.occupants.forEach(occ => {
+        if (occ.state === 'evacuating') {
+          occ.path = [];
+          occ.pathIndex = 0;
+        }
+      });
+
+      syncBus.emit('STAIRWELL_STATUS_CHANGED', { stairwellId, status: nextStatus, origin: 'PHONE_C' });
+    }
+
+    function checkInPhoneB() {
+      if (emergencyState.phoneBCheckedIn) return;
+      emergencyState.phoneBCheckedIn = true;
+
+      const btn = document.getElementById('btn-phone-b-checkin');
+      if (btn) {
+        btn.classList.add('checked');
+        btn.innerHTML = '<span>✓</span><span>CONFIRMADO A SALVO</span>';
+      }
+
+      // Mark resident occupant (#4) as safe
+      const occ4 = emergencyState.occupants.find(o => o.id === 4) || emergencyState.occupants[0];
+      if (occ4) occ4.state = 'safe';
+
+      updateHeadcountStats();
+      appendTriageLog('RESIDENT_04', 'Resident Phone B (Seat 12)', 'SAFE', 'RESIDENT');
+      tacticalAudio.playHapticClick();
+      showToast('Phone B confirmed SAFE at Assembly Point');
+      syncBus.emit('OCCUPANT_CHECKIN_SAFE', { occupantId: 4, phoneId: 'PHONE_B', origin: 'PHONE_B' });
+    }
+
+    /* ==========================================================================
+       9. INITIALIZATION & GLOBAL TEST HARNESS
+       ========================================================================== */
+    let isoCanvas = null;
+    let rotaryDial = null;
+    let pttWaveform = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Clock Ticker
+      setInterval(() => {
+        const now = new Date();
+        const clockEl = document.getElementById('hud-clock');
+        if (clockEl) {
+          clockEl.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+        }
+      }, 1000);
+
+      // 2. Initialize Components
+      isoCanvas = new IsometricFloorplanCanvas('iso-canvas');
+      rotaryDial = new RotaryIncidentDial('rotary-canvas');
+      pttWaveform = new PttWaveformVisualizer('ptt-canvas');
+      initializeOccupants(45);
+      isoCanvas.startLoop();
+
+      // 3. UI Event Listeners
+      document.getElementById('btn-dispatch-alarm')?.addEventListener('click', () => {
+        triggerEmergencyAlarm();
+      });
+
+      document.getElementById('btn-master-reset')?.addEventListener('click', () => {
+        resetSimulation();
+      });
+
+      document.getElementById('btn-audio-toggle')?.addEventListener('click', () => {
+        tacticalAudio.isMuted = !tacticalAudio.isMuted;
+        const icon = document.getElementById('audio-icon');
+        const label = document.getElementById('audio-label');
+        if (icon) icon.textContent = tacticalAudio.isMuted ? '🔇' : '🔊';
+        if (label) label.textContent = tacticalAudio.isMuted ? 'AUDIO OFF' : 'AUDIO ON';
+        document.getElementById('btn-audio-toggle')?.classList.toggle('active', !tacticalAudio.isMuted);
+      });
+
+      // PTT Push To Talk
+      const btnPtt = document.getElementById('btn-ptt-toggle');
+      const pttStatus = document.getElementById('ptt-status-label');
+      btnPtt?.addEventListener('click', () => {
+        emergencyState.isPttActive = !emergencyState.isPttActive;
+        btnPtt.classList.toggle('active', emergencyState.isPttActive);
+        if (emergencyState.isPttActive) {
+          pttStatus.textContent = 'TRANSMITTING...';
+          pttStatus.classList.add('transmitting');
+          tacticalAudio.playRadioSquelch();
+          voiceDispatcher.speak("Atención todas las unidades: Mantengan la calma y evacúen por las rutas señalizadas con luz LED.", () => {
+            emergencyState.isPttActive = false;
+            btnPtt.classList.remove('active');
+            pttStatus.textContent = 'READY';
+            pttStatus.classList.remove('transmitting');
+          });
+        } else {
+          pttStatus.textContent = 'READY';
+          pttStatus.classList.remove('transmitting');
+        }
+      });
+
+      // Channel Selector Chips
+      document.querySelectorAll('.channel-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.channel-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          emergencyState.channel = chip.getAttribute('data-channel');
+          tacticalAudio.playHapticClick();
+          showToast(`Broadcast medium switched to ${chip.innerText.trim()}`);
+        });
+      });
+
+      // Hazard Injection Buttons
+      document.querySelectorAll('.hazard-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const zone = btn.getAttribute('data-zone');
+          injectHazardZone(zone);
+        });
+      });
+
+      // Stairwell Toggles
+      document.getElementById('btn-stairwell-a')?.addEventListener('click', () => {
+        toggleStairwellStatus('STAIRWELL_A');
+      });
+      document.getElementById('btn-stairwell-b')?.addEventListener('click', () => {
+        toggleStairwellStatus('STAIRWELL_B');
+      });
+
+      // Phone B Check-in
+      document.getElementById('btn-phone-b-checkin')?.addEventListener('click', () => {
+        checkInPhoneB();
+      });
+
+      // Mobile Responsive Tabs
+      document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.mobile-tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const tab = btn.getAttribute('data-tab');
+          document.getElementById('col-left')?.classList.toggle('active-mobile-tab', tab === 'left');
+          document.getElementById('col-center')?.classList.toggle('active-mobile-tab', tab === 'center');
+          document.getElementById('col-right')?.classList.toggle('active-mobile-tab', tab === 'right');
+          if (isoCanvas) isoCanvas.initCanvasSize();
+        });
+      });
+
+      // Set default mobile active tab
+      document.getElementById('col-center')?.classList.add('active-mobile-tab');
+    });
+
+    /* ==========================================================================
+       10. GLOBAL PROGRAMMATIC TEST AUTOMATION HARNESS
+       ========================================================================== */
+    window.__EMERGENCY_TRI_C__ = {
+      getState: () => ({
+        alarmState: emergencyState.alarmState,
+        channel: emergencyState.channel,
+        severity: emergencyState.severity,
+        incidentLevel: emergencyState.incidentLevel,
+        occupantsTotal: emergencyState.occupants.length,
+        occupantsSafe: emergencyState.occupants.filter(o => o.state === 'safe').length,
+        occupantsEvacuating: emergencyState.occupants.filter(o => o.state === 'evacuating').length,
+        hazards: emergencyState.hazards.map(h => ({ id: h.id, zone: h.zone, radius: h.radius, blocked: h.blocked })),
+        stairwells: { ...emergencyState.stairwells },
+        particles: emergencyState.occupants.map(o => ({ id: o.id, x: o.x, y: o.y, state: o.state, exitId: o.exitId }))
+      }),
+
+      triggerAlarm: (options = {}) => {
+        triggerEmergencyAlarm(options);
+      },
+
+      resetSimulation: () => {
+        resetSimulation();
+      },
+
+      injectHazard: (zone) => {
+        injectHazardZone(zone);
+      },
+
+      checkInSafe: (phoneId) => {
+        if (phoneId === 'PHONE_B') {
+          checkInPhoneB();
+        } else if (phoneId === 'PHONE_C') {
+          appendTriageLog('BRIGADE_01', 'Brigade Lead Cmdr. Soto', 'SAFE', 'BRIGADE');
+        } else if (phoneId === 'PHONE_D') {
+          const nextEvac = emergencyState.occupants.find(o => o.state === 'evacuating');
+          if (nextEvac) {
+            nextEvac.state = 'safe';
+            updateHeadcountStats();
+            appendTriageLog(`OCC_${nextEvac.id}`, nextEvac.name, 'SAFE', 'RESIDENT');
+          }
+        }
+      },
+
+      toggleStairwell: (stairwellId, status) => {
+        const upper = String(stairwellId).toUpperCase().trim();
+        const id = (upper === 'A' || upper === 'STAIRWELL_A' || upper.endsWith('_A') || upper.endsWith(' A')) ? 'STAIRWELL_A' : 'STAIRWELL_B';
+        toggleStairwellStatus(id, status);
+      },
+
+      setOccupantCount: (count) => {
+        initializeOccupants(Math.max(5, Math.min(count, 100)));
+      }
+    };
+  </script>
+</body>
+</html>

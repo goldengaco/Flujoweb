@@ -1,0 +1,2946 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CYBER-EVAC // Tactical Tri-Panel Emergency Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #030712;
+      --bg-surface: #070d18;
+      --bg-card: rgba(11, 19, 36, 0.85);
+      --bg-card-hover: rgba(18, 30, 58, 0.95);
+      --border-subtle: rgba(0, 240, 255, 0.15);
+      --border-glow: rgba(0, 240, 255, 0.45);
+      --border-danger: rgba(239, 68, 68, 0.55);
+      --border-danger-glow: rgba(239, 68, 68, 0.85);
+      --accent-cyan: #00f0ff;
+      --accent-sky: #38bdf8;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-crimson: #ef4444;
+      --accent-purple: #a855f7;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      overflow-x: hidden;
+    }
+
+    /* Ambient Cyberpunk Grid Backdrop */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Tactical Strobe Alert Overlay (for whole page during disaster mode) */
+    #global-strobe-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    #global-strobe-overlay.active {
+      animation: globalStrobe 1.2s infinite ease-in-out;
+    }
+    @keyframes globalStrobe {
+      0%, 100% { background: rgba(239, 68, 68, 0); opacity: 0; }
+      50% { background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.02) 80%); opacity: 1; }
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      width: 100%;
+      max-width: 1920px;
+      margin: 0 auto;
+      padding: 12px 18px;
+    }
+
+    /* Header Bar */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 10px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      backdrop-filter: blur(12px);
+      margin-bottom: 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-logo-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(239, 68, 68, 0.3));
+      border: 1px solid var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
+    }
+    .header-title-group h1 {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-title-group h1 span.highlight {
+      color: var(--accent-cyan);
+      text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+    }
+    .header-title-group p {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+    }
+    .status-dot.active {
+      background: var(--accent-crimson);
+      box-shadow: 0 0 10px var(--accent-crimson);
+      animation: dotBlink 0.6s infinite alternate;
+    }
+    .status-dot.countdown {
+      background: var(--accent-amber);
+      box-shadow: 0 0 10px var(--accent-amber);
+      animation: dotBlink 0.3s infinite alternate;
+    }
+    @keyframes dotBlink {
+      from { opacity: 0.3; }
+      to { opacity: 1; }
+    }
+
+    .btn-tactical {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .btn-tactical:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .btn-tactical.danger {
+      border-color: var(--border-danger);
+      color: #fca5a5;
+    }
+    .btn-tactical.danger:hover {
+      border-color: var(--accent-crimson);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+      color: #fff;
+    }
+
+    /* Mobile Viewport Tab Switcher (Visible on small screens) */
+    .mobile-nav-tabs {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .tab-btn {
+      padding: 8px 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+    .tab-btn.active {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--accent-cyan);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+    }
+
+    /* Tri-Screen Main Grid Layout */
+    .tri-layout {
+      display: grid;
+      grid-template-columns: 330px 1fr 350px;
+      gap: 16px;
+      flex: 1;
+      align-items: stretch;
+      min-height: calc(100vh - 120px);
+    }
+
+    /* Panel Wrappers */
+    .panel-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+    .panel-header-tag {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 10px;
+      background: rgba(15, 23, 42, 0.6);
+      border-left: 3px solid var(--accent-cyan);
+      border-radius: 0 4px 4px 0;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+    }
+
+    /* PURE CSS SMARTPHONE FRAME */
+    .phone-mockup-frame {
+      position: relative;
+      width: 100%;
+      max-width: 330px;
+      height: 640px;
+      margin: 0 auto;
+      background: #02040a;
+      border-radius: 40px;
+      border: 4px solid #1e293b;
+      box-shadow: 
+        0 0 0 2px rgba(255, 255, 255, 0.08),
+        0 20px 40px -10px rgba(0, 0, 0, 0.85),
+        0 0 25px rgba(0, 240, 255, 0.12);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+    }
+    .phone-mockup-frame.danger-alert {
+      border-color: #ef4444;
+      box-shadow: 
+        0 0 0 2px rgba(239, 68, 68, 0.4),
+        0 20px 45px -10px rgba(0, 0, 0, 0.9),
+        0 0 30px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Phone Notch / Dynamic Island */
+    .phone-notch {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 96px;
+      height: 22px;
+      background: #000000;
+      border-radius: 18px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.9);
+    }
+    .phone-notch .lens {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #334155, #020617);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .phone-notch .sensor-led {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 6px var(--accent-emerald);
+    }
+    .phone-notch .sensor-led.emergency {
+      background: var(--accent-crimson);
+      box-shadow: 0 0 8px var(--accent-crimson);
+      animation: dotBlink 0.4s infinite alternate;
+    }
+
+    /* Phone Status Bar */
+    .phone-status-bar {
+      position: relative;
+      z-index: 40;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 18px 0 18px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+    .status-bar-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Phone Physical Buttons (Side CSS pseudo-elements) */
+    .phone-mockup-frame::before {
+      content: "";
+      position: absolute;
+      left: -6px;
+      top: 105px;
+      width: 3px;
+      height: 42px;
+      background: #334155;
+      border-radius: 2px 0 0 2px;
+    }
+    .phone-mockup-frame::after {
+      content: "";
+      position: absolute;
+      right: -6px;
+      top: 125px;
+      width: 3px;
+      height: 55px;
+      background: #334155;
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* Screen Inner Content */
+    .phone-screen {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 14px 14px 14px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: radial-gradient(circle at 80% 20%, rgba(0, 240, 255, 0.04), transparent 70%);
+    }
+    .phone-screen::-webkit-scrollbar {
+      width: 3px;
+    }
+    .phone-screen::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+    }
+
+    /* Device Card Styles inside Phone */
+    .screen-header-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--accent-cyan);
+      margin-bottom: 10px;
+    }
+    .threat-title {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .threat-desc {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+
+    /* SLIDE TO TRIGGER COMPONENT */
+    .slide-trigger-box {
+      position: relative;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border-danger);
+      border-radius: 28px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      margin: 10px 0;
+      overflow: hidden;
+      box-shadow: inset 0 0 12px rgba(239, 68, 68, 0.2);
+    }
+    .slide-track-text {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: rgba(239, 68, 68, 0.85);
+      text-transform: uppercase;
+      pointer-events: none;
+      animation: textGlow 1.5s infinite alternate;
+    }
+    @keyframes textGlow {
+      from { opacity: 0.6; }
+      to { opacity: 1; text-shadow: 0 0 8px rgba(239, 68, 68, 0.7); }
+    }
+    .slide-handle {
+      position: absolute;
+      left: 4px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ef4444, #991b1b);
+      border: 2px solid #fca5a5;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: grab;
+      touch-action: none;
+      z-index: 10;
+      transition: box-shadow 0.2s;
+    }
+    .slide-handle:active {
+      cursor: grabbing;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 1);
+    }
+    .slide-progress-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.6));
+      pointer-events: none;
+      border-radius: 28px;
+    }
+
+    /* COUNTDOWN RING DIALOG */
+    .countdown-overlay-modal {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--accent-crimson);
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+      margin: 8px 0;
+      text-align: center;
+      animation: popIn 0.25s ease-out;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .countdown-svg-ring {
+      width: 72px;
+      height: 72px;
+      transform: rotate(-90deg);
+      margin-bottom: 6px;
+    }
+    .countdown-svg-ring circle {
+      fill: none;
+      stroke-width: 6;
+    }
+    .countdown-svg-ring .bg {
+      stroke: rgba(255, 255, 255, 0.1);
+    }
+    .countdown-svg-ring .progress {
+      stroke: var(--accent-crimson);
+      stroke-linecap: round;
+      stroke-dasharray: 188.5;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+    .countdown-number {
+      font-family: var(--font-mono);
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #fff;
+      margin-top: -54px;
+      margin-bottom: 24px;
+      text-shadow: 0 0 10px var(--accent-crimson);
+    }
+
+    /* Channel Selector Chips */
+    .channel-selector-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 8px 0;
+    }
+    .channel-chips-row {
+      display: flex;
+      gap: 6px;
+    }
+    .channel-chip {
+      flex: 1;
+      padding: 6px 4px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .channel-chip.selected {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--accent-cyan);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+    }
+
+    /* Hazard Control Box */
+    .hazard-control-box {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px;
+      margin: 8px 0;
+    }
+    .hazard-control-box h4 {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .hazard-btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .hazard-btn {
+      padding: 6px 4px;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .hazard-btn:hover {
+      border-color: var(--accent-amber);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Phone Dispatch Console Log */
+    .phone-mini-log {
+      background: rgba(2, 6, 23, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: #94a3b8;
+      max-height: 80px;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+    .phone-mini-log .log-entry {
+      margin-bottom: 3px;
+      line-height: 1.25;
+    }
+    .phone-mini-log .log-entry .time {
+      color: var(--accent-cyan);
+    }
+
+    /* CENTER PANEL: BLUEPRINT CANVAS CONTAINER */
+    .center-canvas-panel {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 640px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    }
+    .canvas-hud-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 10px;
+    }
+    .blueprint-title-tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+    .canvas-metrics-pills {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .metric-pill {
+      padding: 4px 8px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .metric-pill strong {
+      color: #fff;
+    }
+    .metric-pill.safe strong {
+      color: var(--accent-emerald);
+    }
+    .metric-pill.evac strong {
+      color: var(--accent-amber);
+    }
+
+    /* Canvas Viewport */
+    .canvas-viewport-wrapper {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      min-height: 480px;
+      background: #020612;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: inset 0 0 30px rgba(0, 240, 255, 0.05);
+    }
+    #floorplan-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+
+    /* Canvas HUD Bottom Control Bar */
+    .canvas-hud-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+    }
+    .hud-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hud-hint {
+      color: var(--text-muted);
+      font-size: 0.68rem;
+    }
+
+    /* RIGHT PANEL: RECIPIENT PHONES (B, C, D) */
+    .recipient-panel-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .recipient-device-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      background: rgba(15, 23, 42, 0.8);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+    .device-tab-btn {
+      padding: 6px 2px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .device-tab-btn.active {
+      background: rgba(0, 240, 255, 0.2);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+    }
+
+    /* Phone B: Resident HUD */
+    .phone-b-screen {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .tactical-strobe-box {
+      display: none;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--accent-crimson);
+      margin-bottom: 10px;
+      text-align: center;
+      animation: phoneStrobe 0.8s infinite alternate;
+    }
+    .tactical-strobe-box.active {
+      display: block;
+    }
+    @keyframes phoneStrobe {
+      from { background: rgba(239, 68, 68, 0.15); box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+      to { background: rgba(239, 68, 68, 0.45); box-shadow: 0 0 25px rgba(239, 68, 68, 0.8); }
+    }
+    .route-directive-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .route-title {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .route-detail {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .route-detail.warning {
+      color: var(--accent-amber);
+    }
+    .btn-safe-action {
+      background: linear-gradient(135deg, #10b981, #047857);
+      border: 1px solid #6ee7b7;
+      color: #fff;
+      padding: 12px;
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+      transition: all 0.2s;
+      margin-top: auto;
+    }
+    .btn-safe-action:hover {
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.7);
+      transform: translateY(-2px);
+    }
+    .btn-safe-action.checked-in {
+      background: #0f291e;
+      border-color: #10b981;
+      color: #6ee7b7;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* Phone C: Brigade Lead */
+    .stairwell-toggle-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .stairwell-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+    .toggle-pill-btn {
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .toggle-pill-btn.clear {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-emerald);
+      color: #6ee7b7;
+    }
+    .toggle-pill-btn.blocked {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: var(--accent-crimson);
+      color: #fca5a5;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Phone D: Front Desk Security */
+    .headcount-ticker-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--accent-cyan);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      margin-bottom: 10px;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+    }
+    .headcount-big-num {
+      font-family: var(--font-mono);
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #fff;
+    }
+    .headcount-big-num span.safe {
+      color: var(--accent-emerald);
+      text-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+    }
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      margin: 8px 0;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #10b981);
+      transition: width 0.3s ease;
+    }
+    .survivor-stream-feed {
+      background: rgba(2, 6, 23, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      color: #94a3b8;
+      max-height: 190px;
+      overflow-y: auto;
+    }
+    .survivor-stream-feed .stream-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Tactical Voice Caption Toast */
+    #tactical-voice-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(11, 19, 36, 0.96);
+      border: 1px solid var(--accent-cyan);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #fff;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+      max-width: 90vw;
+    }
+    #tactical-voice-toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* RESPONSIVE MEDIA QUERIES */
+    @media (max-width: 1200px) {
+      .tri-layout {
+        grid-template-columns: 310px 1fr;
+        grid-template-rows: auto auto;
+      }
+      .recipient-panel-container {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: center;
+      }
+      .recipient-panel-container .phone-mockup-frame {
+        max-width: 320px;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .tri-layout {
+        display: flex;
+        flex-direction: column;
+      }
+      .mobile-nav-tabs {
+        display: grid;
+      }
+      .panel-section {
+        display: none;
+      }
+      .panel-section.active-mobile-tab {
+        display: flex;
+      }
+      .center-canvas-panel {
+        min-height: 440px;
+      }
+      .canvas-viewport-wrapper {
+        min-height: 380px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Strobe Light Canvas / Overlay -->
+  <div id="global-strobe-overlay"></div>
+
+  <!-- Voice Caption Toast -->
+  <div id="tactical-voice-toast">
+    <span style="color: var(--accent-cyan);">🎙️ PA-VOICE:</span>
+    <span id="voice-toast-msg">Sistema de evacuación táctica en línea.</span>
+  </div>
+
+  <div class="app-container">
+    <!-- Header Bar -->
+    <header class="app-header">
+      <div class="header-branding">
+        <div class="header-logo-badge">🚨</div>
+        <div class="header-title-group">
+          <h1>CYBER-EVAC <span class="highlight">// TACTICAL TRI-PANEL</span></h1>
+          <p>MASTER COMMAND & DISPATCH • 2D BLUEPRINT SIMULATOR • RECIPIENT MESH</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="status-pill">
+          <div class="status-dot" id="global-status-dot"></div>
+          <span id="global-status-text">STANDBY // DESPEJADO</span>
+        </div>
+
+        <button class="btn-tactical" id="btnSoundToggle" title="Activar/Silenciar Síntesis de Audio y Voz">
+          <span id="sound-icon">🔊</span>
+          <span id="sound-text">AUDIO ON</span>
+        </button>
+
+        <button class="btn-tactical danger" id="btnGlobalReset" title="Reiniciar Simulación Completa">
+          <span>🔄</span>
+          <span>REINICIAR</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mobile Viewport Navigation Tabs (shown <= 860px) -->
+    <div class="mobile-nav-tabs">
+      <button class="tab-btn active" data-target="panel-left">📱 1. PHONE A (CMD)</button>
+      <button class="tab-btn" data-target="panel-center">🗺️ 2. BLUEPRINT 2D</button>
+      <button class="tab-btn" data-target="panel-right">👥 3. PHONES (B/C/D)</button>
+    </div>
+
+    <!-- Master Tri-Panel Layout -->
+    <main class="tri-layout">
+      
+      <!-- ============================================================ -->
+      <!-- LEFT PANEL: PHONE A (COMMAND MASTER DISPATCHER)              -->
+      <!-- ============================================================ -->
+      <section class="panel-wrapper panel-section active-mobile-tab" id="panel-left">
+        <div class="panel-header-tag">
+          <span>DISPATCHER // PHONE A</span>
+          <span style="color: #64748b;">MASTER M-01</span>
+        </div>
+
+        <!-- Phone A Mockup Frame -->
+        <div class="phone-mockup-frame" id="phone-a-chassis">
+          <!-- Notch -->
+          <div class="phone-notch">
+            <div class="lens"></div>
+            <div class="sensor-led" id="phone-a-sensor"></div>
+          </div>
+
+          <!-- Status Bar -->
+          <div class="phone-status-bar">
+            <span id="phone-a-clock">10:42</span>
+            <div class="status-bar-icons">
+              <span>5G</span>
+              <span>📶</span>
+              <span>99% ⚡</span>
+            </div>
+          </div>
+
+          <!-- Screen Inner -->
+          <div class="phone-screen">
+            <div class="screen-header-badge">
+              <span>TACTICAL DISPATCH SECURE</span>
+              <span id="phone-a-badge-status" style="color: var(--accent-emerald);">● READY</span>
+            </div>
+
+            <div class="threat-title">
+              <span>⚠️ DISPARO DE EMERGENCIA</span>
+            </div>
+            <div class="threat-desc">
+              Deslice para iniciar el protocolo de evacuación. Confirmación con 3s de cuenta regresiva y capacidad de aborto.
+            </div>
+
+            <!-- Slide to Trigger Slider -->
+            <div class="slide-trigger-box" id="slide-trigger-container">
+              <div class="slide-progress-fill" id="slide-progress-fill"></div>
+              <div class="slide-track-text" id="slide-track-text">>>> DESLIZAR PARA ACTIVAR >>></div>
+              <div class="slide-handle" id="slide-handle">🚨</div>
+            </div>
+
+            <!-- 3-Second Countdown Modal Ring -->
+            <div class="countdown-overlay-modal" id="countdown-modal">
+              <svg class="countdown-svg-ring" viewBox="0 0 72 72">
+                <circle class="bg" cx="36" cy="36" r="30"></circle>
+                <circle class="progress" id="countdown-circle-prog" cx="36" cy="36" r="30"></circle>
+              </svg>
+              <div class="countdown-number" id="countdown-number-txt">3</div>
+              <div style="font-family: var(--font-mono); font-size: 0.68rem; color: #fca5a5; margin-bottom: 8px;">
+                CONFIRMANDO DISPARO GENERAL
+              </div>
+              <button class="btn-tactical danger" id="btnAbortCountdown" style="width: 100%; justify-content: center;">
+                🛑 ABORTAR / CANCELAR
+              </button>
+            </div>
+
+            <!-- Broadcast Channel Selector Chips -->
+            <div class="channel-selector-group">
+              <div style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-secondary);">
+                CANALES DE DIFUSIÓN SIMULTÁNEA:
+              </div>
+              <div class="channel-chips-row">
+                <div class="channel-chip selected" data-channel="FCM_PUSH" id="chip-fcm">
+                  <span>⚡</span><span>FCM Push</span>
+                </div>
+                <div class="channel-chip selected" data-channel="LORAWAN_SIREN" id="chip-lora">
+                  <span>📡</span><span>LoRaWAN</span>
+                </div>
+                <div class="channel-chip selected" data-channel="BRIGADE_RADIO" id="chip-radio">
+                  <span>📻</span><span>VHF Radio</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Manual Hazard Injections -->
+            <div class="hazard-control-box">
+              <h4>INYECCIÓN MANUAL DE AMENAZAS:</h4>
+              <div class="hazard-btn-grid">
+                <button class="hazard-btn" id="btnInjectFireBreakroom">
+                  <span>🔥</span><span>Fuego Breakroom</span>
+                </button>
+                <button class="hazard-btn" id="btnInjectFireServer">
+                  <span>⚠️</span><span>Humo Server Rm</span>
+                </button>
+                <button class="hazard-btn" id="btnInjectBlockSpine">
+                  <span>🚫</span><span>Bloquear Pasillo</span>
+                </button>
+                <button class="hazard-btn" id="btnClearHazards">
+                  <span>🧯</span><span>Extinguir Todo</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Dispatch Console Logs -->
+            <div style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-secondary); margin-top: 4px;">
+              LOG DE TELEMETRÍA DISPATCHER:
+            </div>
+            <div class="phone-mini-log" id="phone-a-log">
+              <div class="log-entry"><span class="time">[00:00]</span> Sistema inicializado. Monitoreo listo.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- CENTER PANEL: 2D BLUEPRINT FLOORPLAN CANVAS SIMULATOR        -->
+      <!-- ============================================================ -->
+      <section class="panel-wrapper panel-section" id="panel-center">
+        <div class="panel-header-tag">
+          <span>2D BLUEPRINT // SIMULADOR DE EVACUACIÓN</span>
+          <span style="color: var(--accent-cyan);" id="canvas-fps-badge">60.0 FPS</span>
+        </div>
+
+        <div class="center-canvas-panel">
+          <!-- Top HUD Metrics -->
+          <div class="canvas-hud-top">
+            <div class="blueprint-title-tag">
+              <span>🏢 PISO 4 // CORPORATIVO NORTE</span>
+            </div>
+
+            <div class="canvas-metrics-pills">
+              <div class="metric-pill">
+                <span>TOTAL:</span> <strong id="hud-total-occupants">48</strong>
+              </div>
+              <div class="metric-pill evac">
+                <span>EVACUANDO:</span> <strong id="hud-evac-occupants">0</strong>
+              </div>
+              <div class="metric-pill safe">
+                <span>A SALVO:</span> <strong id="hud-safe-occupants">0</strong>
+              </div>
+              <div class="metric-pill">
+                <span>AMENAZAS:</span> <strong id="hud-hazards-count">0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Canvas Viewport -->
+          <div class="canvas-viewport-wrapper" id="canvas-wrapper">
+            <canvas id="floorplan-canvas"></canvas>
+          </div>
+
+          <!-- Bottom HUD Controls -->
+          <div class="canvas-hud-bottom">
+            <div class="hud-controls-group">
+              <span style="color: var(--text-secondary);">VELOCIDAD:</span>
+              <button class="btn-tactical" id="btnSimSpeed1">1x</button>
+              <button class="btn-tactical" id="btnSimSpeed2">2x</button>
+              <button class="btn-tactical" id="btnSimSpeed5">4x</button>
+              <button class="btn-tactical" id="btnSimPause">⏸️</button>
+            </div>
+
+            <div class="hud-controls-group">
+              <button class="btn-tactical" id="btnAddOccupants">+10 Ocupantes</button>
+              <button class="btn-tactical" id="btnResetOccupants">Restablecer Ocupantes</button>
+            </div>
+
+            <div class="hud-hint">
+              💡 Clic en el plano para inyectar foco de fuego dinámico.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- RIGHT PANEL: SYNCHRONIZED RECIPIENT PHONES (B, C, D)        -->
+      <!-- ============================================================ -->
+      <section class="panel-wrapper panel-section" id="panel-right">
+        <div class="panel-header-tag">
+          <span>RECIPIENT MESH // DISPOSITIVOS SINCRONIZADOS</span>
+          <span style="color: var(--accent-emerald);">3 DISPOSITIVOS</span>
+        </div>
+
+        <div class="recipient-panel-container">
+          <!-- Device Tab Selector -->
+          <div class="recipient-device-selector">
+            <button class="device-tab-btn active" data-device="phone-b">
+              <span>📱</span><span>Phone B</span>
+            </button>
+            <button class="device-tab-btn" data-device="phone-c">
+              <span>📻</span><span>Phone C</span>
+            </button>
+            <button class="device-tab-btn" data-device="phone-d">
+              <span>🖥️</span><span>Phone D</span>
+            </button>
+          </div>
+
+          <!-- Recipient Phone Frame (Hosts Active Recipient View) -->
+          <div class="phone-mockup-frame" id="recipient-phone-chassis">
+            <!-- Notch -->
+            <div class="phone-notch">
+              <div class="lens"></div>
+              <div class="sensor-led" id="recipient-sensor"></div>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="phone-status-bar">
+              <span id="recipient-clock">10:42</span>
+              <div class="status-bar-icons">
+                <span id="recipient-channel-badge">FCM 5G</span>
+                <span>📶</span>
+                <span>94%</span>
+              </div>
+            </div>
+
+            <!-- Screen Inner (Device B: Floor Resident) -->
+            <div class="phone-screen" id="view-phone-b">
+              <div class="screen-header-badge">
+                <span>OCCUPANT ID #R-408</span>
+                <span style="color: var(--accent-cyan);">ZONA CUBÍCULOS</span>
+              </div>
+
+              <!-- Strobe Warning Alert -->
+              <div class="tactical-strobe-box" id="phone-b-strobe">
+                <div style="font-family: var(--font-mono); font-size: 0.82rem; font-weight: 900; color: #fff;">
+                  🚨 ¡ALERTA DE EVACUACIÓN!
+                </div>
+                <div style="font-size: 0.68rem; color: #fca5a5; margin-top: 2px;">
+                  CÓDIGO ROJO ACTIVADO POR COMANDO CENTRAL
+                </div>
+              </div>
+
+              <!-- Escape Route Directives -->
+              <div class="route-directive-card">
+                <div class="route-title">DIRECTIVA DE RUTA ACTIVA:</div>
+                <div class="route-detail" id="phone-b-route-text">
+                  <span>🟢</span>
+                  <span>Ruta Normal: Hacia SALIDA A (Norte)</span>
+                </div>
+                <div style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 6px;">
+                  Instrucción: Desplácese con calma por el pasillo central. No use elevadores.
+                </div>
+              </div>
+
+              <!-- Web Speech Voice Indicator -->
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 10px;">
+                <span style="font-size: 1rem;">🔊</span>
+                <div style="flex: 1;">
+                  <div style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent-cyan);">GUÍA POR VOZ ACTIVA</div>
+                  <div style="font-size: 0.62rem; color: var(--text-secondary);" id="phone-b-voice-caption">En espera de alerta...</div>
+                </div>
+              </div>
+
+              <!-- I Am Safe Action Button -->
+              <button class="btn-safe-action" id="btnImSafe">
+                <span>🛡️</span>
+                <span>ESTOY A SALVO // I AM SAFE</span>
+              </button>
+            </div>
+
+            <!-- Screen Inner (Device C: Safety Brigade Lead) -->
+            <div class="phone-screen" id="view-phone-c" style="display: none;">
+              <div class="screen-header-badge">
+                <span>BRIGADE LEAD // VHF CH-04</span>
+                <span style="color: var(--accent-emerald);">● ON PATROL</span>
+              </div>
+
+              <div class="threat-title">
+                <span>📻 CONSOLA DE BRIGADA</span>
+              </div>
+              <div class="threat-desc">
+                Control de compuertas cortafuego y estado de escaleras de escape.
+              </div>
+
+              <!-- Interactive Stairwell Status Toggles -->
+              <div class="stairwell-toggle-card">
+                <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary);">
+                  ESTADO DE ESCALERA A (NORTE):
+                </div>
+                <div class="stairwell-row">
+                  <span style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;" id="stairwell-a-label">DESPEJADA</span>
+                  <button class="toggle-pill-btn clear" id="btnToggleStairwellA">CLEAR</button>
+                </div>
+              </div>
+
+              <div class="stairwell-toggle-card">
+                <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary);">
+                  ESTADO DE ESCALERA B (SUR):
+                </div>
+                <div class="stairwell-row">
+                  <span style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;" id="stairwell-b-label">DESPEJADA</span>
+                  <button class="toggle-pill-btn clear" id="btnToggleStairwellB">CLEAR</button>
+                </div>
+              </div>
+
+              <!-- Telemetry Metrics -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0;">
+                <div style="padding: 8px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; text-align: center;">
+                  <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-secondary);">PRESIÓN SCBA</div>
+                  <div style="font-family: var(--font-mono); font-size: 0.95rem; font-weight: 800; color: var(--accent-cyan);" id="scba-val">4,200 PSI</div>
+                </div>
+                <div style="padding: 8px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; text-align: center;">
+                  <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-secondary);">TEMPERATURA</div>
+                  <div style="font-family: var(--font-mono); font-size: 0.95rem; font-weight: 800; color: var(--accent-amber);" id="temp-val">23.8 °C</div>
+                </div>
+              </div>
+
+              <button class="btn-tactical" id="btnBrigadeBroadcast" style="width: 100%; justify-content: center; margin-top: auto;">
+                <span>📢</span>
+                <span>EMITIR AVISO POR RADIO VHF</span>
+              </button>
+            </div>
+
+            <!-- Screen Inner (Device D: Front Desk / Security Headcount) -->
+            <div class="phone-screen" id="view-phone-d" style="display: none;">
+              <div class="screen-header-badge">
+                <span>SECURITY POINT // MUSTER ZONE</span>
+                <span style="color: var(--accent-cyan);">SYNC HUB</span>
+              </div>
+
+              <!-- Headcount Ticker Box -->
+              <div class="headcount-ticker-box">
+                <div style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-secondary);">
+                  CENSO EN PUNTO DE ENCUENTRO:
+                </div>
+                <div class="headcount-big-num">
+                  <span class="safe" id="phone-d-safe-count">0</span> / <span id="phone-d-total-count">48</span>
+                </div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" id="phone-d-progress-fill"></div>
+                </div>
+                <div style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent-emerald);" id="phone-d-percent-txt">
+                  0.0% A SALVO
+                </div>
+              </div>
+
+              <!-- Survivor Stream Feed -->
+              <div style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 4px;">
+                REGISTRO EN TIEMPO REAL DE SOBREVIVIENTES:
+              </div>
+              <div class="survivor-stream-feed" id="survivor-stream-list">
+                <div class="stream-row" style="color: #64748b;">
+                  <span>En espera de evacuados...</span>
+                  <span>--:--:--</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- JAVASCRIPT SIMULATION ENGINE, AUDIO, & STATE SYNC BUS        -->
+  <!-- ============================================================ -->
+  <script>
+  (function() {
+    'use strict';
+
+    /* ==========================================================
+       1. STATE SYNCHRONIZATION EVENT BUS
+       ========================================================== */
+    class EmergencySyncBus {
+      constructor(channelName = 'flujoweb_emergency_tri_screen') {
+        this.channelName = channelName;
+        this.subscribers = new Map();
+        this.broadcastChannel = null;
+
+        if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+          try {
+            this.broadcastChannel = new BroadcastChannel(this.channelName);
+            this.broadcastChannel.onmessage = (event) => {
+              if (event.data && event.data.type) {
+                this.dispatchLocal(event.data.type, event.data, false);
+              }
+            };
+          } catch (e) {
+            console.warn('[SyncBus] BroadcastChannel error:', e);
+          }
+        }
+      }
+
+      on(eventType, callback) {
+        if (!this.subscribers.has(eventType)) {
+          this.subscribers.set(eventType, new Set());
+        }
+        this.subscribers.get(eventType).add(callback);
+        return () => this.subscribers.get(eventType).delete(callback);
+      }
+
+      emit(eventType, payload = {}, broadcast = true) {
+        const event = {
+          id: 'EVT-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+          type: eventType,
+          timestamp: Date.now(),
+          origin: payload.origin || 'LOCAL',
+          payload
+        };
+
+        this.dispatchLocal(eventType, event, true);
+
+        if (broadcast && this.broadcastChannel) {
+          try {
+            this.broadcastChannel.postMessage(event);
+          } catch (e) {}
+        }
+      }
+
+      dispatchLocal(eventType, eventData, isLocalOrigin) {
+        if (this.subscribers.has(eventType)) {
+          this.subscribers.get(eventType).forEach(cb => {
+            try { cb(eventData, isLocalOrigin); } catch (err) { console.error(err); }
+          });
+        }
+      }
+    }
+
+    const bus = new EmergencySyncBus();
+
+    /* ==========================================================
+       2. PROCEDURAL WEB AUDIO ENGINE & WEB SPEECH SYNTHESIS
+       ========================================================== */
+    class ProceduralEmergencyAudio {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+        this.sirenOsc = null;
+        this.sirenLfo = null;
+        this.sirenGain = null;
+        this.isSirenActive = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            this.ctx = new AudioCtx();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      setMuted(muted) {
+        this.isMuted = muted;
+        if (muted && this.isSirenActive) {
+          this.stopTacticalSiren();
+        }
+      }
+
+      startTacticalSiren(frequency = 820, modulationDepth = 320, lfoRate = 3.2) {
+        if (this.isMuted) return;
+        this.init();
+        if (!this.ctx || this.isSirenActive) return;
+
+        try {
+          const now = this.ctx.currentTime;
+          this.sirenGain = this.ctx.createGain();
+          this.sirenGain.gain.setValueAtTime(0.001, now);
+          this.sirenGain.gain.linearRampToValueAtTime(0.18, now + 0.3);
+          this.sirenGain.connect(this.ctx.destination);
+
+          this.sirenOsc = this.ctx.createOscillator();
+          this.sirenOsc.type = 'sawtooth';
+          this.sirenOsc.frequency.setValueAtTime(frequency, now);
+
+          this.sirenLfo = this.ctx.createOscillator();
+          this.sirenLfo.type = 'sine';
+          this.sirenLfo.frequency.setValueAtTime(lfoRate, now);
+
+          const lfoGain = this.ctx.createGain();
+          lfoGain.gain.setValueAtTime(modulationDepth, now);
+
+          this.sirenLfo.connect(lfoGain);
+          lfoGain.connect(this.sirenOsc.frequency);
+          this.sirenOsc.connect(this.sirenGain);
+
+          this.sirenOsc.start(now);
+          this.sirenLfo.start(now);
+          this.isSirenActive = true;
+        } catch (e) {
+          console.warn('[Audio] Siren init error:', e);
+        }
+      }
+
+      stopTacticalSiren() {
+        if (!this.isSirenActive || !this.sirenGain || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          this.sirenGain.gain.cancelScheduledValues(now);
+          this.sirenGain.gain.linearRampToValueAtTime(0.0001, now + 0.3);
+          setTimeout(() => {
+            if (this.sirenOsc) {
+              try {
+                this.sirenOsc.stop();
+                this.sirenLfo.stop();
+                this.sirenOsc.disconnect();
+                this.sirenLfo.disconnect();
+              } catch(e){}
+              this.isSirenActive = false;
+            }
+          }, 350);
+        } catch (e) {
+          this.isSirenActive = false;
+        }
+      }
+
+      playRadioSquelch() {
+        if (this.isMuted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const bufferSize = Math.floor(this.ctx.sampleRate * 0.08);
+          const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.value = 1800;
+          filter.Q.value = 3.0;
+
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.ctx.destination);
+          noise.start();
+        } catch(e){}
+      }
+
+      playHapticClick() {
+        if (this.isMuted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(80, now);
+          osc.frequency.exponentialRampToValueAtTime(30, now + 0.06);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.07);
+        } catch(e){}
+      }
+    }
+
+    const audio = new ProceduralEmergencyAudio();
+
+    class TacticalVoiceEngine {
+      constructor(audioEngine) {
+        this.audioEngine = audioEngine;
+        this.synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+        this.isMuted = false;
+      }
+
+      speak(text) {
+        // Show visual toast regardless
+        showVoiceToast(text);
+
+        if (this.isMuted || !this.synth) return;
+
+        try {
+          this.synth.cancel();
+          this.audioEngine.playRadioSquelch();
+
+          setTimeout(() => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-ES';
+            utterance.rate = 1.05;
+            utterance.pitch = 1.0;
+            utterance.volume = 0.9;
+
+            const voices = this.synth.getVoices();
+            const esVoice = voices.find(v => v.lang.startsWith('es'));
+            if (esVoice) utterance.voice = esVoice;
+
+            this.synth.speak(utterance);
+          }, 100);
+        } catch(e) {
+          console.warn('[Voice] Speech synth error:', e);
+        }
+      }
+    }
+
+    const voice = new TacticalVoiceEngine(audio);
+
+    function showVoiceToast(msg) {
+      const toast = document.getElementById('tactical-voice-toast');
+      const msgEl = document.getElementById('voice-toast-msg');
+      if (toast && msgEl) {
+        msgEl.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 4000);
+      }
+    }
+
+    /* ==========================================================
+       3. TOPOLOGY, NAVMESH GRAPH, & A* PATHFINDER
+       ========================================================== */
+    const NAV_NODES = [
+      // North Corridor Nodes
+      { id: 'HN1', x: 120, y: 110, zone: 'North Hallway W' },
+      { id: 'HN2', x: 280, y: 110, zone: 'North Hallway Mid-W' },
+      { id: 'HN_CENTER', x: 400, y: 110, zone: 'North Central Junction' },
+      { id: 'HN3', x: 520, y: 110, zone: 'North Hallway Mid-E' },
+      { id: 'HN4', x: 680, y: 110, zone: 'North Hallway E' },
+
+      // Exit Portals
+      { id: 'EXIT_A', x: 400, y: 40, zone: 'Exit A (North Stairwell)', isExit: true, exitKey: 'STAIRWELL_A' },
+      { id: 'EXIT_B', x: 400, y: 480, zone: 'Exit B (South Stairwell)', isExit: true, exitKey: 'STAIRWELL_B' },
+
+      // Spine Corridor
+      { id: 'SPINE_MID_N', x: 400, y: 190, zone: 'Central Spine North' },
+      { id: 'SPINE_MID', x: 400, y: 260, zone: 'Central Spine Hub' },
+      { id: 'SPINE_MID_S', x: 400, y: 340, zone: 'Central Spine South' },
+
+      // South Corridor Nodes
+      { id: 'HS1', x: 120, y: 400, zone: 'South Hallway W' },
+      { id: 'HS2', x: 280, y: 400, zone: 'South Hallway Mid-W' },
+      { id: 'HS_CENTER', x: 400, y: 400, zone: 'South Central Junction' },
+      { id: 'HS3', x: 520, y: 400, zone: 'South Hallway Mid-E' },
+      { id: 'HS4', x: 680, y: 400, zone: 'South Hallway E' },
+
+      // Cubicle Bullpen Crossway Nodes
+      { id: 'CUB_W_N', x: 200, y: 160, zone: 'Cubicles West N' },
+      { id: 'CUB_W_MID', x: 200, y: 230, zone: 'Cubicles West Mid' },
+      { id: 'CUB_W_S', x: 200, y: 280, zone: 'Cubicles West S' },
+      { id: 'CUB_E_N', x: 600, y: 160, zone: 'Cubicles East N' },
+      { id: 'CUB_E_MID', x: 600, y: 230, zone: 'Cubicles East Mid' },
+      { id: 'CUB_E_S', x: 600, y: 280, zone: 'Cubicles East S' },
+
+      // Room Door Access Nodes
+      { id: 'D_101', x: 120, y: 80, zone: 'Executive Suite 1' },
+      { id: 'D_102', x: 280, y: 80, zone: 'Executive Suite 2' },
+      { id: 'D_103', x: 520, y: 80, zone: 'Server Room' },
+      { id: 'D_104', x: 680, y: 80, zone: 'Director Suite' },
+      { id: 'D_201', x: 120, y: 350, zone: 'Conference Alpha' },
+      { id: 'D_202', x: 280, y: 350, zone: 'Meeting Pod Beta' },
+      { id: 'D_203', x: 520, y: 350, zone: 'Breakroom' },
+      { id: 'D_204', x: 680, y: 350, zone: 'Operations Lab' }
+    ];
+
+    const NAV_EDGES = [
+      // North Corridor Line
+      ['HN1', 'HN2'], ['HN2', 'HN_CENTER'], ['HN_CENTER', 'HN3'], ['HN3', 'HN4'],
+
+      // North Exit Portal Connection
+      ['HN_CENTER', 'EXIT_A'],
+
+      // Spine Vertical Line
+      ['HN_CENTER', 'SPINE_MID_N'],
+      ['SPINE_MID_N', 'SPINE_MID'],
+      ['SPINE_MID', 'SPINE_MID_S'],
+      ['SPINE_MID_S', 'HS_CENTER'],
+
+      // South Exit Portal Connection
+      ['HS_CENTER', 'EXIT_B'],
+
+      // South Corridor Line
+      ['HS1', 'HS2'], ['HS2', 'HS_CENTER'], ['HS_CENTER', 'HS3'], ['HS3', 'HS4'],
+
+      // Cubicles West Connections
+      ['HN1', 'CUB_W_N'], ['HN2', 'CUB_W_N'],
+      ['CUB_W_N', 'CUB_W_MID'], ['CUB_W_MID', 'CUB_W_S'],
+      ['CUB_W_MID', 'SPINE_MID'],
+      ['CUB_W_S', 'HS1'], ['CUB_W_S', 'HS2'],
+
+      // Cubicles East Connections
+      ['HN3', 'CUB_E_N'], ['HN4', 'CUB_E_N'],
+      ['CUB_E_N', 'CUB_E_MID'], ['CUB_E_MID', 'CUB_E_S'],
+      ['CUB_E_MID', 'SPINE_MID'],
+      ['CUB_E_S', 'HS3'], ['CUB_E_S', 'HS4'],
+
+      // Room Doors Connections
+      ['D_101', 'HN1'],
+      ['D_102', 'HN2'],
+      ['D_103', 'HN3'],
+      ['D_104', 'HN4'],
+      ['D_201', 'HS1'],
+      ['D_202', 'HS2'],
+      ['D_203', 'HS3'],
+      ['D_204', 'HS4']
+    ];
+
+    // Blueprint Rooms Geometry
+    const ROOMS = [
+      { id: 'R101', label: 'Suite 101', x: 40, y: 40, w: 150, h: 50, zone: 'Executive 1' },
+      { id: 'R102', label: 'Suite 102', x: 200, y: 40, w: 150, h: 50, zone: 'Executive 2' },
+      { id: 'R103', label: 'SERVER ROOM', x: 450, y: 40, w: 150, h: 50, zone: 'Server Room', isHazardProne: true },
+      { id: 'R104', label: 'Suite 104', x: 610, y: 40, w: 150, h: 50, zone: 'Director' },
+
+      { id: 'ZC1', label: 'CUBÍCULOS OESTE (32 PUESTOS)', x: 40, y: 130, w: 320, h: 180, zone: 'Bullpen West' },
+      { id: 'ZC2', label: 'CUBÍCULOS ESTE (32 PUESTOS)', x: 440, y: 130, w: 320, h: 180, zone: 'Bullpen East' },
+
+      { id: 'R201', label: 'CONF ALPHA', x: 40, y: 330, w: 150, h: 80, zone: 'Conference Alpha' },
+      { id: 'R202', label: 'POD BETA', x: 200, y: 330, w: 150, h: 80, zone: 'Pod Beta' },
+      { id: 'R203', label: 'BREAKROOM // CAFETERÍA', x: 450, y: 330, w: 150, h: 80, zone: 'Breakroom', isHazardProne: true },
+      { id: 'R204', label: 'LABORATORIO', x: 610, y: 330, w: 150, h: 80, zone: 'Operations' }
+    ];
+
+    class NavMeshGraph {
+      constructor() {
+        this.nodes = new Map();
+        this.adjacency = new Map();
+        this.stairwells = {
+          STAIRWELL_A: 'CLEAR',
+          STAIRWELL_B: 'CLEAR'
+        };
+        this.hazards = [];
+
+        NAV_NODES.forEach(n => {
+          this.nodes.set(n.id, { ...n, isBlocked: false });
+          this.adjacency.set(n.id, []);
+        });
+
+        NAV_EDGES.forEach(([u, v]) => {
+          const nu = this.nodes.get(u);
+          const nv = this.nodes.get(v);
+          if (nu && nv) {
+            const dist = Math.hypot(nu.x - nv.x, nu.y - nv.y);
+            this.adjacency.get(u).push({ to: v, weight: dist });
+            this.adjacency.get(v).push({ to: u, weight: dist });
+          }
+        });
+      }
+
+      setStairwell(stairwellKey, status) {
+        this.stairwells[stairwellKey] = status;
+      }
+
+      addHazard(hazard) {
+        this.hazards.push(hazard);
+        this.updateBlockedNodes();
+      }
+
+      clearHazards() {
+        this.hazards = [];
+        this.updateBlockedNodes();
+      }
+
+      updateBlockedNodes() {
+        // Reset blocked flags
+        this.nodes.forEach(node => {
+          node.isBlocked = false;
+        });
+
+        // Check stairwell blockage
+        if (this.stairwells.STAIRWELL_A === 'BLOCKED') {
+          const exitA = this.nodes.get('EXIT_A');
+          if (exitA) exitA.isBlocked = true;
+        }
+        if (this.stairwells.STAIRWELL_B === 'BLOCKED') {
+          const exitB = this.nodes.get('EXIT_B');
+          if (exitB) exitB.isBlocked = true;
+        }
+
+        // Check hazards proximity
+        this.hazards.forEach(h => {
+          this.nodes.forEach(node => {
+            const dist = Math.hypot(node.x - h.x, node.y - h.y);
+            if (dist < h.radius + 15) {
+              node.isBlocked = true;
+            }
+          });
+        });
+      }
+
+      findNearestNode(x, y) {
+        let bestDist = Infinity;
+        let bestNode = null;
+        this.nodes.forEach(node => {
+          if (!node.isBlocked) {
+            const d = Math.hypot(node.x - x, node.y - y);
+            if (d < bestDist) {
+              bestDist = d;
+              bestNode = node;
+            }
+          }
+        });
+        return bestNode;
+      }
+
+      findPathToExit(startX, startY) {
+        const startNode = this.findNearestNode(startX, startY);
+        if (!startNode) return null;
+
+        // Target exits that are NOT blocked
+        const exitCandidates = [];
+        if (this.stairwells.STAIRWELL_A === 'CLEAR' && !this.nodes.get('EXIT_A').isBlocked) {
+          exitCandidates.push('EXIT_A');
+        }
+        if (this.stairwells.STAIRWELL_B === 'CLEAR' && !this.nodes.get('EXIT_B').isBlocked) {
+          exitCandidates.push('EXIT_B');
+        }
+
+        if (exitCandidates.length === 0) return null;
+
+        // Run Dijkstra to find shortest path to any accessible exit
+        const dist = new Map();
+        const prev = new Map();
+        const pq = new Set();
+
+        this.nodes.forEach(node => {
+          dist.set(node.id, Infinity);
+          pq.add(node.id);
+        });
+        dist.set(startNode.id, 0);
+
+        while (pq.size > 0) {
+          // Find min node in pq
+          let minNodeId = null;
+          let minDist = Infinity;
+          pq.forEach(nid => {
+            if (dist.get(nid) < minDist) {
+              minDist = dist.get(nid);
+              minNodeId = nid;
+            }
+          });
+
+          if (!minNodeId || minDist === Infinity) break;
+          pq.delete(minNodeId);
+
+          // If reached one of the exits
+          if (exitCandidates.includes(minNodeId)) {
+            // Reconstruct path
+            const path = [];
+            let curr = minNodeId;
+            while (curr) {
+              const nObj = this.nodes.get(curr);
+              path.unshift({ x: nObj.x, y: nObj.y, id: curr, isExit: nObj.isExit, exitKey: nObj.exitKey });
+              curr = prev.get(curr);
+            }
+            return {
+              targetExit: minNodeId,
+              path: path
+            };
+          }
+
+          // Neighbors
+          const neighbors = this.adjacency.get(minNodeId) || [];
+          neighbors.forEach(({ to, weight }) => {
+            const neighborNode = this.nodes.get(to);
+            if (neighborNode && !neighborNode.isBlocked && pq.has(to)) {
+              const alt = dist.get(minNodeId) + weight;
+              if (alt < dist.get(to)) {
+                dist.set(to, alt);
+                prev.set(to, minNodeId);
+              }
+            }
+          });
+        }
+
+        return null;
+      }
+    }
+
+    const navMesh = new NavMeshGraph();
+
+    /* ==========================================================
+       4. OCCUPANT PARTICLE SYSTEM & FLOCKING DYNAMICS
+       ========================================================== */
+    class OccupantParticle {
+      constructor(id, x, y, deskX, deskY, roomZone) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.deskX = deskX;
+        this.deskY = deskY;
+        this.vx = 0;
+        this.vy = 0;
+        this.maxSpeed = 1.4 + Math.random() * 0.5;
+        this.state = 'working'; // 'working' | 'evacuating' | 'safe'
+        this.roomZone = roomZone;
+        this.path = [];
+        this.pathIndex = 0;
+        this.targetExit = null;
+        this.safeTime = null;
+        this.radius = 4.5;
+        this.idleTimer = Math.random() * 100;
+      }
+
+      evacuate() {
+        if (this.state === 'safe') return;
+        this.state = 'evacuating';
+        this.recalculatePath();
+      }
+
+      recalculatePath() {
+        if (this.state === 'safe') return;
+        const res = navMesh.findPathToExit(this.x, this.y);
+        if (res && res.path && res.path.length > 0) {
+          this.path = res.path;
+          this.targetExit = res.targetExit;
+          this.pathIndex = 0;
+        } else {
+          this.path = [];
+        }
+      }
+
+      update(timeDelta, particles) {
+        if (this.state === 'working') {
+          // Ambient idle jitter around desk
+          this.idleTimer += 0.05 * timeDelta;
+          const offsetX = Math.sin(this.idleTimer + this.id) * 3;
+          const offsetY = Math.cos(this.idleTimer * 0.7 + this.id) * 2;
+          this.x += (this.deskX + offsetX - this.x) * 0.08 * timeDelta;
+          this.y += (this.deskY + offsetY - this.y) * 0.08 * timeDelta;
+          return;
+        }
+
+        if (this.state === 'safe') {
+          // Drifting outside assembly area
+          return;
+        }
+
+        if (this.state === 'evacuating') {
+          if (!this.path || this.path.length === 0 || this.pathIndex >= this.path.length) {
+            this.recalculatePath();
+            if (!this.path || this.path.length === 0) return;
+          }
+
+          const target = this.path[this.pathIndex];
+          const dx = target.x - this.x;
+          const dy = target.y - this.y;
+          const dist = Math.hypot(dx, dy);
+
+          // If reached waypoint
+          if (dist < 12) {
+            this.pathIndex++;
+            if (this.pathIndex >= this.path.length) {
+              // Reached Exit!
+              this.state = 'safe';
+              this.safeTime = Date.now();
+              // Teleport slightly outside safe portal
+              if (target.isExit && target.exitKey === 'STAIRWELL_A') {
+                this.y = 20 - Math.random() * 15;
+                this.x = 380 + Math.random() * 40;
+              } else {
+                this.y = 500 + Math.random() * 15;
+                this.x = 380 + Math.random() * 40;
+              }
+              bus.emit('OCCUPANT_CHECKIN_SAFE', {
+                occupantId: this.id,
+                zone: this.roomZone,
+                exit: this.targetExit
+              });
+              return;
+            }
+          }
+
+          // Steering seek force
+          let desiredVx = (dx / (dist || 1)) * this.maxSpeed;
+          let desiredVy = (dy / (dist || 1)) * this.maxSpeed;
+
+          // Reynolds Separation Force to avoid stacking
+          let sepX = 0;
+          let sepY = 0;
+          let sepCount = 0;
+          const sepRadius = 14;
+
+          for (let i = 0; i < particles.length; i++) {
+            const other = particles[i];
+            if (other.id !== this.id && other.state === 'evacuating') {
+              const pdx = this.x - other.x;
+              const pdy = this.y - other.y;
+              const pdist = Math.hypot(pdx, pdy);
+              if (pdist > 0 && pdist < sepRadius) {
+                sepX += pdx / pdist;
+                sepY += pdy / pdist;
+                sepCount++;
+              }
+            }
+          }
+
+          if (sepCount > 0) {
+            sepX = (sepX / sepCount) * 0.8;
+            sepY = (sepY / sepCount) * 0.8;
+          }
+
+          // Apply forces
+          this.vx += (desiredVx + sepX - this.vx) * 0.15 * timeDelta;
+          this.vy += (desiredVy + sepY - this.vy) * 0.15 * timeDelta;
+
+          // Integrate position
+          this.x += this.vx * timeDelta;
+          this.y += this.vy * timeDelta;
+        }
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+
+        if (this.state === 'working') {
+          ctx.fillStyle = '#00f0ff';
+          ctx.shadowColor = '#00f0ff';
+          ctx.shadowBlur = 6;
+        } else if (this.state === 'evacuating') {
+          ctx.fillStyle = '#f59e0b';
+          ctx.shadowColor = '#ef4444';
+          ctx.shadowBlur = 8;
+        } else if (this.state === 'safe') {
+          ctx.fillStyle = '#10b981';
+          ctx.shadowColor = '#10b981';
+          ctx.shadowBlur = 6;
+        }
+        ctx.fill();
+
+        // Target path line trace if evacuating
+        if (this.state === 'evacuating' && this.path && this.pathIndex < this.path.length) {
+          ctx.beginPath();
+          ctx.moveTo(this.x, this.y);
+          for (let i = this.pathIndex; i < this.path.length; i++) {
+            ctx.lineTo(this.path[i].x, this.path[i].y);
+          }
+          ctx.strokeStyle = 'rgba(245, 158, 11, 0.15)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 4]);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+    }
+
+    /* ==========================================================
+       5. SIMULATION CONTROLLER & CANVAS RENDERER
+       ========================================================== */
+    class EvacuationSimulator {
+      constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.hazards = [];
+        this.alarmState = 'STANDBY'; // 'STANDBY' | 'COUNTDOWN' | 'ACTIVE' | 'RESET'
+        this.selectedChannel = 'FCM_PUSH';
+        this.simSpeed = 1.0;
+        this.isPaused = false;
+        this.lastFrameTime = performance.now();
+        this.frameCount = 0;
+        this.fps = 60.0;
+        this.lastFpsUpdate = performance.now();
+        this.initOccupants(48);
+        this.setupResizeHandler();
+      }
+
+      setupResizeHandler() {
+        const resize = () => {
+          const wrapper = this.canvas.parentElement;
+          if (!wrapper) return;
+          const rect = wrapper.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          this.canvas.width = rect.width * dpr;
+          this.canvas.height = rect.height * dpr;
+          this.scaleX = (rect.width * dpr) / 800;
+          this.scaleY = (rect.height * dpr) / 520;
+        };
+        window.addEventListener('resize', resize);
+        setTimeout(resize, 100);
+      }
+
+      initOccupants(count = 48) {
+        this.particles = [];
+        let idCounter = 1;
+
+        // Distribute occupants realistically across rooms and cubicle desks
+        // 1. Executive suites: 8
+        const suiteDesks = [
+          { x: 80, y: 65, z: 'Executive 101' }, { x: 140, y: 65, z: 'Executive 101' },
+          { x: 240, y: 65, z: 'Executive 102' }, { x: 300, y: 65, z: 'Executive 102' },
+          { x: 490, y: 65, z: 'Server Rm Admin' }, { x: 550, y: 65, z: 'Server Rm Admin' },
+          { x: 650, y: 65, z: 'Director 104' }, { x: 710, y: 65, z: 'Director 104' }
+        ];
+        suiteDesks.forEach(d => {
+          if (this.particles.length < count) {
+            this.particles.push(new OccupantParticle(idCounter++, d.x, d.y, d.x, d.y, d.z));
+          }
+        });
+
+        // 2. West Cubicles Bullpen: 16
+        for (let row = 0; row < 4; row++) {
+          for (let col = 0; col < 4; col++) {
+            if (this.particles.length < count) {
+              const dx = 80 + col * 70;
+              const dy = 160 + row * 35;
+              this.particles.push(new OccupantParticle(idCounter++, dx, dy, dx, dy, 'Cubicles West'));
+            }
+          }
+        }
+
+        // 3. East Cubicles Bullpen: 16
+        for (let row = 0; row < 4; row++) {
+          for (let col = 0; col < 4; col++) {
+            if (this.particles.length < count) {
+              const dx = 480 + col * 70;
+              const dy = 160 + row * 35;
+              this.particles.push(new OccupantParticle(idCounter++, dx, dy, dx, dy, 'Cubicles East'));
+            }
+          }
+        }
+
+        // 4. Conference & Breakroom: 8
+        const meetingDesks = [
+          { x: 90, y: 370, z: 'Conf Alpha' }, { x: 140, y: 370, z: 'Conf Alpha' },
+          { x: 250, y: 370, z: 'Pod Beta' }, { x: 290, y: 370, z: 'Pod Beta' },
+          { x: 490, y: 370, z: 'Breakroom' }, { x: 550, y: 370, z: 'Breakroom' },
+          { x: 650, y: 370, z: 'Ops Lab' }, { x: 710, y: 370, z: 'Ops Lab' }
+        ];
+        meetingDesks.forEach(d => {
+          if (this.particles.length < count) {
+            this.particles.push(new OccupantParticle(idCounter++, d.x, d.y, d.x, d.y, d.z));
+          }
+        });
+
+        // Remaining if any
+        while (this.particles.length < count) {
+          const rx = 100 + Math.random() * 600;
+          const ry = 160 + Math.random() * 120;
+          this.particles.push(new OccupantParticle(idCounter++, rx, ry, rx, ry, 'Open Floor'));
+        }
+
+        this.updateHUDMetrics();
+      }
+
+      triggerAlarm(options = {}) {
+        this.alarmState = 'ACTIVE';
+        if (options.channel) this.selectedChannel = options.channel;
+
+        // Sound siren & speech
+        audio.startTacticalSiren();
+        voice.speak("¡Atención! Alerta de evacuación activada. Proceda con calma hacia la salida más cercana.");
+
+        // Evacuate all occupants
+        this.particles.forEach(p => p.evacuate());
+
+        // Update UI
+        updateAllPanelsOnAlarmTriggered();
+        bus.emit('ALARM_TRIGGERED', {
+          alarmState: 'ACTIVE',
+          channel: this.selectedChannel,
+          occupants: this.particles.length
+        });
+      }
+
+      reset() {
+        this.alarmState = 'STANDBY';
+        this.hazards = [];
+        navMesh.clearHazards();
+        navMesh.setStairwell('STAIRWELL_A', 'CLEAR');
+        navMesh.setStairwell('STAIRWELL_B', 'CLEAR');
+        audio.stopTacticalSiren();
+        this.initOccupants(48);
+        updateAllPanelsOnReset();
+        bus.emit('ALARM_RESET', {});
+      }
+
+      injectHazard(zoneName, customX = null, customY = null) {
+        let hx = 520, hy = 370; // default Breakroom
+        if (zoneName === 'Breakroom') {
+          hx = 520; hy = 370;
+        } else if (zoneName === 'Server Room') {
+          hx = 520; hy = 65;
+        } else if (zoneName === 'Central Spine') {
+          hx = 400; hy = 260;
+        } else if (customX !== null && customY !== null) {
+          hx = customX; hy = customY;
+        }
+
+        const hazard = {
+          id: 'HAZ-' + Date.now(),
+          zone: zoneName || 'Hazard Zone',
+          x: hx,
+          y: hy,
+          radius: 28,
+          maxRadius: 55,
+          blocked: true,
+          sparks: []
+        };
+
+        this.hazards.push(hazard);
+        navMesh.addHazard(hazard);
+
+        // Force rerouting of all evacuating particles
+        this.particles.forEach(p => {
+          if (p.state === 'evacuating') {
+            p.recalculatePath();
+          }
+        });
+
+        audio.playRadioSquelch();
+        voice.speak(`¡Atención! Foco de fuego detectado en ${hazard.zone}. Recalculando rutas.`);
+        logPhoneA(`Amenaza inyectada: ${hazard.zone} (Rerouting activo)`);
+        this.updateHUDMetrics();
+
+        bus.emit('HAZARD_SPAWNED', { hazard });
+      }
+
+      clearAllHazards() {
+        this.hazards = [];
+        navMesh.clearHazards();
+        this.particles.forEach(p => {
+          if (p.state === 'evacuating') p.recalculatePath();
+        });
+        logPhoneA("Todas las amenazas extinguidas. Vías restablecidas.");
+        this.updateHUDMetrics();
+      }
+
+      toggleStairwellStatus(stairwellKey, status) {
+        const current = navMesh.stairwells[stairwellKey];
+        const next = status || (current === 'CLEAR' ? 'BLOCKED' : 'CLEAR');
+        navMesh.setStairwell(stairwellKey, next);
+        navMesh.updateBlockedNodes();
+
+        this.particles.forEach(p => {
+          if (p.state === 'evacuating') p.recalculatePath();
+        });
+
+        audio.playRadioSquelch();
+        logPhoneA(`Brigada: Escalera ${stairwellKey.replace('STAIRWELL_', '')} ahora ${next}.`);
+        this.updateHUDMetrics();
+
+        bus.emit('STAIRWELL_STATUS_CHANGED', { stairwellKey, status: next });
+        return next;
+      }
+
+      checkInOccupant(phoneId) {
+        // Find first evacuating particle and mark safe
+        const evacuee = this.particles.find(p => p.state === 'evacuating') || this.particles.find(p => p.state === 'working');
+        if (evacuee) {
+          evacuee.state = 'safe';
+          evacuee.safeTime = Date.now();
+        }
+        audio.playHapticClick();
+        this.updateHUDMetrics();
+        addSurvivorStreamEntry(phoneId || 'PHONE_B', 'CONFIRMACIÓN MANUAL');
+      }
+
+      updateHUDMetrics() {
+        const total = this.particles.length;
+        const safe = this.particles.filter(p => p.state === 'safe').length;
+        const evac = this.particles.filter(p => p.state === 'evacuating').length;
+
+        document.getElementById('hud-total-occupants').textContent = total;
+        document.getElementById('hud-safe-occupants').textContent = safe;
+        document.getElementById('hud-evac-occupants').textContent = evac;
+        document.getElementById('hud-hazards-count').textContent = this.hazards.length;
+
+        // Sync with Phone D Headcount
+        document.getElementById('phone-d-total-count').textContent = total;
+        document.getElementById('phone-d-safe-count').textContent = safe;
+        const pct = total > 0 ? ((safe / total) * 100).toFixed(1) : '0.0';
+        document.getElementById('phone-d-percent-txt').textContent = `${pct}% A SALVO`;
+        document.getElementById('phone-d-progress-fill').style.width = `${pct}%`;
+      }
+
+      render() {
+        const now = performance.now();
+        const delta = Math.min((now - this.lastFrameTime) / 16.666, 3.0);
+        this.lastFrameTime = now;
+
+        this.frameCount++;
+        if (now - this.lastFpsUpdate >= 500) {
+          this.fps = (this.frameCount * 1000) / (now - this.lastFpsUpdate);
+          this.frameCount = 0;
+          this.lastFpsUpdate = now;
+          const fpsEl = document.getElementById('canvas-fps-badge');
+          if (fpsEl) fpsEl.textContent = `${this.fps.toFixed(1)} FPS`;
+        }
+
+        const dpr = window.devicePixelRatio || 1;
+        const width = this.canvas.width / dpr;
+        const height = this.canvas.height / dpr;
+
+        this.ctx.save();
+        this.ctx.scale(dpr, dpr);
+        this.ctx.clearRect(0, 0, width, height);
+
+        // Scale logical coordinates (800x520) to current canvas aspect
+        const sx = width / 800;
+        const sy = height / 520;
+        this.ctx.scale(sx, sy);
+
+        // 1. Draw Architectural Floorplan Base
+        this.drawFloorplanBackground(this.ctx);
+
+        // 2. Draw NavMesh Hallway Waypoint Graph (Subtle tactical glow)
+        this.drawNavMeshGraph(this.ctx);
+
+        // 3. Update & Draw Hazards (Fire & Smoke particles)
+        this.drawHazards(this.ctx, delta);
+
+        // 4. Update & Draw Occupant Particles
+        if (!this.isPaused) {
+          const effectiveDelta = delta * this.simSpeed;
+          this.particles.forEach(p => p.update(effectiveDelta, this.particles));
+        }
+        this.particles.forEach(p => p.draw(this.ctx));
+
+        // 5. Draw Exit Portals HUD
+        this.drawExitPortals(this.ctx);
+
+        this.ctx.restore();
+
+        this.updateHUDMetrics();
+        requestAnimationFrame(() => this.render());
+      }
+
+      drawFloorplanBackground(ctx) {
+        // Blueprint background fill
+        ctx.fillStyle = '#050a18';
+        ctx.fillRect(0, 0, 800, 520);
+
+        // Grid lines
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.04)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x <= 800; x += 40) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, 520);
+          ctx.stroke();
+        }
+        for (let y = 0; y <= 520; y += 40) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(800, y);
+          ctx.stroke();
+        }
+
+        // Room enclosures
+        ROOMS.forEach(r => {
+          ctx.fillStyle = r.isHazardProne ? 'rgba(239, 68, 68, 0.04)' : 'rgba(15, 23, 42, 0.6)';
+          ctx.fillRect(r.x, r.y, r.w, r.h);
+
+          ctx.strokeStyle = r.isHazardProne ? 'rgba(239, 68, 68, 0.3)' : 'rgba(0, 240, 255, 0.2)';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(r.x, r.y, r.w, r.h);
+
+          // Room Title
+          ctx.font = '600 9px "JetBrains Mono", monospace';
+          ctx.fillStyle = r.isHazardProne ? '#fca5a5' : '#64748b';
+          ctx.fillText(r.label, r.x + 8, r.y + 16);
+        });
+
+        // Corridors / Hallways outline
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
+        ctx.setLineDash([4, 4]);
+        // North corridor
+        ctx.strokeRect(30, 95, 740, 30);
+        // Central spine
+        ctx.strokeRect(385, 30, 30, 460);
+        // South corridor
+        ctx.strokeRect(30, 395, 740, 30);
+        ctx.setLineDash([]);
+      }
+
+      drawNavMeshGraph(ctx) {
+        // Draw edges
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+        ctx.lineWidth = 1;
+        NAV_EDGES.forEach(([u, v]) => {
+          const nu = navMesh.nodes.get(u);
+          const nv = navMesh.nodes.get(v);
+          if (nu && nv) {
+            ctx.beginPath();
+            ctx.moveTo(nu.x, nu.y);
+            ctx.lineTo(nv.x, nv.y);
+            ctx.stroke();
+          }
+        });
+
+        // Draw nodes
+        navMesh.nodes.forEach(node => {
+          if (node.isExit) return;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, 2, 0, Math.PI * 2);
+          ctx.fillStyle = node.isBlocked ? 'rgba(239, 68, 68, 0.7)' : 'rgba(0, 240, 255, 0.3)';
+          ctx.fill();
+        });
+      }
+
+      drawHazards(ctx, delta) {
+        this.hazards.forEach(h => {
+          // Hazard propagation radius
+          if (h.radius < h.maxRadius) {
+            h.radius += 0.04 * delta;
+          }
+
+          // Outer smoke pulse
+          const pulse = Math.sin(performance.now() * 0.005) * 4;
+          const grad = ctx.createRadialGradient(h.x, h.y, 4, h.x, h.y, h.radius + pulse);
+          grad.addColorStop(0, 'rgba(239, 68, 68, 0.85)');
+          grad.addColorStop(0.4, 'rgba(245, 158, 11, 0.5)');
+          grad.addColorStop(0.8, 'rgba(30, 41, 59, 0.4)');
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+          ctx.beginPath();
+          ctx.arc(h.x, h.y, h.radius + pulse, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          // Fire Core text
+          ctx.font = '700 9px "JetBrains Mono", monospace';
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.fillText(`🔥 ${h.zone.toUpperCase()}`, h.x, h.y - h.radius - 4);
+          ctx.textAlign = 'left';
+        });
+      }
+
+      drawExitPortals(ctx) {
+        // Exit A (North)
+        const exitAStatus = navMesh.stairwells.STAIRWELL_A;
+        ctx.fillStyle = exitAStatus === 'CLEAR' ? '#10b981' : '#ef4444';
+        ctx.fillRect(360, 25, 80, 18);
+        ctx.font = '700 10px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.fillText(exitAStatus === 'CLEAR' ? '▲ SALIDA A (NORTE)' : '✖ BLOQUEADA', 400, 38);
+
+        // Exit B (South)
+        const exitBStatus = navMesh.stairwells.STAIRWELL_B;
+        ctx.fillStyle = exitBStatus === 'CLEAR' ? '#10b981' : '#ef4444';
+        ctx.fillRect(360, 475, 80, 18);
+        ctx.fillText(exitBStatus === 'CLEAR' ? '▼ SALIDA B (SUR)' : '✖ BLOQUEADA', 400, 488);
+        ctx.textAlign = 'left';
+      }
+    }
+
+    let simulator = null;
+
+    /* ==========================================================
+       6. UI CONTROLS & INTERACTION WIRING
+       ========================================================== */
+    function initUI() {
+      simulator = new EvacuationSimulator('floorplan-canvas');
+      simulator.render();
+
+      // Audio Toggle Button
+      const btnSound = document.getElementById('btnSoundToggle');
+      const soundIcon = document.getElementById('sound-icon');
+      const soundText = document.getElementById('sound-text');
+      btnSound.addEventListener('click', () => {
+        audio.init();
+        const nextMuted = !audio.isMuted;
+        audio.setMuted(nextMuted);
+        voice.isMuted = nextMuted;
+        soundIcon.textContent = nextMuted ? '🔇' : '🔊';
+        soundText.textContent = nextMuted ? 'AUDIO OFF' : 'AUDIO ON';
+      });
+
+      // Global Reset Button
+      document.getElementById('btnGlobalReset').addEventListener('click', () => {
+        simulator.reset();
+      });
+
+      // SLIDE TO ACTIVATE DRAG PHYSICS
+      const sliderContainer = document.getElementById('slide-trigger-container');
+      const slideHandle = document.getElementById('slide-handle');
+      const slideFill = document.getElementById('slide-progress-fill');
+      let isDragging = false;
+      let startX = 0;
+      let maxSlide = 0;
+
+      const getClientX = (e) => (e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX);
+
+      const startDrag = (e) => {
+        if (simulator.alarmState === 'ACTIVE' || simulator.alarmState === 'COUNTDOWN') return;
+        audio.init();
+        isDragging = true;
+        startX = getClientX(e);
+        maxSlide = sliderContainer.clientWidth - slideHandle.clientWidth - 8;
+      };
+
+      const moveDrag = (e) => {
+        if (!isDragging) return;
+        const currentX = getClientX(e);
+        let diff = currentX - startX;
+        if (diff < 0) diff = 0;
+        if (diff > maxSlide) diff = maxSlide;
+
+        slideHandle.style.transform = `translateX(${diff}px)`;
+        const pct = (diff / maxSlide) * 100;
+        slideFill.style.width = `${pct}%`;
+
+        if (pct >= 95) {
+          isDragging = false;
+          slideHandle.style.transform = `translateX(${maxSlide}px)`;
+          startCountdownTrigger();
+        }
+      };
+
+      const stopDrag = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        slideHandle.style.transition = 'transform 0.25s ease';
+        slideHandle.style.transform = 'translateX(0px)';
+        slideFill.style.width = '0%';
+        setTimeout(() => {
+          slideHandle.style.transition = '';
+        }, 250);
+      };
+
+      slideHandle.addEventListener('mousedown', startDrag);
+      window.addEventListener('mousemove', moveDrag);
+      window.addEventListener('mouseup', stopDrag);
+
+      slideHandle.addEventListener('touchstart', startDrag, { passive: true });
+      window.addEventListener('touchmove', moveDrag, { passive: true });
+      window.addEventListener('touchend', stopDrag);
+
+      // Countdown Confirmation Ring
+      let countdownTimer = null;
+      let countdownSec = 3;
+
+      function startCountdownTrigger() {
+        simulator.alarmState = 'COUNTDOWN';
+        document.getElementById('global-status-dot').className = 'status-dot countdown';
+        document.getElementById('global-status-text').textContent = 'COUNTDOWN // CONFIRMANDO';
+        document.getElementById('phone-a-sensor').className = 'sensor-led emergency';
+
+        const modal = document.getElementById('countdown-modal');
+        const countTxt = document.getElementById('countdown-number-txt');
+        const circleProg = document.getElementById('countdown-circle-prog');
+        modal.style.display = 'flex';
+
+        countdownSec = 3;
+        countTxt.textContent = '3';
+        circleProg.style.strokeDashoffset = '0';
+        audio.playRadioSquelch();
+
+        clearInterval(countdownTimer);
+        const circumference = 188.5;
+        let step = 0;
+
+        countdownTimer = setInterval(() => {
+          step++;
+          countdownSec = 3 - Math.floor(step / 10);
+          if (countdownSec < 1) countdownSec = 1;
+          countTxt.textContent = countdownSec;
+
+          const progress = (step / 30) * circumference;
+          circleProg.style.strokeDashoffset = progress;
+
+          if (step >= 30) {
+            clearInterval(countdownTimer);
+            modal.style.display = 'none';
+            simulator.triggerAlarm();
+          }
+        }, 100);
+      }
+
+      document.getElementById('btnAbortCountdown').addEventListener('click', () => {
+        clearInterval(countdownTimer);
+        document.getElementById('countdown-modal').style.display = 'none';
+        simulator.alarmState = 'STANDBY';
+        document.getElementById('global-status-dot').className = 'status-dot';
+        document.getElementById('global-status-text').textContent = 'STANDBY // DESPEJADO';
+        document.getElementById('phone-a-sensor').className = 'sensor-led';
+        slideHandle.style.transform = 'translateX(0px)';
+        slideFill.style.width = '0%';
+        logPhoneA("Disparo de emergencia ABORTADO por el operador.");
+      });
+
+      // Channel Selector Chips
+      document.querySelectorAll('.channel-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.channel-chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          simulator.selectedChannel = chip.dataset.channel;
+          document.getElementById('recipient-channel-badge').textContent = chip.textContent.trim();
+          audio.playHapticClick();
+          logPhoneA(`Canal de difusión establecido a: ${simulator.selectedChannel}`);
+        });
+      });
+
+      // Manual Hazard Buttons
+      document.getElementById('btnInjectFireBreakroom').addEventListener('click', () => {
+        simulator.injectHazard('Breakroom');
+      });
+      document.getElementById('btnInjectFireServer').addEventListener('click', () => {
+        simulator.injectHazard('Server Room');
+      });
+      document.getElementById('btnInjectBlockSpine').addEventListener('click', () => {
+        simulator.injectHazard('Central Spine');
+      });
+      document.getElementById('btnClearHazards').addEventListener('click', () => {
+        simulator.clearAllHazards();
+      });
+
+      // Canvas Speed & Occupant Buttons
+      document.getElementById('btnSimSpeed1').addEventListener('click', () => simulator.simSpeed = 1.0);
+      document.getElementById('btnSimSpeed2').addEventListener('click', () => simulator.simSpeed = 2.0);
+      document.getElementById('btnSimSpeed5').addEventListener('click', () => simulator.simSpeed = 4.0);
+      document.getElementById('btnSimPause').addEventListener('click', () => {
+        simulator.isPaused = !simulator.isPaused;
+        document.getElementById('btnSimPause').textContent = simulator.isPaused ? '▶️' : '⏸️';
+      });
+      document.getElementById('btnAddOccupants').addEventListener('click', () => {
+        simulator.initOccupants(simulator.particles.length + 10);
+        if (simulator.alarmState === 'ACTIVE') {
+          simulator.particles.forEach(p => p.evacuate());
+        }
+      });
+      document.getElementById('btnResetOccupants').addEventListener('click', () => {
+        simulator.initOccupants(48);
+      });
+
+      // Interactive Click on Canvas to Spawn Custom Hazard
+      simulator.canvas.addEventListener('click', (e) => {
+        const rect = simulator.canvas.getBoundingClientRect();
+        const clickX = ((e.clientX - rect.left) / rect.width) * 800;
+        const clickY = ((e.clientY - rect.top) / rect.height) * 520;
+        simulator.injectHazard('Foco Personalizado', clickX, clickY);
+      });
+
+      // Recipient Device Tab Switcher (Phone B / C / D)
+      document.querySelectorAll('.device-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.device-tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const dev = btn.dataset.device;
+          document.getElementById('view-phone-b').style.display = dev === 'phone-b' ? 'flex' : 'none';
+          document.getElementById('view-phone-c').style.display = dev === 'phone-c' ? 'flex' : 'none';
+          document.getElementById('view-phone-d').style.display = dev === 'phone-d' ? 'flex' : 'none';
+          audio.playHapticClick();
+        });
+      });
+
+      // Phone B: I Am Safe Action Button
+      const btnImSafe = document.getElementById('btnImSafe');
+      btnImSafe.addEventListener('click', () => {
+        simulator.checkInOccupant('PHONE_B');
+        btnImSafe.classList.add('checked-in');
+        btnImSafe.innerHTML = '<span>✅</span><span>ESTADO: A SALVO CONFIRMADO</span>';
+        btnImSafe.disabled = true;
+      });
+
+      // Phone C: Stairwell Toggles
+      const btnStairA = document.getElementById('btnToggleStairwellA');
+      const labelStairA = document.getElementById('stairwell-a-label');
+      btnStairA.addEventListener('click', () => {
+        const next = simulator.toggleStairwellStatus('STAIRWELL_A');
+        btnStairA.className = `toggle-pill-btn ${next.toLowerCase()}`;
+        btnStairA.textContent = next;
+        labelStairA.textContent = next === 'CLEAR' ? 'DESPEJADA' : 'BLOQUEADA';
+      });
+
+      const btnStairB = document.getElementById('btnToggleStairwellB');
+      const labelStairB = document.getElementById('stairwell-b-label');
+      btnStairB.addEventListener('click', () => {
+        const next = simulator.toggleStairwellStatus('STAIRWELL_B');
+        btnStairB.className = `toggle-pill-btn ${next.toLowerCase()}`;
+        btnStairB.textContent = next;
+        labelStairB.textContent = next === 'CLEAR' ? 'DESPEJADA' : 'BLOQUEADA';
+      });
+
+      // Brigade VHF Broadcast Button
+      document.getElementById('btnBrigadeBroadcast').addEventListener('click', () => {
+        audio.playRadioSquelch();
+        voice.speak("Atención brigada de seguridad: Mantengan despejadas las salidas de emergencia.");
+        logPhoneA("Transmisión de voz emitida a la brigada en VHF CH-04.");
+      });
+
+      // Mobile Layout Viewport Tabs (<= 860px)
+      document.querySelectorAll('.mobile-nav-tabs .tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.mobile-nav-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const target = btn.dataset.target;
+          document.querySelectorAll('.panel-section').forEach(p => p.classList.remove('active-mobile-tab'));
+          document.getElementById(target).classList.add('active-mobile-tab');
+          if (target === 'panel-center') {
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+          }
+        });
+      });
+
+      // Live Clocks update
+      setInterval(() => {
+        const timeStr = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        const elA = document.getElementById('phone-a-clock');
+        const elR = document.getElementById('recipient-clock');
+        if (elA) elA.textContent = timeStr;
+        if (elR) elR.textContent = timeStr;
+      }, 1000);
+    }
+
+    function logPhoneA(msg) {
+      const log = document.getElementById('phone-a-log');
+      if (!log) return;
+      const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `<span class="time">[${time}]</span> ${msg}`;
+      log.prepend(entry);
+    }
+
+    function addSurvivorStreamEntry(phoneId, method) {
+      const list = document.getElementById('survivor-stream-list');
+      if (!list) return;
+      const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const row = document.createElement('div');
+      row.className = 'stream-row';
+      row.innerHTML = `
+        <span style="color: var(--accent-emerald);">● ${phoneId} [${method}]</span>
+        <span style="color: #64748b;">${time}</span>
+      `;
+      list.prepend(row);
+    }
+
+    function updateAllPanelsOnAlarmTriggered() {
+      document.getElementById('global-status-dot').className = 'status-dot active';
+      document.getElementById('global-status-text').textContent = 'EMERGENCIA ACTIVA // EVACUANDO';
+      document.getElementById('global-strobe-overlay').classList.add('active');
+
+      // Phone A
+      document.getElementById('phone-a-chassis').classList.add('danger-alert');
+      document.getElementById('phone-a-badge-status').textContent = '● ALARM ACTIVE';
+      document.getElementById('phone-a-badge-status').style.color = '#ef4444';
+      document.getElementById('phone-a-sensor').className = 'sensor-led emergency';
+      logPhoneA("Alarma general ACTIVADA. Difundiendo por FCM, LoRaWAN y VHF.");
+
+      // Phone B
+      document.getElementById('phone-b-strobe').classList.add('active');
+      document.getElementById('phone-b-route-text').innerHTML = '<span>🟢</span><span>Ruta Activa: Evacuar por SALIDA A (Norte)</span>';
+      document.getElementById('phone-b-voice-caption').textContent = 'Evacuación en progreso...';
+      document.getElementById('recipient-phone-chassis').classList.add('danger-alert');
+      document.getElementById('recipient-sensor').className = 'sensor-led emergency';
+    }
+
+    function updateAllPanelsOnReset() {
+      document.getElementById('global-status-dot').className = 'status-dot';
+      document.getElementById('global-status-text').textContent = 'STANDBY // DESPEJADO';
+      document.getElementById('global-strobe-overlay').classList.remove('active');
+
+      // Reset Phone A
+      document.getElementById('phone-a-chassis').classList.remove('danger-alert');
+      document.getElementById('phone-a-badge-status').textContent = '● READY';
+      document.getElementById('phone-a-badge-status').style.color = '#10b981';
+      document.getElementById('phone-a-sensor').className = 'sensor-led';
+      document.getElementById('slide-handle').style.transform = 'translateX(0px)';
+      document.getElementById('slide-progress-fill').style.width = '0%';
+      document.getElementById('countdown-modal').style.display = 'none';
+
+      // Reset Phone B
+      document.getElementById('phone-b-strobe').classList.remove('active');
+      document.getElementById('recipient-phone-chassis').classList.remove('danger-alert');
+      document.getElementById('recipient-sensor').className = 'sensor-led';
+      const btnImSafe = document.getElementById('btnImSafe');
+      btnImSafe.classList.remove('checked-in');
+      btnImSafe.disabled = false;
+      btnImSafe.innerHTML = '<span>🛡️</span><span>ESTOY A SALVO // I AM SAFE</span>';
+
+      // Reset Phone C Toggles
+      const btnStairA = document.getElementById('btnToggleStairwellA');
+      btnStairA.className = 'toggle-pill-btn clear';
+      btnStairA.textContent = 'CLEAR';
+      document.getElementById('stairwell-a-label').textContent = 'DESPEJADA';
+
+      const btnStairB = document.getElementById('btnToggleStairwellB');
+      btnStairB.className = 'toggle-pill-btn clear';
+      btnStairB.textContent = 'CLEAR';
+      document.getElementById('stairwell-b-label').textContent = 'DESPEJADA';
+
+      logPhoneA("Sistema reiniciado a estado STANDBY.");
+    }
+
+    /* ==========================================================
+       7. PROGRAMMATIC TEST AUTOMATION HARNESS INTERFACE
+       ========================================================== */
+    window.__EMERGENCY_TRI_A__ = {
+      getState: () => {
+        if (!simulator) {
+          return {
+            alarmState: 'STANDBY',
+            channel: 'FCM_PUSH',
+            severity: 'Nivel 2',
+            incidentLevel: 2,
+            occupantsTotal: 48,
+            occupantsSafe: 0,
+            occupantsEvacuating: 0,
+            hazards: [],
+            stairwells: { STAIRWELL_A: 'CLEAR', STAIRWELL_B: 'CLEAR' },
+            particles: []
+          };
+        }
+
+        const safeCount = simulator.particles.filter(p => p.state === 'safe').length;
+        const evacCount = simulator.particles.filter(p => p.state === 'evacuating').length;
+
+        return {
+          alarmState: simulator.alarmState,
+          channel: simulator.selectedChannel,
+          severity: 'Nivel 2 (Evacuación)',
+          incidentLevel: 2,
+          occupantsTotal: simulator.particles.length,
+          occupantsSafe: safeCount,
+          occupantsEvacuating: evacCount,
+          hazards: simulator.hazards.map(h => ({
+            id: h.id,
+            zone: h.zone,
+            radius: h.radius,
+            blocked: h.blocked
+          })),
+          stairwells: { ...navMesh.stairwells },
+          particles: simulator.particles.map(p => ({
+            id: p.id,
+            x: Math.round(p.x),
+            y: Math.round(p.y),
+            state: p.state,
+            exitId: p.targetExit || 'NONE'
+          }))
+        };
+      },
+
+      triggerAlarm: (options = {}) => {
+        if (simulator) {
+          simulator.triggerAlarm(options);
+        }
+      },
+
+      resetSimulation: () => {
+        if (simulator) {
+          simulator.reset();
+        }
+      },
+
+      injectHazard: (zone) => {
+        if (simulator) {
+          simulator.injectHazard(zone);
+        }
+      },
+
+      checkInSafe: (phoneId = 'PHONE_B') => {
+        if (simulator) {
+          simulator.checkInOccupant(phoneId);
+        }
+      },
+
+      toggleStairwell: (stairwellId, status) => {
+        if (simulator) {
+          simulator.toggleStairwellStatus(stairwellId, status);
+        }
+      },
+
+      setOccupantCount: (count) => {
+        if (simulator) {
+          simulator.initOccupants(count);
+          if (simulator.alarmState === 'ACTIVE') {
+            simulator.particles.forEach(p => p.evacuate());
+          }
+        }
+      }
+    };
+
+    // Auto-init on DOMContentLoaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initUI);
+    } else {
+      initUI();
+    }
+
+  })();
+  </script>
+</body>
+</html>

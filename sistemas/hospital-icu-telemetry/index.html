@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VitalShield ICU — Clinical Patient Monitoring Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#090d16;--card-bg:#0f1523;--card-border:rgba(255,255,255,.07);
+  --text-main:#f1f5f9;--text-sub:#94a3b8;--text-dim:#64748b;
+  --ecg-green:#10b981;--spo2-cyan:#38bdf8;--bp-amber:#f59e0b;--alarm-red:#f43f5e;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg);color:var(--text-main);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:32px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1160px;display:flex;flex-direction:column;gap:20px}
+
+/* Clean Medical Header */
+.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--card-border)}
+.header__title{font-size:clamp(1.2rem,2.4vw,1.5rem);font-weight:700;color:#fff}
+.header__tag{font-size:.72rem;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(16,185,129,.1);color:var(--ecg-green);border:1px solid rgba(16,185,129,.3)}
+
+/* Bed Grid */
+.bed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+
+.bed-card{
+  background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;
+  padding:16px;display:flex;flex-direction:column;gap:12px;transition:all .3s;
+}
+.bed-card.critical{
+  border-color:var(--alarm-red);background:rgba(244,63,94,.06);animation:critBlink 1.5s infinite;
+}
+@keyframes critBlink{0%,100%{box-shadow:0 0 16px rgba(244,63,94,.3)}50%{box-shadow:none}}
+
+.bed-hdr{display:flex;justify-content:space-between;align-items:center}
+.bed-id{font-size:.85rem;font-weight:700;color:#fff}
+.bed-patient{font-size:.7rem;color:var(--text-sub)}
+
+/* Vital Stats */
+.vitals{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.vital-box{background:rgba(255,255,255,.02);border:1px solid var(--card-border);border-radius:8px;padding:8px}
+.vital-lbl{font-size:.62rem;font-weight:600;color:var(--text-dim);text-transform:uppercase}
+.vital-val{font-size:1.3rem;font-weight:700;font-family:var(--mono);margin:2px 0}
+.vital-unit{font-size:.6rem;color:var(--text-sub)}
+
+/* Canvas ECG Waveform */
+.ecg-canvas{width:100%;height:50px;background:rgba(0,0,0,.4);border-radius:6px;display:block}
+
+/* Control Bar */
+.ctrl-bar{display:flex;gap:10px;justify-content:center;margin-top:10px}
+.btn{padding:10px 20px;border-radius:8px;font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn-red{background:var(--alarm-red);color:#fff}
+.btn-red:hover{background:#e11d48}
+.btn-sec{background:rgba(255,255,255,.06);color:#fff;border:1px solid var(--card-border)}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="header">
+    <div>
+      <h1 class="header__title">VitalShield ICU · Central de Monitoreo Clínico</h1>
+      <p style="font-size:.8rem;color:var(--text-sub)">Unidad de Cuidados Intensivos · Telemetría Continua en Tiempo Real</p>
+    </div>
+    <div class="header__tag">4 Camas Asignadas · Telemetría HL7 / FHIR</div>
+  </header>
+
+  <div class="bed-grid">
+
+    <!-- Bed 101 -->
+    <div class="bed-card" id="bed-1">
+      <div class="bed-hdr">
+        <div><div class="bed-id">CAMA 101</div><div class="bed-patient">G. Ramírez · 54a (Cardio)</div></div>
+        <span style="font-size:.65rem;font-weight:700;color:var(--ecg-green)">ESTABLE</span>
+      </div>
+      <canvas class="ecg-canvas" id="ecg-1"></canvas>
+      <div class="vitals">
+        <div class="vital-box"><div class="vital-lbl">Frec. Cardíaca</div><div class="vital-val" style="color:var(--ecg-green)" id="hr-1">72</div><div class="vital-unit">LPM</div></div>
+        <div class="vital-box"><div class="vital-lbl">Oxígeno SpO2</div><div class="vital-val" style="color:var(--spo2-cyan)" id="spo2-1">98</div><div class="vital-unit">%</div></div>
+        <div class="vital-box"><div class="vital-lbl">Presión NIBP</div><div class="vital-val" style="color:var(--bp-amber)" id="bp-1">120/80</div><div class="vital-unit">mmHg</div></div>
+      </div>
+    </div>
+
+    <!-- Bed 102 -->
+    <div class="bed-card" id="bed-2">
+      <div class="bed-hdr">
+        <div><div class="bed-id">CAMA 102</div><div class="bed-patient">M. Torres · 68a (Post-Op)</div></div>
+        <span style="font-size:.65rem;font-weight:700;color:var(--ecg-green)">ESTABLE</span>
+      </div>
+      <canvas class="ecg-canvas" id="ecg-2"></canvas>
+      <div class="vitals">
+        <div class="vital-box"><div class="vital-lbl">Frec. Cardíaca</div><div class="vital-val" style="color:var(--ecg-green)" id="hr-2">80</div><div class="vital-unit">LPM</div></div>
+        <div class="vital-box"><div class="vital-lbl">Oxígeno SpO2</div><div class="vital-val" style="color:var(--spo2-cyan)" id="spo2-2">97</div><div class="vital-unit">%</div></div>
+        <div class="vital-box"><div class="vital-lbl">Presión NIBP</div><div class="vital-val" style="color:var(--bp-amber)" id="bp-2">125/82</div><div class="vital-unit">mmHg</div></div>
+      </div>
+    </div>
+
+    <!-- Bed 103 -->
+    <div class="bed-card" id="bed-3">
+      <div class="bed-hdr">
+        <div><div class="bed-id">CAMA 103</div><div class="bed-patient">R. Morales · 41a (Trauma)</div></div>
+        <span style="font-size:.65rem;font-weight:700;color:var(--ecg-green)">ESTABLE</span>
+      </div>
+      <canvas class="ecg-canvas" id="ecg-3"></canvas>
+      <div class="vitals">
+        <div class="vital-box"><div class="vital-lbl">Frec. Cardíaca</div><div class="vital-val" style="color:var(--ecg-green)" id="hr-3">68</div><div class="vital-unit">LPM</div></div>
+        <div class="vital-box"><div class="vital-lbl">Oxígeno SpO2</div><div class="vital-val" style="color:var(--spo2-cyan)" id="spo2-3">99</div><div class="vital-unit">%</div></div>
+        <div class="vital-box"><div class="vital-lbl">Presión NIBP</div><div class="vital-val" style="color:var(--bp-amber)" id="bp-3">118/76</div><div class="vital-unit">mmHg</div></div>
+      </div>
+    </div>
+
+    <!-- Bed 104 -->
+    <div class="bed-card" id="bed-4">
+      <div class="bed-hdr">
+        <div><div class="bed-id">CAMA 104</div><div class="bed-patient">E. Vega · 61a (UCI B)</div></div>
+        <span style="font-size:.65rem;font-weight:700;color:var(--ecg-green)" id="tag-4">ESTABLE</span>
+      </div>
+      <canvas class="ecg-canvas" id="ecg-4"></canvas>
+      <div class="vitals">
+        <div class="vital-box"><div class="vital-lbl">Frec. Cardíaca</div><div class="vital-val" style="color:var(--ecg-green)" id="hr-4">76</div><div class="vital-unit">LPM</div></div>
+        <div class="vital-box"><div class="vital-lbl">Oxígeno SpO2</div><div class="vital-val" style="color:var(--spo2-cyan)" id="spo2-4">98</div><div class="vital-unit">%</div></div>
+        <div class="vital-box"><div class="vital-lbl">Presión NIBP</div><div class="vital-val" style="color:var(--bp-amber)" id="bp-4">122/78</div><div class="vital-unit">mmHg</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="ctrl-bar">
+    <button class="btn btn-red" onclick="simulateCodeBlue()">🚨 Simular Código Azul (Arritmia Cama 104)</button>
+    <button class="btn btn-sec" onclick="resetVitals()">🔄 Normalizar Signos Vitales</button>
+  </div>
+
+</div>
+
+<script>
+// Real-time Canvas ECG Waveform Animation
+const canvases = [1,2,3,4].map(i => {
+  const c = document.getElementById(`ecg-${i}`);
+  c.width = c.offsetWidth * window.devicePixelRatio || 300;
+  c.height = 50 * window.devicePixelRatio || 50;
+  return { ctx: c.getContext('2d'), w: c.width, h: c.height, x: 0, critical: false };
+});
+
+function drawECG(){
+  canvases.forEach((c, idx) => {
+    const ctx = c.ctx;
+    const mid = c.h / 2;
+    ctx.strokeStyle = c.critical ? '#f43f5e' : '#10b981';
+    ctx.lineWidth = 2;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+    ctx.fillRect(c.x, 0, 8, c.h);
+
+    ctx.beginPath();
+    ctx.moveTo(c.x, mid);
+    
+    // Simulate P-Q-R-S-T pulse
+    const phase = c.x % 60;
+    let y = mid;
+    if(phase === 20) y = mid - 4; // P
+    else if(phase === 25) y = mid + 3; // Q
+    else if(phase === 28) y = c.critical ? (mid - 20) : (mid - 18); // R spike
+    else if(phase === 31) y = mid + 8; // S
+    else if(phase === 38) y = mid - 6; // T
+
+    ctx.lineTo(c.x + 2, y);
+    ctx.stroke();
+
+    c.x += 2;
+    if(c.x > c.w) c.x = 0;
+  });
+  requestAnimationFrame(drawECG);
+}
+drawECG();
+
+function simulateCodeBlue(){
+  const bed4 = document.getElementById('bed-4');
+  bed4.className = 'bed-card critical';
+  canvases[3].critical = true;
+  document.getElementById('tag-4').textContent = 'CÓDIGO AZUL';
+  document.getElementById('tag-4').style.color = 'var(--alarm-red)';
+  document.getElementById('hr-4').textContent = '148';
+  document.getElementById('hr-4').style.color = 'var(--alarm-red)';
+  document.getElementById('spo2-4').textContent = '84';
+  document.getElementById('spo2-4').style.color = 'var(--alarm-red)';
+  document.getElementById('bp-4').textContent = '185/115';
+  document.getElementById('bp-4').style.color = 'var(--alarm-red)';
+}
+
+function resetVitals(){
+  const bed4 = document.getElementById('bed-4');
+  bed4.className = 'bed-card';
+  canvases[3].critical = false;
+  document.getElementById('tag-4').textContent = 'ESTABLE';
+  document.getElementById('tag-4').style.color = 'var(--ecg-green)';
+  document.getElementById('hr-4').textContent = '76';
+  document.getElementById('hr-4').style.color = 'var(--ecg-green)';
+  document.getElementById('spo2-4').textContent = '98';
+  document.getElementById('spo2-4').style.color = 'var(--spo2-cyan)';
+  document.getElementById('bp-4').textContent = '122/78';
+  document.getElementById('bp-4').style.color = 'var(--bp-amber)';
+}
+</script>
+</body>
+</html>

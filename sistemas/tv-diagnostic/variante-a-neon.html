@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TV Diagnostic — Neon Cyberpunk</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+html{height:100%}
+body{
+  min-height:100%;
+  font-family:'Inter',system-ui,sans-serif;
+  background:#030812;
+  color:#e0eaff;
+  display:flex;flex-direction:column;align-items:center;
+  overflow-x:hidden;position:relative;
+}
+
+/* ── Hex grid bg ─────────────────────────── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(30deg, rgba(0,255,136,.025) 12%, transparent 12.5%, transparent 87%, rgba(0,255,136,.025) 87.5%),
+    linear-gradient(150deg, rgba(0,255,136,.025) 12%, transparent 12.5%, transparent 87%, rgba(0,255,136,.025) 87.5%),
+    linear-gradient(30deg, rgba(0,255,136,.025) 12%, transparent 12.5%, transparent 87%, rgba(0,255,136,.025) 87.5%),
+    linear-gradient(150deg, rgba(0,255,136,.025) 12%, transparent 12.5%, transparent 87%, rgba(0,255,136,.025) 87.5%),
+    linear-gradient(60deg, rgba(0,255,136,.015) 25%, transparent 25.5%, transparent 75%, rgba(0,255,136,.015) 75%),
+    linear-gradient(60deg, rgba(0,255,136,.015) 25%, transparent 25.5%, transparent 75%, rgba(0,255,136,.015) 75%);
+  background-size:40px 70px;
+  background-position:0 0, 0 0, 20px 35px, 20px 35px, 0 0, 20px 35px;
+  pointer-events:none;z-index:0;opacity:.6;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 55% 45% at 50% 30%, rgba(0,255,136,.03) 0%, transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── Layout ──────────────────────────────── */
+.app{position:relative;z-index:1;width:100%;max-width:860px;padding:48px 24px 40px}
+
+/* ── Header ──────────────────────────────── */
+.header{text-align:center;margin-bottom:44px}
+.header h1{
+  font-size:clamp(1.5rem,4.2vw,2.2rem);
+  font-weight:800;letter-spacing:-.02em;
+  background:linear-gradient(135deg,#00ff88 0%,#00e5ff 50%,#00ff88 100%);
+  background-size:200% 200%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:gradShift 5s ease infinite;
+  margin-bottom:16px;
+}
+@keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+.header__sub{
+  font-size:.85rem;color:rgba(200,220,255,.5);font-weight:400;
+  margin-bottom:16px;
+}
+
+.status-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 20px;
+  border:1px solid rgba(0,255,136,.2);border-radius:6px;
+  background:rgba(0,255,136,.04);
+  font-size:.72rem;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:#6bffbb;
+}
+.status-pill .pip{
+  width:6px;height:6px;border-radius:50%;
+  background:#00ff88;box-shadow:0 0 6px #00ff88;
+  animation:pipP 2s ease infinite;
+}
+@keyframes pipP{0%,100%{opacity:1}50%{opacity:.3}}
+.status-pill[data-s="run"]{border-color:rgba(0,229,255,.35);background:rgba(0,229,255,.06);color:#6bfaff}
+.status-pill[data-s="run"] .pip{background:#00e5ff;box-shadow:0 0 6px #00e5ff}
+.status-pill[data-s="done"]{border-color:rgba(0,255,136,.4);background:rgba(0,255,136,.08);color:#00ff88}
+.status-pill[data-s="done"] .pip{animation:none}
+.status-pill[data-s="error"]{border-color:rgba(255,50,80,.4);background:rgba(255,50,80,.08);color:#ff5070}
+.status-pill[data-s="error"] .pip{background:#ff3250;box-shadow:0 0 6px #ff3250;animation:none}
+
+/* ── Stepper ─────────────────────────────── */
+.stepper{
+  display:flex;align-items:flex-start;
+  justify-content:space-between;
+  position:relative;margin:0 auto 48px;padding:0 10px;
+}
+
+/* Track */
+.track{
+  position:absolute;top:48px;left:50px;right:50px;
+  height:2px;background:rgba(0,255,136,.08);
+  border-radius:2px;z-index:0;
+}
+.track-fill{
+  position:absolute;top:-1px;left:0;bottom:-1px;
+  width:0%;border-radius:2px;
+  background:linear-gradient(90deg,#00ff88,#00ffc8);
+  transition:width .8s cubic-bezier(.4,.9,.3,1),opacity .8s ease .4s,filter .6s ease .4s;
+  box-shadow:0 0 6px rgba(0,255,136,.35),0 0 16px rgba(0,255,136,.15);
+}
+/* Energy head */
+.track-fill::after{
+  content:'';position:absolute;
+  right:-3px;top:50%;transform:translateY(-50%);
+  width:10px;height:10px;border-radius:50%;
+  background:#00ff88;
+  box-shadow:0 0 6px #00ff88,0 0 14px rgba(0,255,136,.5);
+  opacity:0;transition:opacity .3s;
+}
+.track-fill[data-f="1"]::after{opacity:1}
+/* Track fades when done */
+.track-fill[data-done="1"]{
+  opacity:.15;box-shadow:none;filter:blur(.5px);
+}
+.track-fill[data-done="1"]::after{opacity:0}
+
+/* ── Node ────────────────────────────────── */
+.node{
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;z-index:1;width:110px;flex-shrink:0;
+}
+.node__circle{
+  width:96px;height:96px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(0,255,136,.12);
+  background:radial-gradient(circle at 50% 40%,rgba(0,255,136,.03),#060e18 70%);
+  position:relative;
+  transition:border-color .5s,background .5s,box-shadow .6s,transform .3s;
+  cursor:default;
+}
+.node:hover .node__circle{transform:scale(1.04)}
+.node__circle .emoji{
+  font-size:2.2rem;
+  filter:saturate(.4) brightness(.55);
+  transition:filter .5s;position:relative;z-index:2;
+}
+
+/* Spin ring */
+.node__circle::before{
+  content:'';position:absolute;inset:-5px;
+  border-radius:50%;
+  border:2px solid transparent;
+  transition:opacity .3s;opacity:0;
+}
+/* Radial glow behind */
+.node__circle::after{
+  content:'';position:absolute;inset:-22px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,255,136,.15) 0%,transparent 65%);
+  opacity:0;transition:opacity .6s;z-index:-1;
+}
+
+/* ACTIVE */
+.node[data-s="active"] .node__circle{
+  border-color:#00e5ff;
+  background:radial-gradient(circle at 50% 40%,rgba(0,229,255,.08),#060e18 70%);
+  box-shadow:0 0 14px rgba(0,229,255,.2),0 0 35px rgba(0,229,255,.08);
+  animation:aPulse 2.2s ease infinite;
+}
+.node[data-s="active"] .node__circle .emoji{filter:saturate(1) brightness(1)}
+.node[data-s="active"] .node__circle::before{
+  opacity:1;border-top-color:#00e5ff;border-right-color:rgba(0,229,255,.15);
+  animation:spinR 1.4s linear infinite;
+}
+@keyframes spinR{to{transform:rotate(360deg)}}
+@keyframes aPulse{
+  0%,100%{box-shadow:0 0 14px rgba(0,229,255,.2),0 0 35px rgba(0,229,255,.08)}
+  50%{box-shadow:0 0 22px rgba(0,229,255,.35),0 0 50px rgba(0,229,255,.12)}
+}
+
+/* DONE — rich green illumination */
+.node[data-s="done"] .node__circle{
+  border-color:#00ff88;
+  background:radial-gradient(circle at 50% 40%,rgba(0,255,136,.1),#060e18 65%);
+  box-shadow:
+    0 0 12px rgba(0,255,136,.4),
+    0 0 28px rgba(0,255,136,.2),
+    0 0 55px rgba(0,255,136,.1),
+    0 0 90px rgba(0,255,136,.05),
+    inset 0 0 18px rgba(0,255,136,.08);
+  animation:none;
+}
+.node[data-s="done"] .node__circle .emoji{
+  filter:saturate(1.15) brightness(1.1) drop-shadow(0 0 6px #00ff88) drop-shadow(0 0 16px rgba(0,255,136,.5));
+}
+.node[data-s="done"] .node__circle::before{opacity:0;animation:none}
+.node[data-s="done"] .node__circle::after{opacity:1}
+
+/* ERROR */
+.node[data-s="error"] .node__circle{
+  border-color:#ff3250;
+  background:radial-gradient(circle at 50% 40%,rgba(255,50,80,.08),#060e18 70%);
+  box-shadow:0 0 12px rgba(255,50,80,.35),0 0 30px rgba(255,50,80,.12);animation:none;
+}
+.node[data-s="error"] .node__circle .emoji{
+  filter:saturate(1) brightness(1) drop-shadow(0 0 6px #ff3250);
+}
+.node[data-s="error"] .node__circle::before{opacity:0;animation:none}
+
+/* Labels — no uppercase, cleaner */
+.node__label{
+  margin-top:14px;
+  font-size:.8rem;font-weight:600;
+  color:rgba(200,220,255,.3);
+  text-align:center;transition:color .5s,text-shadow .5s;
+  line-height:1.3;
+}
+.node[data-s="active"] .node__label{color:#00e5ff}
+.node[data-s="done"] .node__label{color:#00ff88;text-shadow:0 0 10px rgba(0,255,136,.2)}
+.node[data-s="error"] .node__label{color:#ff5070}
+
+.node__metric{
+  font-size:.72rem;font-weight:600;
+  font-family:'Cascadia Code','Fira Code',monospace;
+  color:transparent;margin-top:5px;min-height:1.1em;
+  transition:color .5s,text-shadow .5s;
+}
+.node[data-s="done"] .node__metric{color:rgba(0,255,136,.7);text-shadow:0 0 6px rgba(0,255,136,.2)}
+.node[data-s="active"] .node__metric{color:rgba(0,229,255,.7)}
+.node[data-s="error"] .node__metric{color:rgba(255,80,110,.7)}
+
+/* ── Button ──────────────────────────────── */
+.btn-area{text-align:center;margin-bottom:40px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:15px 44px;
+  font-family:'Inter',sans-serif;font-size:.92rem;font-weight:700;
+  letter-spacing:.04em;
+  color:#00ff88;
+  background:rgba(0,255,136,.05);
+  border:2px solid rgba(0,255,136,.5);
+  border-radius:8px;cursor:pointer;position:relative;
+  transition:all .3s;
+  box-shadow:0 0 10px rgba(0,255,136,.15),0 0 25px rgba(0,255,136,.06),inset 0 0 15px rgba(0,255,136,.03);
+}
+.btn:hover:not(:disabled){
+  background:rgba(0,255,136,.1);
+  box-shadow:0 0 16px rgba(0,255,136,.3),0 0 40px rgba(0,255,136,.1),inset 0 0 25px rgba(0,255,136,.05);
+  transform:translateY(-2px);
+}
+.btn:active:not(:disabled){transform:translateY(0)}
+.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important}
+.btn::before{
+  content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(0,255,136,.12),transparent);
+  transform:skewX(-20deg);transition:left .5s;
+}
+.btn:hover:not(:disabled)::before{left:130%}
+
+.btn-secondary{
+  padding:8px 28px;font-size:.72rem;font-weight:600;
+  color:rgba(200,220,255,.4);background:transparent;
+  border:1px solid rgba(200,220,255,.1);border-radius:6px;
+  cursor:pointer;font-family:'Inter',sans-serif;
+  transition:border-color .3s,color .3s;display:none;
+}
+.btn-secondary:hover{border-color:rgba(200,220,255,.25);color:rgba(200,220,255,.7)}
+.btn-secondary[data-show="1"]{display:inline-block}
+
+/* ── Log Panel ───────────────────────────── */
+.log-panel{
+  border:1px solid rgba(0,255,136,.08);border-radius:10px;
+  background:rgba(3,8,18,.7);overflow:hidden;
+  backdrop-filter:blur(6px);
+}
+.log-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 20px;cursor:pointer;user-select:none;
+  border-bottom:1px solid rgba(0,255,136,.06);transition:background .2s;
+}
+.log-header:hover{background:rgba(0,255,136,.03)}
+.log-header h3{
+  font-size:.74rem;font-weight:600;letter-spacing:.06em;
+  color:rgba(0,255,136,.5);display:flex;align-items:center;gap:10px;
+}
+.log-badge{
+  background:#00ff88;color:#030812;
+  font-size:.58rem;font-weight:800;padding:2px 8px;border-radius:8px;
+  min-width:18px;text-align:center;
+}
+.log-chev{font-size:.75rem;color:rgba(0,255,136,.4);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.log-panel[data-open="true"] .log-chev{transform:rotate(180deg)}
+.log-body{max-height:0;overflow:hidden;transition:max-height .45s cubic-bezier(.4,0,.2,1)}
+.log-panel[data-open="true"] .log-body{max-height:360px}
+.log-entries{
+  padding:8px 20px 16px;max-height:310px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:2px;
+}
+.log-entries::-webkit-scrollbar{width:4px}
+.log-entries::-webkit-scrollbar-track{background:transparent}
+.log-entries::-webkit-scrollbar-thumb{background:rgba(0,255,136,.15);border-radius:4px}
+
+.le{
+  display:flex;align-items:center;gap:10px;
+  font-size:.72rem;line-height:1.6;padding:3px 6px;border-radius:5px;
+  animation:lsin .3s ease-out;
+}
+.le:hover{background:rgba(0,255,136,.02)}
+@keyframes lsin{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:none}}
+.le__ts{color:rgba(0,255,136,.3);white-space:nowrap;font-family:'Cascadia Code','Fira Code',monospace;font-size:.65rem;min-width:78px}
+.le__ico{font-size:.75rem;flex-shrink:0}
+.le__msg{color:rgba(200,220,255,.5)}
+.le__msg b{color:#e0eaff;font-weight:600}
+.le__msg .ok{color:#00ff88}
+.le__msg .err{color:#ff5070}
+
+/* ── Responsive ──────────────────────────── */
+@media(max-width:600px){
+  .app{padding:32px 12px 32px}
+  .node{width:78px}
+  .node__circle{width:70px;height:70px}
+  .node__circle .emoji{font-size:1.6rem}
+  .node__label{font-size:.68rem}
+  .track{top:35px;left:40px;right:40px}
+  .btn{padding:13px 32px;font-size:.85rem}
+}
+@media(max-width:420px){
+  .node__circle{width:58px;height:58px}
+  .node__circle .emoji{font-size:1.3rem}
+  .node{width:65px}
+  .track{top:29px;left:34px;right:34px}
+}
+
+.footer{
+  position:relative;z-index:1;margin-top:auto;padding:28px 0 16px;
+  text-align:center;font-size:.62rem;color:rgba(200,220,255,.2);letter-spacing:.04em;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <h1>Diagnóstico de TV</h1>
+    <p class="header__sub">Verificación completa de conectividad, autenticación y rendimiento</p>
+    <div class="status-pill" id="pill" data-s="idle">
+      <span class="pip"></span>
+      <span id="pillTxt">Sistema listo</span>
+    </div>
+  </header>
+
+  <!-- STEPPER -->
+  <div class="stepper">
+    <div class="track"><div class="track-fill" id="tf" data-f="0" data-done="0"></div></div>
+
+    <div class="node" data-s="pending">
+      <div class="node__circle"><span class="emoji">🔌</span></div>
+      <div class="node__label">Conexión Local</div>
+      <div class="node__metric" id="m0"></div>
+    </div>
+    <div class="node" data-s="pending">
+      <div class="node__circle"><span class="emoji">📡</span></div>
+      <div class="node__label">Handshake API</div>
+      <div class="node__metric" id="m1"></div>
+    </div>
+    <div class="node" data-s="pending">
+      <div class="node__circle"><span class="emoji">🛡️</span></div>
+      <div class="node__label">Validación Auth</div>
+      <div class="node__metric" id="m2"></div>
+    </div>
+    <div class="node" data-s="pending">
+      <div class="node__circle"><span class="emoji">⚡</span></div>
+      <div class="node__label">Velocidad de Red</div>
+      <div class="node__metric" id="m3"></div>
+    </div>
+  </div>
+
+  <!-- BUTTON -->
+  <div class="btn-area">
+    <button class="btn" id="btnA">▶ ¡Vamos a solucionarlo!</button>
+    <button class="btn-secondary" id="btnB" data-show="0" onclick="doReset()">Reiniciar diagnóstico</button>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-panel" id="lp" data-open="false">
+    <div class="log-header" onclick="togLog()">
+      <h3>Registro de eventos <span class="log-badge" id="lb">0</span></h3>
+      <span class="log-chev">▾</span>
+    </div>
+    <div class="log-body">
+      <div class="log-entries" id="ll"></div>
+    </div>
+  </div>
+
+</div>
+<footer class="footer">Depredador · Neon Cyberpunk v2.0</footer>
+
+<script>
+const EMOJIS=['🔌','📡','🛡️','⚡'];
+const CFG=[
+  {label:'Conexión Local', dur:1500, met:'OK',     ok:'Conexión local estable',  fail:'Sin conexión local'},
+  {label:'Handshake API',  dur:1800, met:'200 OK', ok:'Handshake completado',    fail:'Error al conectar con Gateway'},
+  {label:'Validación Auth',dur:2000, met:'JWT ✓',  ok:'Tokens válidos',          fail:'Token inválido'},
+  {label:'Velocidad de Red',dur:2400,met:null,     ok:'Velocidad OK',            fail:'Latencia excesiva'}
+];
+
+let busy=false,si=-1,ln=0;
+const $n=document.querySelectorAll('.node');
+const $tf=document.getElementById('tf');
+const $btnA=document.getElementById('btnA');
+const $btnB=document.getElementById('btnB');
+const $pill=document.getElementById('pill');
+const $pTxt=document.getElementById('pillTxt');
+const $ll=document.getElementById('ll');
+const $lb=document.getElementById('lb');
+const $lp=document.getElementById('lp');
+
+const ts=()=>{const d=new Date();return d.toLocaleTimeString('es-MX',{hour12:false})+'.'+String(d.getMilliseconds()).padStart(3,'0')};
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const slp=ms=>new Promise(r=>setTimeout(r,ms));
+
+function log(m,emoji=''){
+  const li=document.createElement('div');li.className='le';
+  li.innerHTML=`<span class="le__ts">${ts()}</span>${emoji?`<span class="le__ico">${emoji}</span>`:''}<span class="le__msg">${m}</span>`;
+  $ll.prepend(li);ln++;$lb.textContent=ln;
+}
+function setS(i,s){$n[i].setAttribute('data-s',s)}
+function setM(i,t){document.getElementById('m'+i).textContent=t}
+function setTr(p,f){$tf.style.width=p+'%';$tf.setAttribute('data-f',f?'1':'0')}
+function setTrDone(d){$tf.setAttribute('data-done',d?'1':'0')}
+function setPill(t,s){$pTxt.textContent=t;$pill.setAttribute('data-s',s)}
+
+function doReset(){
+  si=-1;ln=0;$lb.textContent='0';$ll.innerHTML='';
+  setTr(0,false);setTrDone(false);
+  $n.forEach((_,i)=>{setS(i,'pending');setM(i,'')});
+  setPill('Sistema listo','idle');
+  $btnA.textContent='▶ ¡Vamos a solucionarlo!';$btnA.disabled=false;
+  $btnB.setAttribute('data-show','0');
+}
+
+$btnA.addEventListener('click', async function run(){
+  if(busy)return;
+  if(si>=CFG.length){doReset();await slp(300)}
+  busy=true;$btnA.disabled=true;$btnA.textContent='Diagnosticando...';
+  $btnB.setAttribute('data-show','0');
+  setTrDone(false);
+  setPill('Ejecutando diagnóstico','run');
+  log('Diagnóstico iniciado','🚀');
+  if($lp.getAttribute('data-open')==='false')togLog();
+
+  for(let i=0;i<CFG.length;i++){
+    si=i;const c=CFG[i];
+    setS(i,'active');
+    log(`Verificando <b>${c.label}</b>...`,EMOJIS[i]);
+    setTr((i/(CFG.length-1))*100,true);
+
+    if(i===CFG.length-1){
+      const tgt=rnd(22,72);let cur=0;
+      const iv=setInterval(()=>{cur+=rnd(1,4);if(cur>tgt)cur=tgt;setM(i,cur+' ms')},90);
+      await slp(c.dur);clearInterval(iv);setM(i,tgt+' ms');c._v=tgt;
+    }else{await slp(c.dur)}
+
+    const fail=i===CFG.length-1?false:Math.random()<0.03;
+    if(fail){
+      setS(i,'error');setTr((i/(CFG.length-1))*100,false);
+      log(`<span class="err">${c.fail}</span>`,EMOJIS[i]);
+      setPill('Error detectado','error');
+      $btnA.textContent='🔄 Reintentar';$btnA.disabled=false;
+      busy=false;return;
+    }
+
+    setS(i,'done');
+    if(c.met)setM(i,c.met);
+    const okMsg=i===CFG.length-1
+      ?`<span class="ok">${c.ok} — ${c._v} ms ✓</span>`
+      :`<span class="ok">${c.ok} ✓</span>`;
+    log(okMsg,EMOJIS[i]);
+    setTr(Math.min(((i+1)/(CFG.length-1))*100,100),i<CFG.length-1);
+    await slp(350);
+  }
+
+  setTr(100,false);
+  await slp(500);
+  setTrDone(true);
+  log('<b>Todos los sistemas operativos</b>','🎉');
+  setPill('Diagnóstico completo','done');
+  $btnA.textContent='Diagnóstico completo';$btnA.disabled=true;
+  $btnB.setAttribute('data-show','1');
+  busy=false;
+});
+
+function togLog(){
+  const o=$lp.getAttribute('data-open')==='true';
+  $lp.setAttribute('data-open',String(!o));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud SQL HA & Private VPC Peering Hub | Mission Control Observability</title>
+  <!-- Google Fonts: Inter & JetBrains Mono / Cascadia Code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,300..700;1,300..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       CYBERPUNK MISSION CONTROL DESIGN SYSTEM (EMERALD & BLUE SIGNATURE)
+       ========================================================================== */
+    :root {
+      --bg-base: #030812;
+      --bg-surface: #060d1b;
+      --bg-card: rgba(8, 18, 38, 0.78);
+      --bg-card-hover: rgba(14, 29, 58, 0.92);
+      --bg-glass: rgba(10, 24, 48, 0.65);
+      --bg-elevated: #0d2040;
+      
+      /* Primary Emerald Database Accents */
+      --emerald-primary: #10b981;
+      --emerald-light: #34d399;
+      --emerald-dark: #047857;
+      --emerald-glow: rgba(16, 185, 129, 0.55);
+      --emerald-dim: rgba(16, 185, 129, 0.12);
+
+      /* Primary Blue / Cyan VPC Peering Accents */
+      --blue-primary: #3b82f6;
+      --blue-light: #60a5fa;
+      --blue-dark: #1d4ed8;
+      --blue-glow: rgba(59, 130, 246, 0.55);
+      --blue-dim: rgba(59, 130, 246, 0.12);
+
+      --cyan-primary: #06b6d4;
+      --cyan-light: #67e8f9;
+      --cyan-glow: rgba(6, 182, 212, 0.45);
+      --cyan-dim: rgba(6, 182, 212, 0.12);
+
+      /* Alert / Crimson Failover Accents */
+      --crimson-primary: #ef4444;
+      --crimson-light: #f87171;
+      --crimson-dark: #b91c1c;
+      --crimson-glow: rgba(239, 68, 68, 0.55);
+      --crimson-dim: rgba(239, 68, 68, 0.14);
+
+      /* Warning / Amber Contention Accents */
+      --amber-primary: #f59e0b;
+      --amber-light: #fbbf24;
+      --amber-dark: #b45309;
+      --amber-glow: rgba(245, 158, 11, 0.50);
+      --amber-dim: rgba(245, 158, 11, 0.14);
+
+      /* Violet / KMS Security Accents */
+      --violet-primary: #a855f7;
+      --violet-light: #c084fc;
+      --violet-glow: rgba(168, 85, 247, 0.50);
+      --violet-dim: rgba(168, 85, 247, 0.14);
+
+      /* Typography & Neutral Colors */
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --border-subtle: rgba(59, 130, 246, 0.18);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --border-emerald: rgba(16, 185, 129, 0.35);
+      --border-blue: rgba(59, 130, 246, 0.35);
+      --border-active: rgba(16, 185, 129, 0.75);
+
+      /* Fonts */
+      --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+
+      /* Radii & Shadows */
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      --shadow-lux: 0 10px 30px -5px rgba(0, 0, 0, 0.7), 0 0 20px -2px var(--emerald-glow);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.09) 0%, transparent 60%),
+        radial-gradient(circle at 10% 80%, rgba(59, 130, 246, 0.07) 0%, transparent 50%),
+        radial-gradient(circle at 90% 60%, rgba(168, 85, 247, 0.05) 0%, transparent 50%),
+        linear-gradient(rgba(16, 185, 129, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.025) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+      background-attachment: fixed;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient Background Glow Header */
+    .ambient-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 380px;
+      max-width: 100vw;
+      background: radial-gradient(ellipse at 50% -20%, rgba(16, 185, 129, 0.16), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    /* Permanent Luminous Icon Glow Class */
+    .luminous-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 0 6px currentColor);
+      transition: filter 0.25s ease, transform 0.25s ease;
+    }
+    .luminous-icon.glow-emerald { color: var(--emerald-light); filter: drop-shadow(0 0 8px var(--emerald-glow)); }
+    .luminous-icon.glow-blue { color: var(--blue-light); filter: drop-shadow(0 0 8px var(--blue-glow)); }
+    .luminous-icon.glow-amber { color: var(--amber-light); filter: drop-shadow(0 0 8px var(--amber-glow)); }
+    .luminous-icon.glow-crimson { color: var(--crimson-light); filter: drop-shadow(0 0 8px var(--crimson-glow)); }
+    .luminous-icon.glow-violet { color: var(--violet-light); filter: drop-shadow(0 0 8px var(--violet-glow)); }
+
+    /* App Container */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 16px 24px 32px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Header Bar */
+    .header-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 14px 22px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      gap: 16px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(59, 130, 246, 0.25));
+      border: 1px solid var(--emerald-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 0 16px var(--emerald-glow);
+    }
+
+    .brand-text h1 {
+      font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      background: linear-gradient(90deg, #34d399, #60a5fa, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-subtitle {
+      font-size: clamp(0.72rem, 1.3vw, 0.84rem);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      background: rgba(15, 30, 60, 0.7);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+    }
+
+    .badge-chip.ha-healthy {
+      background: var(--emerald-dim);
+      border-color: var(--emerald-primary);
+      color: var(--emerald-light);
+      box-shadow: 0 0 12px var(--emerald-glow);
+    }
+
+    .badge-chip.ha-degraded {
+      background: var(--crimson-dim);
+      border-color: var(--crimson-primary);
+      color: var(--crimson-light);
+      box-shadow: 0 0 16px var(--crimson-glow);
+      animation: pulse-border 1.5s infinite alternate;
+    }
+
+    @keyframes pulse-border {
+      0% { border-color: var(--crimson-primary); box-shadow: 0 0 8px var(--crimson-glow); }
+      100% { border-color: #ff8888; box-shadow: 0 0 20px var(--crimson-glow); }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-card);
+      background: rgba(15, 32, 64, 0.85);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      text-decoration: none;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: rgba(25, 48, 92, 0.95);
+      border-color: var(--border-subtle);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-emerald {
+      background: linear-gradient(135deg, #059669, #10b981);
+      border-color: #34d399;
+      color: #ffffff;
+      box-shadow: 0 0 14px var(--emerald-glow);
+    }
+    .btn-emerald:hover {
+      background: linear-gradient(135deg, #10b981, #34d399);
+      box-shadow: 0 0 20px var(--emerald-glow);
+    }
+
+    .btn-blue {
+      background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+      border-color: #60a5fa;
+      color: #ffffff;
+      box-shadow: 0 0 14px var(--blue-glow);
+    }
+    .btn-blue:hover {
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+      box-shadow: 0 0 20px var(--blue-glow);
+    }
+
+    .btn-crimson {
+      background: linear-gradient(135deg, #991b1b, #dc2626);
+      border-color: #f87171;
+      color: #ffffff;
+      box-shadow: 0 0 14px var(--crimson-glow);
+    }
+    .btn-crimson:hover {
+      background: linear-gradient(135deg, #b91c1c, #ef4444);
+      box-shadow: 0 0 22px var(--crimson-glow);
+    }
+
+    .btn-amber {
+      background: linear-gradient(135deg, #b45309, #d97706);
+      border-color: #fbbf24;
+      color: #ffffff;
+      box-shadow: 0 0 14px var(--amber-glow);
+    }
+    .btn-amber:hover {
+      background: linear-gradient(135deg, #d97706, #f59e0b);
+      box-shadow: 0 0 20px var(--amber-glow);
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 0.74rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-icon {
+      padding: 8px;
+      min-width: 36px;
+    }
+
+    /* KPI Top Bar */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--card-accent, var(--emerald-primary)), transparent);
+    }
+
+    .kpi-card:hover {
+      border-color: var(--border-subtle);
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+    }
+
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .kpi-value-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .kpi-value {
+      font-size: clamp(1.25rem, 2.8vw, 1.7rem);
+      font-weight: 800;
+      font-family: var(--font-mono);
+      letter-spacing: -0.02em;
+    }
+
+    .kpi-meta {
+      font-size: 0.74rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Main Dashboard Layout (2-Column Desktop Grid) */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px;
+    }
+
+    .dashboard-grid > * {
+      min-width: 0;
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Panels & Glass Cards */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 14px;
+    }
+
+    .panel-title {
+      font-size: clamp(0.9rem, 1.8vw, 1.08rem);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      gap: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .panel-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Canvas Network Topology Section */
+    .topology-container {
+      position: relative;
+      width: 100%;
+      min-height: 280px;
+      height: clamp(280px, 35vw, 400px);
+      background: #020611;
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+    }
+
+    #topologyCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .topology-overlay-legend {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(3, 8, 18, 0.88);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      display: flex;
+      gap: 14px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .topology-stats-overlay {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(3, 8, 18, 0.88);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      font-size: 0.74rem;
+      font-family: var(--font-mono);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      backdrop-filter: blur(8px);
+    }
+
+    /* HA Failover Controller Section */
+    .failover-banner {
+      background: rgba(15, 30, 60, 0.5);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .failover-actions-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .stopwatch-box {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-family: var(--font-mono);
+      background: rgba(0, 0, 0, 0.4);
+      padding: 6px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-card);
+    }
+
+    .stopwatch-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .stopwatch-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--cyan-light);
+      min-width: 90px;
+    }
+
+    .stepper-progress-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+      gap: 8px;
+    }
+
+    .stepper-node {
+      background: rgba(8, 16, 32, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      position: relative;
+      transition: all 0.25s ease;
+    }
+
+    .stepper-node.active {
+      border-color: var(--cyan-primary);
+      background: var(--cyan-dim);
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    .stepper-node.completed {
+      border-color: var(--emerald-primary);
+      background: var(--emerald-dim);
+      color: var(--emerald-light);
+    }
+
+    .stepper-node.failed {
+      border-color: var(--crimson-primary);
+      background: var(--crimson-dim);
+      color: var(--crimson-light);
+    }
+
+    .stepper-step-num {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .stepper-title {
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Connection Pool & PgBouncer Section */
+    .pool-section-grid {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    @media (max-width: 600px) {
+      .pool-section-grid {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+    }
+
+    .gauge-wrapper {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gauge-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .gauge-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 14;
+    }
+
+    .gauge-segment {
+      fill: none;
+      stroke-width: 14;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.4s ease, stroke 0.3s ease;
+    }
+
+    .gauge-center-text {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .gauge-percent {
+      font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+      font-weight: 800;
+      font-family: var(--font-mono);
+      line-height: 1;
+    }
+
+    .gauge-label {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .pool-metrics-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pool-metric-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .pool-metric-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.76rem;
+      font-family: var(--font-mono);
+    }
+
+    .pool-bar-track {
+      width: 100%;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .pool-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.35s ease;
+    }
+
+    /* Slow Query & Lock Contention Table */
+    .table-controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .search-input-box {
+      position: relative;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(5, 12, 26, 0.85);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 7px 12px 7px 32px;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    .search-input:focus {
+      border-color: var(--emerald-primary);
+      box-shadow: 0 0 10px var(--emerald-glow);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      background: rgba(4, 10, 22, 0.8);
+      min-height: 160px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .sql-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      text-align: left;
+    }
+
+    .sql-table th {
+      background: rgba(8, 20, 42, 0.95);
+      padding: 10px 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      border-bottom: 1px solid var(--border-card);
+    }
+
+    .sql-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    .sql-table tr:hover td {
+      background: rgba(16, 36, 72, 0.4);
+    }
+
+    .sql-table tr.locked-row td {
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .query-cell {
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #93c5fd;
+    }
+
+    .badge-lock {
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      font-size: 0.68rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .badge-lock.exclusive {
+      background: var(--crimson-dim);
+      border: 1px solid var(--crimson-primary);
+      color: var(--crimson-light);
+    }
+    .badge-lock.rowshare {
+      background: var(--amber-dim);
+      border: 1px solid var(--amber-primary);
+      color: var(--amber-light);
+    }
+    .badge-lock.none {
+      background: var(--emerald-dim);
+      border: 1px solid var(--emerald-primary);
+      color: var(--emerald-light);
+    }
+
+    /* CMEK Panel Section */
+    .cmek-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .cmek-info-card {
+      background: rgba(6, 15, 32, 0.7);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .cmek-info-title {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .cmek-info-val {
+      font-size: 0.84rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--violet-light);
+      word-break: break-all;
+    }
+
+    /* Operations Log Terminal */
+    .terminal-container {
+      background: #02050e;
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 180px;
+      max-height: 280px;
+      height: auto;
+    }
+
+    .terminal-header {
+      background: #060e20;
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-card);
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+    }
+
+    .terminal-header span {
+      word-break: break-all;
+      overflow-wrap: anywhere;
+    }
+
+    .terminal-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .terminal-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .terminal-tab.active {
+      background: rgba(16, 185, 129, 0.18);
+      color: var(--emerald-light);
+      font-weight: 700;
+    }
+
+    .terminal-body {
+      flex: 1;
+      padding: 10px 14px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      line-height: 1.6;
+      background: rgba(2, 5, 14, 0.95);
+      color: #94a3b8;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 10px;
+    }
+    .log-ts { color: var(--text-dim); }
+    .log-lvl { font-weight: 700; min-width: 44px; }
+    .log-lvl.INFO { color: var(--blue-light); }
+    .log-lvl.WARN { color: var(--amber-light); }
+    .log-lvl.ERROR { color: var(--crimson-light); }
+    .log-lvl.SUCCESS { color: var(--emerald-light); }
+    .log-msg { color: #f8fafc; }
+
+    /* Interactive Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 16, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 99;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-window {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 740px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px var(--emerald-glow);
+      z-index: 100;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Toast Container */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: rgba(7, 18, 38, 0.95);
+      border: 1px solid var(--emerald-primary);
+      border-radius: var(--radius-md);
+      padding: 10px 18px;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), 0 0 15px var(--emerald-glow);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+      animation: toast-slide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .toast.toast-danger {
+      border-color: var(--crimson-primary);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), 0 0 18px var(--crimson-glow);
+    }
+
+    .toast.toast-warn {
+      border-color: var(--amber-primary);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), 0 0 18px var(--amber-glow);
+    }
+
+    @keyframes toast-slide {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Responsive Queries */
+    @media (max-width: 768px) {
+      .app-container { padding: 12px 10px; }
+      .header-bar { padding: 12px 12px; }
+      .panel { padding: 14px 12px; }
+      .topology-container { min-height: 280px; }
+      .stepper-progress-list {
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        gap: 6px;
+      }
+      .cmek-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app-container { padding: 10px 8px 30px; }
+      .header-bar { padding: 10px 10px; }
+      .panel { padding: 12px 10px; }
+      .brand-text h1 {
+        flex-wrap: wrap;
+      }
+      .brand-subtitle {
+        flex-wrap: wrap;
+      }
+      .header-badges {
+        flex-wrap: wrap;
+      }
+      .header-actions {
+        flex-wrap: wrap;
+        width: 100%;
+      }
+      .header-actions .btn {
+        flex: 1;
+      }
+      .stepper-progress-list {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .cmek-grid {
+        grid-template-columns: 1fr;
+      }
+      .kpi-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <div class="app-container">
+    <!-- Header Navigation & Project Scope -->
+    <header class="header-bar">
+      <div class="brand-section">
+        <div class="brand-icon-box luminous-icon glow-emerald">
+          🐘
+        </div>
+        <div class="brand-text">
+          <h1>
+            <span class="luminous-icon glow-emerald">🌐</span>
+            <span>Cloud SQL & Private VPC Peering HA Hub</span>
+          </h1>
+          <div class="brand-subtitle">
+            <span>Project: <strong style="color:var(--text-main);">prj-prod-payments-9941</strong></span>
+            <span>•</span>
+            <span>Region: <strong style="color:var(--cyan-light);">us-east4</strong></span>
+            <span>•</span>
+            <span>PostgreSQL 16 HA</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-badges">
+        <div class="badge-chip ha-healthy" id="haClusterBadge" data-testid="ha-cluster-badge">
+          <span class="luminous-icon glow-emerald">🟢</span>
+          <span id="haStatusText">HEALTHY (DUAL-ZONE 99.99%)</span>
+        </div>
+        <div class="badge-chip" data-testid="utc-clock">
+          <span class="luminous-icon glow-blue">⏱️</span>
+          <span id="utcTime">2026-08-20 00:18:00 UTC</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-sm" id="btnSoundToggle" data-testid="btn-sound-toggle" title="Toggle Synthesized Audio Feedback">
+          <span class="luminous-icon glow-blue" id="soundIcon">🔊</span>
+          <span id="soundLabel">Audio ON</span>
+        </button>
+        <button class="btn btn-emerald btn-sm" id="btnExportReport" data-testid="btn-export-report">
+          <span class="luminous-icon glow-emerald">📥</span>
+          <span>Export Telemetry JSON</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top KPI Strip -->
+    <section class="kpi-strip">
+      <!-- KPI 1: VPC Peering -->
+      <div class="kpi-card" style="--card-accent: var(--blue-primary);" data-testid="kpi-peering">
+        <div class="kpi-header">
+          <span>Private VPC Peering Tunnel</span>
+          <span class="luminous-icon glow-blue">🔗</span>
+        </div>
+        <div class="kpi-value-row">
+          <div class="kpi-value" style="color: var(--blue-light);" id="kpiPeeringStatus">CONNECTED</div>
+          <div class="badge-chip" style="font-size:0.68rem; padding: 2px 8px;">MTU 1460</div>
+        </div>
+        <div class="kpi-meta">
+          <span>Allocated: <strong style="color:var(--text-main);">10.200.0.0/20</strong></span>
+          <span>•</span>
+          <span>RTT: <strong style="color:var(--emerald-light);" id="kpiRtt">0.82 ms</strong></span>
+        </div>
+      </div>
+
+      <!-- KPI 2: Primary Instance Health -->
+      <div class="kpi-card" style="--card-accent: var(--emerald-primary);" data-testid="kpi-instance">
+        <div class="kpi-header">
+          <span>Cloud SQL Primary (pg-cluster-01)</span>
+          <span class="luminous-icon glow-emerald">⚡</span>
+        </div>
+        <div class="kpi-value-row">
+          <div class="kpi-value" style="color: var(--emerald-light);" id="kpiPrimaryZone">Zone A (us-east4-a)</div>
+        </div>
+        <div class="kpi-meta">
+          <span>Tier: <strong style="color:var(--text-main);">db-perf-N-8 (32GB)</strong></span>
+          <span>•</span>
+          <span>IOPS: <strong style="color:var(--cyan-light);">12,500</strong></span>
+        </div>
+      </div>
+
+      <!-- KPI 3: Connection Pool Saturation -->
+      <div class="kpi-card" style="--card-accent: var(--amber-primary);" data-testid="kpi-pool">
+        <div class="kpi-header">
+          <span>PgBouncer Connection Saturation</span>
+          <span class="luminous-icon glow-amber">🏊</span>
+        </div>
+        <div class="kpi-value-row">
+          <div class="kpi-value" style="color: var(--amber-light);" id="kpiPoolSaturation">42%</div>
+          <div class="badge-chip" style="font-size:0.68rem; padding: 2px 8px;" id="kpiPoolFraction">42 / 100</div>
+        </div>
+        <div class="kpi-meta">
+          <span>Mode: <strong style="color:var(--text-main);">Transaction</strong></span>
+          <span>•</span>
+          <span>Avg Wait: <strong style="color:var(--emerald-light);" id="kpiPoolWait">1.8 ms</strong></span>
+        </div>
+      </div>
+
+      <!-- KPI 4: CMEK Guard -->
+      <div class="kpi-card" style="--card-accent: var(--violet-primary);" data-testid="kpi-cmek">
+        <div class="kpi-header">
+          <span>Cloud KMS CMEK Security</span>
+          <span class="luminous-icon glow-violet">🛡️</span>
+        </div>
+        <div class="kpi-value-row">
+          <div class="kpi-value" style="color: var(--violet-light);" id="kpiCmekStatus">ENCRYPTED</div>
+          <div class="badge-chip" style="font-size:0.68rem; padding: 2px 8px;">AES-256-GCM</div>
+        </div>
+        <div class="kpi-meta">
+          <span>Key Ring: <strong style="color:var(--text-main);">sql-kr</strong></span>
+          <span>•</span>
+          <span>Version: <strong style="color:var(--violet-light);">v3</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+      <!-- Left Column: Network Topology & Failover Orchestrator -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- Panel 1: Interactive Network Topology -->
+        <section class="panel" data-testid="panel-topology">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="luminous-icon glow-blue">🗺️</span>
+              <span>Private Service Connect & VPC Peering Route Visualizer</span>
+            </div>
+            <div class="panel-controls">
+              <button class="btn btn-sm" id="btnSpeed05" data-testid="btn-speed-05">0.5x</button>
+              <button class="btn btn-sm btn-blue" id="btnSpeed10" data-testid="btn-speed-10">1.0x</button>
+              <button class="btn btn-sm" id="btnSpeed20" data-testid="btn-speed-20">2.0x</button>
+              <button class="btn btn-sm btn-emerald" id="btnSendPacketBurst" data-testid="btn-packet-burst">
+                <span class="luminous-icon glow-emerald">🚀</span>
+                <span>Send Packet Burst</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="topology-container">
+            <canvas id="topologyCanvas"></canvas>
+            
+            <div class="topology-overlay-legend">
+              <div class="legend-item">
+                <div class="legend-dot" style="background: var(--blue-primary); box-shadow: 0 0 6px var(--blue-glow);"></div>
+                <span>Client GCE</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background: var(--cyan-primary); box-shadow: 0 0 6px var(--cyan-glow);"></div>
+                <span>VPC Peering</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background: var(--emerald-primary); box-shadow: 0 0 6px var(--emerald-glow);"></div>
+                <span>Primary (Zone A)</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background: var(--violet-primary); box-shadow: 0 0 6px var(--violet-glow);"></div>
+                <span>Standby (Zone B)</span>
+              </div>
+            </div>
+
+            <div class="topology-stats-overlay">
+              <div>Network Throughput: <strong style="color:var(--cyan-light);" id="topoThroughput">1,420 pkts/s</strong></div>
+              <div>Tunnel Jitter: <strong style="color:var(--emerald-light);" id="topoJitter">0.12 ms</strong></div>
+              <div>Encryption: <strong style="color:var(--violet-light);">BGP Encapsulated + CMEK</strong></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Panel 2: High Availability Failover & Primary Node Crash Simulator -->
+        <section class="panel" data-testid="panel-failover">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="luminous-icon glow-crimson">⚡</span>
+              <span>High-Availability Automated Failover Engine (sqladmin.instances.failover)</span>
+            </div>
+            <div class="panel-controls">
+              <div class="stopwatch-box">
+                <span class="stopwatch-label">Failover RTO:</span>
+                <span class="stopwatch-value" id="failoverStopwatch" data-testid="failover-stopwatch">00:00.000</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="failover-banner">
+            <div class="failover-actions-bar">
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-size:0.85rem; font-weight:700; color:var(--text-main);">HA Replication Protocol: Regional Synchronous</span>
+                <span style="font-size:0.74rem; color:var(--text-muted); font-family:var(--font-mono);">
+                  Standby replica receives continuous streaming WAL logs. RPO = 0 seconds.
+                </span>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn btn-crimson" id="btnSimulateCrash" data-testid="btn-simulate-crash">
+                  <span class="luminous-icon glow-crimson">💥</span>
+                  <span>Simulate Primary Node Crash</span>
+                </button>
+                <button class="btn btn-emerald" id="btnReprovision" data-testid="btn-reprovision-replica" style="display:none;">
+                  <span class="luminous-icon glow-emerald">🔄</span>
+                  <span>Reprovision Zone A Standby Replica</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Stepper Progress -->
+            <div class="stepper-progress-list" id="failoverStepper">
+              <div class="stepper-node" id="step1" data-step="1">
+                <span class="stepper-step-num">Step 1</span>
+                <span class="stepper-title">Heartbeat Timeout</span>
+              </div>
+              <div class="stepper-node" id="step2" data-step="2">
+                <span class="stepper-step-num">Step 2</span>
+                <span class="stepper-title">Split-Brain Fencing</span>
+              </div>
+              <div class="stepper-node" id="step3" data-step="3">
+                <span class="stepper-step-num">Step 3</span>
+                <span class="stepper-title">WAL LSN Verification</span>
+              </div>
+              <div class="stepper-node" id="step4" data-step="4">
+                <span class="stepper-step-num">Step 4</span>
+                <span class="stepper-title">Replica Promotion</span>
+              </div>
+              <div class="stepper-node" id="step5" data-step="5">
+                <span class="stepper-step-num">Step 5</span>
+                <span class="stepper-title">VPC BGP Route Cutover</span>
+              </div>
+              <div class="stepper-node" id="step6" data-step="6">
+                <span class="stepper-step-num">Step 6</span>
+                <span class="stepper-title">PgBouncer Reconnect</span>
+              </div>
+              <div class="stepper-node" id="step7" data-step="7">
+                <span class="stepper-step-num">Step 7</span>
+                <span class="stepper-title">Failover Complete</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Column: PgBouncer, Slow Queries, CMEK -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- Panel 3: Connection Pool & PgBouncer -->
+        <section class="panel" data-testid="panel-pool">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="luminous-icon glow-amber">🏊</span>
+              <span>Connection Pool Saturation & PgBouncer (pg_stat_activity)</span>
+            </div>
+            <div class="panel-controls">
+              <button class="btn btn-sm btn-amber" id="btnInjectBurst" data-testid="btn-inject-burst">
+                <span class="luminous-icon glow-amber">⚡</span>
+                <span>Burst (+25)</span>
+              </button>
+              <button class="btn btn-sm" id="btnDrainPool" data-testid="btn-drain-pool">
+                <span class="luminous-icon glow-blue">🧹</span>
+                <span>Drain Idle</span>
+              </button>
+              <button class="btn btn-sm btn-crimson" id="btnExhaustPool" data-testid="btn-exhaust-pool">
+                <span class="luminous-icon glow-crimson">⚠️</span>
+                <span>Exhaust (53300)</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="pool-section-grid">
+            <!-- Circular Donut SVG -->
+            <div class="gauge-wrapper">
+              <svg class="gauge-svg" viewBox="0 0 120 120" id="poolGaugeSvg">
+                <circle class="gauge-bg" cx="60" cy="60" r="48" />
+                <circle class="gauge-segment" id="gaugeActive" cx="60" cy="60" r="48" stroke="#10b981" stroke-dasharray="0 301.59" />
+                <circle class="gauge-segment" id="gaugeIdleTx" cx="60" cy="60" r="48" stroke="#f59e0b" stroke-dasharray="0 301.59" />
+                <circle class="gauge-segment" id="gaugeIdle" cx="60" cy="60" r="48" stroke="#3b82f6" stroke-dasharray="0 301.59" />
+                <circle class="gauge-segment" id="gaugeReserved" cx="60" cy="60" r="48" stroke="#a855f7" stroke-dasharray="0 301.59" />
+              </svg>
+              <div class="gauge-center-text">
+                <span class="gauge-percent" id="poolSaturationPercent" style="color:var(--emerald-light);">42%</span>
+                <span class="gauge-label">Saturation</span>
+              </div>
+            </div>
+
+            <!-- Detailed Metrics Breakdown -->
+            <div class="pool-metrics-list">
+              <div class="pool-metric-row">
+                <div class="pool-metric-header">
+                  <span style="color:var(--emerald-light);">🟢 Active Connections</span>
+                  <span id="metricActiveCount">42 / 100</span>
+                </div>
+                <div class="pool-bar-track">
+                  <div class="pool-bar-fill" id="barActive" style="background:var(--emerald-primary); width:42%;"></div>
+                </div>
+              </div>
+
+              <div class="pool-metric-row">
+                <div class="pool-metric-header">
+                  <span style="color:var(--amber-light);">🟡 Idle in Transaction</span>
+                  <span id="metricIdleTxCount">18 / 100</span>
+                </div>
+                <div class="pool-bar-track">
+                  <div class="pool-bar-fill" id="barIdleTx" style="background:var(--amber-primary); width:18%;"></div>
+                </div>
+              </div>
+
+              <div class="pool-metric-row">
+                <div class="pool-metric-header">
+                  <span style="color:var(--blue-light);">🔵 Idle (Ready in Pool)</span>
+                  <span id="metricIdleCount">25 / 100</span>
+                </div>
+                <div class="pool-bar-track">
+                  <div class="pool-bar-fill" id="barIdle" style="background:var(--blue-primary); width:25%;"></div>
+                </div>
+              </div>
+
+              <div class="pool-metric-row">
+                <div class="pool-metric-header">
+                  <span style="color:var(--violet-light);">🟣 Reserved (Superuser/WAL)</span>
+                  <span id="metricReservedCount">5 / 100</span>
+                </div>
+                <div class="pool-bar-track">
+                  <div class="pool-bar-fill" id="barReserved" style="background:var(--violet-primary); width:5%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Panel 4: Slow Query & Lock Contention Inspector -->
+        <section class="panel" data-testid="panel-queries">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="luminous-icon glow-emerald">🔍</span>
+              <span>Slow Queries & Lock Contention (pg_stat_statements & pg_locks)</span>
+            </div>
+            <div class="panel-controls">
+              <button class="btn btn-sm btn-crimson" id="btnInjectLock" data-testid="btn-inject-lock">
+                <span class="luminous-icon glow-crimson">🔒</span>
+                <span>Inject Lock Contention</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-controls-bar">
+            <div class="search-input-box">
+              <span class="search-icon">🔎</span>
+              <input type="text" class="search-input" id="querySearchInput" placeholder="Filter SQL queries, PID, user..." data-testid="input-query-search">
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-sm active" id="filterAllQueries" data-filter="all">All (<span id="countAllQueries">4</span>)</button>
+              <button class="btn btn-sm" id="filterSlowQueries" data-filter="slow">Slow &gt;100ms</button>
+              <button class="btn btn-sm" id="filterLockedQueries" data-filter="locked">Locked Only</button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="sql-table" id="sqlQueryTable" data-testid="table-sql-queries">
+              <thead>
+                <tr>
+                  <th>PID</th>
+                  <th>User / Client</th>
+                  <th>Lock Mode</th>
+                  <th>Blocked By</th>
+                  <th>Duration</th>
+                  <th>SQL Query</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sqlTableBody">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Panel 5: Cloud KMS CMEK Cryptographic Guard -->
+        <section class="panel" data-testid="panel-cmek">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="luminous-icon glow-violet">🔐</span>
+              <span>Customer-Managed Encryption Keys (cloudkms.googleapis.com)</span>
+            </div>
+            <div class="panel-controls">
+              <button class="btn btn-sm btn-blue" id="btnRotateKms" data-testid="btn-rotate-kms">
+                <span class="luminous-icon glow-violet">🔄</span>
+                <span>Rotate Key Version</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="cmek-grid">
+            <div class="cmek-info-card">
+              <span class="cmek-info-title">Key Resource Path</span>
+              <span class="cmek-info-val" style="font-size:0.72rem;">.../sql-kr/cryptoKeys/key-cloudsql-postgres-cmek</span>
+            </div>
+            <div class="cmek-info-card">
+              <span class="cmek-info-title">Hardware Security Module</span>
+              <span class="cmek-info-val">Google Cloud HSM (FIPS 140-2 L3)</span>
+            </div>
+            <div class="cmek-info-card">
+              <span class="cmek-info-title">Key Auto-Rotation Period</span>
+              <span class="cmek-info-val" id="cmekRotationCountdown">24 Days Remaining (90d cycle)</span>
+            </div>
+            <div class="cmek-info-card">
+              <span class="cmek-info-title">WAL & Storage Cryptographic Status</span>
+              <span class="cmek-info-val" style="color:var(--emerald-light);">ACTIVE (Zero Disk Cleartext)</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Bottom Full-Width Operations Console -->
+    <section class="panel" data-testid="panel-terminal">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="luminous-icon glow-emerald">📟</span>
+          <span>Real-Time Streaming Operations & Cloud Audit Console (logging.googleapis.com)</span>
+        </div>
+        <div class="panel-controls">
+          <div class="terminal-tabs">
+            <button class="terminal-tab active" data-log-filter="ALL">ALL</button>
+            <button class="terminal-tab" data-log-filter="INFO">INFO</button>
+            <button class="terminal-tab" data-log-filter="WARN">WARN</button>
+            <button class="terminal-tab" data-log-filter="ERROR">ERROR</button>
+            <button class="terminal-tab" data-log-filter="SECURITY">SECURITY</button>
+          </div>
+          <button class="btn btn-sm" id="btnClearLogs" data-testid="btn-clear-logs">Clear</button>
+        </div>
+      </div>
+
+      <div class="terminal-container">
+        <div class="terminal-header">
+          <span>Stream Target: projects/prj-prod-payments-9941/logs/cloudaudit.googleapis.com%2Fdata_access</span>
+          <span style="color:var(--emerald-light);" id="terminalLiveBadge">● LIVE STREAMING</span>
+        </div>
+        <div class="terminal-logs" id="terminalLogFeed" data-testid="terminal-log-feed">
+          <!-- Live Streaming Log Entries -->
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Explain Plan Modal -->
+  <div class="modal-backdrop" id="explainModal" data-testid="modal-explain">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="luminous-icon glow-blue">⚡</span>
+          <span id="explainModalTitle">PostgreSQL EXPLAIN ANALYZE Plan</span>
+        </div>
+        <button class="btn btn-sm btn-icon" id="btnCloseExplainModal">✕</button>
+      </div>
+      <div class="modal-body" id="explainModalContent">
+        <!-- Execution plan details -->
+      </div>
+      <div style="display:flex; justify-content:flex-end;">
+        <button class="btn btn-blue btn-sm" id="btnDismissExplain">Close Plan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ==========================================================================
+       APPLICATION LOGIC & CORE ENGINE (ES6+ MODERN MODULAR ARCHITECTURE)
+       ========================================================================== -->
+  <script>
+    /**
+     * Web Audio API Synthesizer for Cyberpunk Mission Control Feedback
+     */
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx && typeof AudioContext !== 'undefined') {
+          try {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          } catch (e) {
+            console.warn('AudioContext not supported', e);
+          }
+        }
+      }
+
+      playTone(freq, type, duration, gainVal = 0.05) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          // Ignore audio errors
+        }
+      }
+
+      playClick() { this.playTone(880, 'sine', 0.08, 0.03); }
+      playSuccess() { 
+        this.playTone(587, 'sine', 0.12, 0.04);
+        setTimeout(() => this.playTone(880, 'triangle', 0.25, 0.05), 80);
+      }
+      playWarn() { this.playTone(330, 'sawtooth', 0.2, 0.05); }
+      playAlarm() {
+        this.playTone(220, 'sawtooth', 0.35, 0.08);
+        setTimeout(() => this.playTone(180, 'sawtooth', 0.35, 0.08), 120);
+      }
+    }
+
+    /**
+     * Interactive Canvas Topology & 60FPS Packet Physics Engine
+     */
+    class TopologyEngine {
+      constructor(canvas, onNodeClick) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.onNodeClick = onNodeClick;
+        this.speed = 1.0;
+        this.packets = [];
+        this.activeRoute = 'A'; // 'A' = Zone A Primary, 'B' = Zone B Promoted
+        this.zoneAStatus = 'HEALTHY'; // 'HEALTHY', 'CRASHED', 'REPROVISIONING'
+        this.zoneBStatus = 'STANDBY'; // 'STANDBY', 'PRIMARY'
+        this.lastTime = performance.now();
+        this.animFrameId = null;
+
+        this.initDimensions();
+        window.addEventListener('resize', () => this.initDimensions());
+
+        this.setupNodes();
+        this.spawnPacketsContinuous();
+        this.render();
+      }
+
+      initDimensions() {
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        this.width = rect.width || 800;
+        this.height = rect.height || 380;
+        const dpr = window.devicePixelRatio || 1;
+        this.canvas.width = this.width * dpr;
+        this.canvas.height = this.height * dpr;
+        this.ctx.scale(dpr, dpr);
+        this.setupNodes();
+      }
+
+      setupNodes() {
+        const w = this.width;
+        const h = this.height;
+
+        this.nodes = {
+          clientVM: {
+            id: 'clientVM',
+            name: 'GCE App Client',
+            ip: '10.140.10.15',
+            sub: 'sb-app-private',
+            x: w * 0.12,
+            y: h * 0.45,
+            icon: '💻',
+            color: '#3b82f6',
+            status: 'ACTIVE'
+          },
+          vpcTunnel: {
+            id: 'vpcTunnel',
+            name: 'VPC Peering Router',
+            ip: '10.200.0.1 (BGP)',
+            sub: 'servicenetworking',
+            x: w * 0.40,
+            y: h * 0.45,
+            icon: '🔀',
+            color: '#06b6d4',
+            status: 'CONNECTED'
+          },
+          zoneA: {
+            id: 'zoneA',
+            name: 'Cloud SQL Primary (Zone A)',
+            ip: '10.200.0.12',
+            sub: 'us-east4-a',
+            x: w * 0.76,
+            y: h * 0.26,
+            icon: '🐘',
+            color: '#10b981',
+            status: 'PRIMARY (RW)'
+          },
+          zoneB: {
+            id: 'zoneB',
+            name: 'Cloud SQL Standby (Zone B)',
+            ip: '10.200.0.13',
+            sub: 'us-east4-b',
+            x: w * 0.76,
+            y: h * 0.72,
+            icon: '🛡️',
+            color: '#a855f7',
+            status: 'STANDBY (SYNC)'
+          },
+          cmekVault: {
+            id: 'cmekVault',
+            name: 'Cloud KMS Key Vault',
+            ip: 'key-cloudsql-postgres-cmek',
+            sub: 'AES-256-GCM',
+            x: w * 0.94,
+            y: h * 0.48,
+            icon: '🔐',
+            color: '#c084fc',
+            status: 'ENCRYPTED'
+          }
+        };
+      }
+
+      spawnPacket(source, target, color = '#34d399', size = 4) {
+        this.packets.push({
+          source,
+          target,
+          progress: 0,
+          speed: (0.006 + Math.random() * 0.004) * this.speed,
+          color,
+          size,
+          id: Math.random()
+        });
+      }
+
+      spawnBurst(count = 20) {
+        const target = this.activeRoute === 'A' ? 'zoneA' : 'zoneB';
+        const color = this.activeRoute === 'A' ? '#10b981' : '#60a5fa';
+        for (let i = 0; i < count; i++) {
+          setTimeout(() => {
+            this.spawnPacket('clientVM', 'vpcTunnel', '#3b82f6', 5);
+            setTimeout(() => {
+              this.spawnPacket('vpcTunnel', target, color, 5);
+            }, 300);
+          }, i * 40);
+        }
+      }
+
+      spawnPacketsContinuous() {
+        setInterval(() => {
+          if (this.packets.length < 25) {
+            this.spawnPacket('clientVM', 'vpcTunnel', '#3b82f6', 3.5);
+            const targetNode = this.activeRoute === 'A' ? 'zoneA' : 'zoneB';
+            const color = this.activeRoute === 'A' ? '#10b981' : '#60a5fa';
+            setTimeout(() => {
+              this.spawnPacket('vpcTunnel', targetNode, color, 3.5);
+            }, 350 / this.speed);
+
+            // Replicate WAL from Primary to Standby if dual-zone
+            if (this.zoneAStatus === 'HEALTHY' && this.zoneBStatus === 'STANDBY') {
+              if (Math.random() > 0.4) {
+                this.spawnPacket('zoneA', 'zoneB', '#a855f7', 2.5);
+              }
+            }
+          }
+        }, 320);
+      }
+
+      render() {
+        const now = performance.now();
+        const delta = (now - this.lastTime) / 1000;
+        this.lastTime = now;
+
+        this.ctx.clearRect(0, 0, this.width, this.height);
+
+        // Draw background grid lines inside canvas
+        this.drawCanvasGrid();
+
+        // Draw Links between nodes
+        this.drawLinks();
+
+        // Update and draw packets
+        this.updateAndDrawPackets(delta);
+
+        // Draw Nodes
+        this.drawNodes();
+
+        this.animFrameId = requestAnimationFrame(() => this.render());
+      }
+
+      drawCanvasGrid() {
+        this.ctx.save();
+        this.ctx.strokeStyle = 'rgba(59, 130, 246, 0.05)';
+        this.ctx.lineWidth = 1;
+        const step = 30;
+        for (let x = 0; x < this.width; x += step) {
+          this.ctx.beginPath();
+          this.ctx.moveTo(x, 0);
+          this.ctx.lineTo(x, this.height);
+          this.ctx.stroke();
+        }
+        for (let y = 0; y < this.height; y += step) {
+          this.ctx.beginPath();
+          this.ctx.moveTo(0, y);
+          this.ctx.lineTo(this.width, y);
+          this.ctx.stroke();
+        }
+        this.ctx.restore();
+      }
+
+      drawLinks() {
+        const { clientVM, vpcTunnel, zoneA, zoneB, cmekVault } = this.nodes;
+
+        // Link 1: VM -> VPC Tunnel
+        this.drawSplineLink(clientVM, vpcTunnel, '#3b82f6', 2.5, '10.140.10.0/24 -> PSA');
+
+        // Link 2: VPC Tunnel -> Zone A
+        const isRouteA = this.activeRoute === 'A';
+        const colorA = this.zoneAStatus === 'CRASHED' ? '#ef4444' : (isRouteA ? '#10b981' : 'rgba(255,255,255,0.15)');
+        this.drawSplineLink(vpcTunnel, zoneA, colorA, isRouteA ? 3 : 1.5, '10.200.0.12 (Zone A)', this.zoneAStatus === 'CRASHED');
+
+        // Link 3: VPC Tunnel -> Zone B
+        const isRouteB = this.activeRoute === 'B';
+        const colorB = isRouteB ? '#60a5fa' : 'rgba(168, 85, 247, 0.4)';
+        this.drawSplineLink(vpcTunnel, zoneB, colorB, isRouteB ? 3 : 1.5, '10.200.0.13 (Zone B)');
+
+        // Link 4: Zone A -> Zone B (Synchronous WAL Replication)
+        if (this.zoneAStatus === 'HEALTHY' && this.zoneBStatus === 'STANDBY') {
+          this.drawSplineLink(zoneA, zoneB, '#a855f7', 1.5, 'Sync WAL (0ms)');
+        }
+
+        // Link 5: Primary DB -> CMEK Vault
+        const activePrimary = this.activeRoute === 'A' ? zoneA : zoneB;
+        if (this.zoneAStatus !== 'CRASHED' || this.activeRoute === 'B') {
+          this.drawSplineLink(activePrimary, cmekVault, '#c084fc', 1.5, 'CMEK Guard');
+        }
+      }
+
+      drawSplineLink(n1, n2, color, width, label, isBroken = false) {
+        this.ctx.save();
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = width;
+        if (isBroken) {
+          this.ctx.setLineDash([6, 6]);
+        }
+
+        this.ctx.beginPath();
+        const midX = (n1.x + n2.x) / 2;
+        this.ctx.moveTo(n1.x, n1.y);
+        this.ctx.bezierCurveTo(midX, n1.y, midX, n2.y, n2.x, n2.y);
+        this.ctx.stroke();
+
+        // Draw subtle glow if active
+        if (width > 2 && !isBroken) {
+          this.ctx.strokeStyle = color;
+          this.ctx.globalAlpha = 0.3;
+          this.ctx.lineWidth = width + 4;
+          this.ctx.stroke();
+        }
+
+        this.ctx.restore();
+      }
+
+      updateAndDrawPackets(delta) {
+        for (let i = this.packets.length - 1; i >= 0; i--) {
+          const p = this.packets[i];
+          p.progress += p.speed * (this.speed || 1);
+
+          if (p.progress >= 1) {
+            this.packets.splice(i, 1);
+            continue;
+          }
+
+          const n1 = this.nodes[p.source];
+          const n2 = this.nodes[p.target];
+          if (!n1 || !n2) {
+            this.packets.splice(i, 1);
+            continue;
+          }
+
+          const t = p.progress;
+          const midX = (n1.x + n2.x) / 2;
+          
+          // Cubic Bezier interpolation
+          const cx = Math.pow(1 - t, 3) * n1.x + 3 * Math.pow(1 - t, 2) * t * midX + 3 * (1 - t) * Math.pow(t, 2) * midX + Math.pow(t, 3) * n2.x;
+          const cy = Math.pow(1 - t, 3) * n1.y + 3 * Math.pow(1 - t, 2) * t * n1.y + 3 * (1 - t) * Math.pow(t, 2) * n2.y + Math.pow(t, 3) * n2.y;
+
+          this.ctx.save();
+          this.ctx.fillStyle = p.color;
+          this.ctx.shadowColor = p.color;
+          this.ctx.shadowBlur = 8;
+          this.ctx.beginPath();
+          this.ctx.arc(cx, cy, p.size, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
+        }
+      }
+
+      drawNodes() {
+        for (const key in this.nodes) {
+          const node = this.nodes[key];
+          this.drawSingleNode(node);
+        }
+      }
+
+      drawSingleNode(node) {
+        const { x, y, name, ip, icon, color, status, id } = node;
+
+        this.ctx.save();
+
+        // Node Glow Halo
+        let haloColor = color;
+        let isPulsing = false;
+        if (id === 'zoneA' && this.zoneAStatus === 'CRASHED') {
+          haloColor = '#ef4444';
+          isPulsing = true;
+        } else if (id === 'zoneB' && this.zoneBStatus === 'PRIMARY') {
+          haloColor = '#10b981';
+        }
+
+        const radius = 24;
+        const pulse = isPulsing ? Math.sin(performance.now() * 0.008) * 4 : 0;
+
+        // Background Circle
+        this.ctx.fillStyle = '#060d1b';
+        this.ctx.strokeStyle = haloColor;
+        this.ctx.lineWidth = 2;
+        this.ctx.shadowColor = haloColor;
+        this.ctx.shadowBlur = 12 + pulse;
+
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, radius + pulse, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        // Icon inside circle
+        this.ctx.shadowBlur = 0;
+        this.ctx.font = '16px sans-serif';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(icon, x, y);
+
+        // Labels
+        this.ctx.font = 'bold 11px Inter, sans-serif';
+        this.ctx.fillStyle = '#f8fafc';
+        this.ctx.fillText(name, x, y + 36);
+
+        this.ctx.font = '10px "JetBrains Mono", monospace';
+        this.ctx.fillStyle = '#94a3b8';
+        this.ctx.fillText(ip, x, y + 49);
+
+        // Status Badge Pill
+        let badgeBg = 'rgba(16, 185, 129, 0.2)';
+        let badgeText = '#34d399';
+        let badgeLabel = status;
+
+        if (id === 'zoneA' && this.zoneAStatus === 'CRASHED') {
+          badgeBg = 'rgba(239, 68, 68, 0.3)';
+          badgeText = '#f87171';
+          badgeLabel = 'CRASHED / OFFLINE';
+        } else if (id === 'zoneA' && this.zoneAStatus === 'REPROVISIONING') {
+          badgeBg = 'rgba(245, 158, 11, 0.25)';
+          badgeText = '#fbbf24';
+          badgeLabel = 'REPROVISIONING...';
+        } else if (id === 'zoneB' && this.zoneBStatus === 'PRIMARY') {
+          badgeBg = 'rgba(16, 185, 129, 0.25)';
+          badgeText = '#34d399';
+          badgeLabel = 'PROMOTED PRIMARY (RW)';
+        }
+
+        const bWidth = this.ctx.measureText(badgeLabel).width + 12;
+        this.ctx.fillStyle = badgeBg;
+        this.ctx.strokeStyle = badgeText;
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        this.ctx.roundRect(x - bWidth / 2, y + 56, bWidth, 16, 8);
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        this.ctx.fillStyle = badgeText;
+        this.ctx.font = 'bold 9px "JetBrains Mono", monospace';
+        this.ctx.fillText(badgeLabel, x, y + 68);
+
+        this.ctx.restore();
+      }
+    }
+
+    /**
+     * Master Cloud SQL & VPC Networking Hub Engine
+     */
+    class GcpSqlNetworkingApp {
+      constructor() {
+        this.sound = new SoundEngine();
+        this.activeFilter = 'all';
+        this.searchQuery = '';
+        
+        // Cluster State
+        this.state = {
+          clusterHealth: 'HEALTHY_DUAL_ZONE',
+          activeZone: 'us-east4-a',
+          standbyZone: 'us-east4-b',
+          primaryIp: '10.200.0.12',
+          failoverInProgress: false,
+          failoverStartTime: 0,
+          failoverDuration: 0,
+          reprovisioning: false,
+          
+          // Connection Pool Metrics
+          pool: {
+            maxConnections: 100,
+            active: 42,
+            idleInTx: 18,
+            idle: 25,
+            reserved: 5,
+            avgWaitMs: 1.8,
+            mode: 'transaction'
+          },
+
+          // Active SQL Queries (pg_stat_activity & pg_locks)
+          queries: [
+            {
+              pid: 14829,
+              user: 'app_payment_svc',
+              clientIp: '10.140.10.15:48210',
+              lockMode: 'ExclusiveLock',
+              blockedBy: null,
+              durationMs: 4250,
+              state: 'active',
+              query: 'UPDATE accounts SET balance = balance - 1500.00 WHERE account_id = 998412 FOR UPDATE;',
+              plan: 'Update on accounts  (cost=0.42..8.44 rows=1 width=48) (actual time=4249.81..4249.82 rows=0 loops=1)\n  ->  Index Scan using accounts_pkey on accounts  (cost=0.42..8.44 rows=1 width=48)\n        Index Cond: (account_id = 998412)\n        Lock Rows: ExclusiveLock held on Row ID (14, 8)'
+            },
+            {
+              pid: 14835,
+              user: 'app_checkout_worker',
+              clientIp: '10.140.10.15:48218',
+              lockMode: 'RowShareLock',
+              blockedBy: 14829,
+              durationMs: 3820,
+              state: 'waiting',
+              query: 'SELECT balance, status FROM accounts WHERE account_id = 998412 FOR SHARE;',
+              plan: 'LockRows (cost=0.42..8.44 rows=1 width=48) (actual time=3819.50..3819.51)\n  ->  Index Scan using accounts_pkey on accounts\n  Waiting for transaction ExclusiveLock on PID 14829'
+            },
+            {
+              pid: 15012,
+              user: 'analytics_sync',
+              clientIp: '10.140.10.18:51200',
+              lockMode: 'AccessShareLock',
+              blockedBy: null,
+              durationMs: 1250,
+              state: 'active',
+              query: 'SELECT customer_id, SUM(amount) FROM transaction_ledger WHERE created_at >= NOW() - INTERVAL \'24 hours\' GROUP BY customer_id;',
+              plan: 'HashAggregate  (cost=42150.00..45200.00 rows=25000 width=40) (actual time=1248.12..1249.30)\n  ->  Seq Scan on transaction_ledger (Filter without index)'
+            },
+            {
+              pid: 15104,
+              user: 'iam_auth_proxy',
+              clientIp: '10.140.10.22:39910',
+              lockMode: 'None',
+              blockedBy: null,
+              durationMs: 4,
+              state: 'active',
+              query: 'SELECT sa_email, permissions FROM iam_token_cache WHERE sa_email = \'sa-payment-processor@prj.iam.gserviceaccount.com\';',
+              plan: 'Index Scan using iam_token_cache_email_idx (cost=0.15..2.40 rows=1 width=64) (actual time=0.03..0.04 rows=1)'
+            }
+          ],
+
+          // CMEK Configuration
+          cmek: {
+            status: 'ACTIVE',
+            keyVersion: 'v3',
+            algorithm: 'GOOGLE_SYMMETRIC_ENCRYPTION (AES-256-GCM)',
+            keyRing: 'sql-kr',
+            daysRemaining: 24
+          },
+
+          // Streaming Logs
+          logs: []
+        };
+
+        this.initDomReferences();
+        this.initTopology();
+        this.initEventListeners();
+        this.startClock();
+        this.startBackgroundMetricsSimulation();
+        this.renderAll();
+
+        this.log('NOTICE', 'Cloud SQL HA & Private VPC Peering Hub initialized. Peering range: 10.200.0.0/20');
+        this.log('INFO', 'Synchronous WAL streaming verified with standby replica in us-east4-b (LSN: 0/9A4F820)');
+        this.log('SEC', 'CMEK key encryption validated for database storage blocks and WAL records (Key: sql-kr/v3)');
+      }
+
+      initDomReferences() {
+        this.dom = {
+          haClusterBadge: document.getElementById('haClusterBadge'),
+          haStatusText: document.getElementById('haStatusText'),
+          utcTime: document.getElementById('utcTime'),
+          btnSoundToggle: document.getElementById('btnSoundToggle'),
+          soundIcon: document.getElementById('soundIcon'),
+          soundLabel: document.getElementById('soundLabel'),
+          btnExportReport: document.getElementById('btnExportReport'),
+
+          // KPIs
+          kpiPeeringStatus: document.getElementById('kpiPeeringStatus'),
+          kpiRtt: document.getElementById('kpiRtt'),
+          kpiPrimaryZone: document.getElementById('kpiPrimaryZone'),
+          kpiPoolSaturation: document.getElementById('kpiPoolSaturation'),
+          kpiPoolFraction: document.getElementById('kpiPoolFraction'),
+          kpiPoolWait: document.getElementById('kpiPoolWait'),
+          kpiCmekStatus: document.getElementById('kpiCmekStatus'),
+
+          // Canvas & Topology
+          topologyCanvas: document.getElementById('topologyCanvas'),
+          btnSpeed05: document.getElementById('btnSpeed05'),
+          btnSpeed10: document.getElementById('btnSpeed10'),
+          btnSpeed20: document.getElementById('btnSpeed20'),
+          btnSendPacketBurst: document.getElementById('btnSendPacketBurst'),
+          topoThroughput: document.getElementById('topoThroughput'),
+          topoJitter: document.getElementById('topoJitter'),
+
+          // Failover
+          failoverStopwatch: document.getElementById('failoverStopwatch'),
+          btnSimulateCrash: document.getElementById('btnSimulateCrash'),
+          btnReprovision: document.getElementById('btnReprovision'),
+          failoverStepper: document.getElementById('failoverStepper'),
+
+          // Pool
+          btnInjectBurst: document.getElementById('btnInjectBurst'),
+          btnDrainPool: document.getElementById('btnDrainPool'),
+          btnExhaustPool: document.getElementById('btnExhaustPool'),
+          poolSaturationPercent: document.getElementById('poolSaturationPercent'),
+          gaugeActive: document.getElementById('gaugeActive'),
+          gaugeIdleTx: document.getElementById('gaugeIdleTx'),
+          gaugeIdle: document.getElementById('gaugeIdle'),
+          gaugeReserved: document.getElementById('gaugeReserved'),
+          metricActiveCount: document.getElementById('metricActiveCount'),
+          metricIdleTxCount: document.getElementById('metricIdleTxCount'),
+          metricIdleCount: document.getElementById('metricIdleCount'),
+          metricReservedCount: document.getElementById('metricReservedCount'),
+          barActive: document.getElementById('barActive'),
+          barIdleTx: document.getElementById('barIdleTx'),
+          barIdle: document.getElementById('barIdle'),
+          barReserved: document.getElementById('barReserved'),
+
+          // Query Table
+          btnInjectLock: document.getElementById('btnInjectLock'),
+          querySearchInput: document.getElementById('querySearchInput'),
+          filterAllQueries: document.getElementById('filterAllQueries'),
+          filterSlowQueries: document.getElementById('filterSlowQueries'),
+          filterLockedQueries: document.getElementById('filterLockedQueries'),
+          countAllQueries: document.getElementById('countAllQueries'),
+          sqlTableBody: document.getElementById('sqlTableBody'),
+
+          // CMEK
+          btnRotateKms: document.getElementById('btnRotateKms'),
+          cmekRotationCountdown: document.getElementById('cmekRotationCountdown'),
+
+          // Logs
+          terminalLogFeed: document.getElementById('terminalLogFeed'),
+          btnClearLogs: document.getElementById('btnClearLogs'),
+
+          // Explain Modal
+          explainModal: document.getElementById('explainModal'),
+          explainModalTitle: document.getElementById('explainModalTitle'),
+          explainModalContent: document.getElementById('explainModalContent'),
+          btnCloseExplainModal: document.getElementById('btnCloseExplainModal'),
+          btnDismissExplain: document.getElementById('btnDismissExplain'),
+
+          // Toast
+          toastContainer: document.getElementById('toastContainer')
+        };
+      }
+
+      initTopology() {
+        this.topology = new TopologyEngine(this.dom.topologyCanvas, (node) => {
+          this.log('INFO', `Topology node inspected: ${node.name} (${node.ip})`);
+        });
+      }
+
+      initEventListeners() {
+        // Sound toggle
+        this.dom.btnSoundToggle.addEventListener('click', () => {
+          this.sound.muted = !this.sound.muted;
+          this.dom.soundIcon.textContent = this.sound.muted ? '🔇' : '🔊';
+          this.dom.soundLabel.textContent = this.sound.muted ? 'Audio Muted' : 'Audio ON';
+          this.sound.playClick();
+          this.showToast(this.sound.muted ? 'Audio effects disabled' : 'Audio effects enabled');
+        });
+
+        // Speed controls
+        this.dom.btnSpeed05.addEventListener('click', () => this.setPacketSpeed(0.5));
+        this.dom.btnSpeed10.addEventListener('click', () => this.setPacketSpeed(1.0));
+        this.dom.btnSpeed20.addEventListener('click', () => this.setPacketSpeed(2.0));
+
+        // Packet Burst
+        this.dom.btnSendPacketBurst.addEventListener('click', () => {
+          this.sound.playClick();
+          this.topology.spawnBurst(25);
+          this.showToast('Triggered high-throughput packet burst across VPC peering tunnel');
+          this.log('INFO', 'Network packet burst transmitted: 25 synthetic client SQL queries');
+        });
+
+        // Failover & Crash Simulation
+        this.dom.btnSimulateCrash.addEventListener('click', () => this.simulatePrimaryCrash());
+        this.dom.btnReprovision.addEventListener('click', () => this.reprovisionReplica());
+
+        // Pool Controls
+        this.dom.btnInjectBurst.addEventListener('click', () => this.injectBurst(25));
+        this.dom.btnDrainPool.addEventListener('click', () => this.drainPool());
+        this.dom.btnExhaustPool.addEventListener('click', () => this.simulatePoolExhaustion());
+
+        // Query Search & Filters
+        this.dom.querySearchInput.addEventListener('input', (e) => {
+          this.searchQuery = e.target.value.toLowerCase();
+          this.renderQueryTable();
+        });
+
+        const filterBtns = [this.dom.filterAllQueries, this.dom.filterSlowQueries, this.dom.filterLockedQueries];
+        filterBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            this.activeFilter = btn.dataset.filter;
+            this.sound.playClick();
+            this.renderQueryTable();
+          });
+        });
+
+        this.dom.btnInjectLock.addEventListener('click', () => this.injectLockContention());
+
+        // CMEK Rotation
+        this.dom.btnRotateKms.addEventListener('click', () => this.rotateKmsKey());
+
+        // Export Report
+        this.dom.btnExportReport.addEventListener('click', () => this.exportTelemetry());
+
+        // Clear Logs
+        this.dom.btnClearLogs.addEventListener('click', () => {
+          this.dom.terminalLogFeed.innerHTML = '';
+          this.showToast('Audit log terminal cleared');
+        });
+
+        // Log Filter Tabs
+        document.querySelectorAll('.terminal-tab').forEach(tab => {
+          tab.addEventListener('click', (e) => {
+            document.querySelectorAll('.terminal-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            this.filterLogs(tab.dataset.logFilter);
+          });
+        });
+
+        // Modal Close
+        const closeModal = () => this.dom.explainModal.classList.remove('open');
+        this.dom.btnCloseExplainModal.addEventListener('click', closeModal);
+        this.dom.btnDismissExplain.addEventListener('click', closeModal);
+        this.dom.explainModal.addEventListener('click', (e) => {
+          if (e.target === this.dom.explainModal) closeModal();
+        });
+      }
+
+      startClock() {
+        setInterval(() => {
+          const now = new Date();
+          this.dom.utcTime.textContent = now.toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+        }, 1000);
+      }
+
+      startBackgroundMetricsSimulation() {
+        setInterval(() => {
+          if (!this.state.failoverInProgress) {
+            // Jitter RTT between 0.72ms and 0.95ms
+            const rtt = (0.75 + Math.random() * 0.18).toFixed(2);
+            this.dom.kpiRtt.textContent = `${rtt} ms`;
+
+            // Jitter Throughput
+            const pps = Math.floor(1380 + Math.random() * 120);
+            this.dom.topoThroughput.textContent = `${pps.toLocaleString()} pkts/s`;
+
+            // Jitter Jitter metric
+            const jit = (0.10 + Math.random() * 0.05).toFixed(2);
+            this.dom.topoJitter.textContent = `${jit} ms`;
+
+            // Random slight variations in connection pool
+            if (Math.random() > 0.6) {
+              const delta = (Math.random() > 0.5 ? 1 : -1);
+              this.state.pool.active = Math.max(15, Math.min(85, this.state.pool.active + delta));
+              this.renderPoolGauge();
+            }
+          }
+        }, 2000);
+      }
+
+      setPacketSpeed(speed) {
+        this.topology.speed = speed;
+        this.dom.btnSpeed05.className = `btn btn-sm ${speed === 0.5 ? 'btn-blue' : ''}`;
+        this.dom.btnSpeed10.className = `btn btn-sm ${speed === 1.0 ? 'btn-blue' : ''}`;
+        this.dom.btnSpeed20.className = `btn btn-sm ${speed === 2.0 ? 'btn-blue' : ''}`;
+        this.sound.playClick();
+        this.showToast(`Packet animation speed set to ${speed}x`);
+      }
+
+      /**
+       * 7-Step Automated Primary Node Crash & HA Failover Engine
+       */
+      async simulatePrimaryCrash() {
+        if (this.state.failoverInProgress) {
+          this.showToast('Failover sequence already in progress...', true);
+          return;
+        }
+
+        this.sound.playAlarm();
+        this.state.failoverInProgress = true;
+        this.state.failoverStartTime = performance.now();
+        this.dom.btnSimulateCrash.disabled = true;
+        this.dom.btnSimulateCrash.style.opacity = '0.5';
+
+        // Update Cluster Status Badge
+        this.dom.haClusterBadge.className = 'badge-chip ha-degraded';
+        this.dom.haStatusText.textContent = 'FAILOVER IN PROGRESS (0/7)...';
+        this.showToast('CRITICAL: Primary Node Crash detected in us-east4-a! Initiating automated failover sequence...', true);
+
+        // Reset Stepper
+        const steps = this.dom.failoverStepper.querySelectorAll('.stepper-node');
+        steps.forEach(s => s.className = 'stepper-node');
+
+        // Start Stopwatch
+        const stopwatchInterval = setInterval(() => {
+          const elapsed = performance.now() - this.state.failoverStartTime;
+          const s = Math.floor(elapsed / 1000);
+          const ms = Math.floor(elapsed % 1000);
+          this.dom.failoverStopwatch.textContent = `${String(s).padStart(2, '0')}:${String(ms).padStart(3, '0')}`;
+        }, 33);
+
+        // Step 1: Heartbeat Failure (0.0s)
+        this.setStepStatus(1, 'active');
+        this.topology.zoneAStatus = 'CRASHED';
+        this.log('ERROR', 'HEALTH_CHECK_FAILED: Primary instance pg-cluster-prod-01 (us-east4-a) unresponsive to keepalive pings');
+        await this.sleep(600);
+        this.setStepStatus(1, 'completed');
+
+        // Step 2: Split-Brain Fencing (0.6s)
+        this.setStepStatus(2, 'active');
+        this.log('WARN', 'FENCING_ACTIVE: Revoked IO credentials on Zone A storage volume to prevent split-brain write corruption');
+        await this.sleep(600);
+        this.setStepStatus(2, 'completed');
+
+        // Step 3: Standby WAL Verification (1.2s)
+        this.setStepStatus(3, 'active');
+        this.log('INFO', 'WAL_CHECK: Standby replica pg-cluster-prod-01-standby (us-east4-b) verified at consistent LSN 0/9A4F820');
+        await this.sleep(700);
+        this.setStepStatus(3, 'completed');
+
+        // Step 4: Standby Promotion (1.9s)
+        this.setStepStatus(4, 'active');
+        this.topology.zoneBStatus = 'PRIMARY';
+        this.topology.activeRoute = 'B';
+        this.state.activeZone = 'us-east4-b';
+        this.dom.kpiPrimaryZone.textContent = 'Zone B (us-east4-b)';
+        this.dom.kpiPrimaryZone.style.color = '#60a5fa';
+        this.log('NOTICE', 'REPLICA_PROMOTED: Standby replica in us-east4-b promoted to Read-Write Primary via sqladmin.instances.promote');
+        await this.sleep(800);
+        this.setStepStatus(4, 'completed');
+
+        // Step 5: Route Cutover & BGP Update (2.7s)
+        this.setStepStatus(5, 'active');
+        this.log('INFO', 'BGP_ROUTE_CUTOVER: Service Networking internal DNS VIP 10.200.0.10 remapped from 10.200.0.12 to 10.200.0.13');
+        await this.sleep(700);
+        this.setStepStatus(5, 'completed');
+
+        // Step 6: PgBouncer Reconnect (3.4s)
+        this.setStepStatus(6, 'active');
+        this.log('INFO', 'PGBOUNCER_RECONNECT: Drained socket connections from crashed node; 42 client sessions re-established on Zone B');
+        await this.sleep(600);
+        this.setStepStatus(6, 'completed');
+
+        // Step 7: Complete (4.0s)
+        this.setStepStatus(7, 'completed');
+        clearInterval(stopwatchInterval);
+        const totalDuration = ((performance.now() - this.state.failoverStartTime) / 1000).toFixed(3);
+        this.state.failoverDuration = totalDuration;
+        this.state.failoverInProgress = false;
+        this.state.clusterHealth = 'DEGRADED_SINGLE_ZONE';
+
+        this.dom.haStatusText.textContent = 'DEGRADED (SINGLE-ZONE 99.9%)';
+        this.dom.btnReprovision.style.display = 'inline-flex';
+        this.dom.btnSimulateCrash.style.display = 'none';
+
+        this.sound.playSuccess();
+        this.showToast(`Automated HA Failover to Zone B completed in ${totalDuration}s! Cluster in Degraded mode.`, false, 'toast-warn');
+        this.log('SUCCESS', `FAILOVER_COMPLETE: Cluster successfully restored on Zone B in ${totalDuration}s. Standby redundancy missing.`);
+      }
+
+      setStepStatus(stepNum, status) {
+        const step = document.getElementById(`step${stepNum}`);
+        if (step) {
+          step.className = `stepper-node ${status}`;
+        }
+      }
+
+      /**
+       * Recovery Control: Reprovision Zone A Replica
+       */
+      async reprovisionReplica() {
+        if (this.state.reprovisioning) return;
+        this.state.reprovisioning = true;
+        this.dom.btnReprovision.disabled = true;
+        this.dom.btnReprovision.textContent = 'Reprovisioning...';
+        this.topology.zoneAStatus = 'REPROVISIONING';
+
+        this.sound.playClick();
+        this.showToast('Reprovisioning new Standby Replica in us-east4-a...');
+        this.log('INFO', 'REPROVISION_INIT: Allocating GCE storage volume in us-east4-a and streaming base backup (pg_basebackup)');
+
+        await this.sleep(1200);
+        this.log('INFO', 'REPROVISION_SYNC: Applying differential WAL replay up to LSN 0/9A51C30');
+
+        await this.sleep(1000);
+        this.topology.zoneAStatus = 'HEALTHY';
+        this.topology.zoneBStatus = 'PRIMARY'; // Zone B stays primary, Zone A becomes standby
+        this.state.clusterHealth = 'HEALTHY_DUAL_ZONE';
+        this.state.reprovisioning = false;
+
+        this.dom.haClusterBadge.className = 'badge-chip ha-healthy';
+        this.dom.haStatusText.textContent = 'HEALTHY (DUAL-ZONE 99.99%)';
+        this.dom.btnReprovision.style.display = 'none';
+        this.dom.btnSimulateCrash.style.display = 'inline-flex';
+        this.dom.btnSimulateCrash.disabled = false;
+        this.dom.btnSimulateCrash.style.opacity = '1';
+
+        // Reset Stepper
+        const steps = this.dom.failoverStepper.querySelectorAll('.stepper-node');
+        steps.forEach(s => s.className = 'stepper-node');
+
+        this.sound.playSuccess();
+        this.showToast('Dual-Zone HA Redundancy (99.99% SLA) fully restored in us-east4-a!');
+        this.log('SUCCESS', 'HA_RESTORED: Synchronous replication re-established between us-east4-b (Primary) and us-east4-a (Standby)');
+      }
+
+      /**
+       * Connection Pool Saturation Engine
+       */
+      renderPoolGauge() {
+        const p = this.state.pool;
+        const totalUsed = p.active + p.idleInTx + p.idle + p.reserved;
+        const saturation = Math.round((totalUsed / p.maxConnections) * 100);
+
+        this.dom.kpiPoolSaturation.textContent = `${saturation}%`;
+        this.dom.kpiPoolFraction.textContent = `${totalUsed} / ${p.maxConnections}`;
+        this.dom.poolSaturationPercent.textContent = `${saturation}%`;
+        this.dom.kpiPoolWait.textContent = `${p.avgWaitMs.toFixed(1)} ms`;
+
+        // Color coding saturation
+        let satColor = '#10b981';
+        if (saturation >= 90) satColor = '#ef4444';
+        else if (saturation >= 70) satColor = '#f59e0b';
+        this.dom.poolSaturationPercent.style.color = satColor;
+
+        // Donut SVG circumference = 2 * PI * 48 = ~301.59
+        const C = 301.59;
+        const activeLen = (p.active / p.maxConnections) * C;
+        const idleTxLen = (p.idleInTx / p.maxConnections) * C;
+        const idleLen = (p.idle / p.maxConnections) * C;
+        const reservedLen = (p.reserved / p.maxConnections) * C;
+
+        this.dom.gaugeActive.setAttribute('stroke-dasharray', `${activeLen} ${C}`);
+        this.dom.gaugeActive.setAttribute('stroke-dashoffset', '0');
+
+        this.dom.gaugeIdleTx.setAttribute('stroke-dasharray', `${idleTxLen} ${C}`);
+        this.dom.gaugeIdleTx.setAttribute('stroke-dashoffset', `-${activeLen}`);
+
+        this.dom.gaugeIdle.setAttribute('stroke-dasharray', `${idleLen} ${C}`);
+        this.dom.gaugeIdle.setAttribute('stroke-dashoffset', `-${activeLen + idleTxLen}`);
+
+        this.dom.gaugeReserved.setAttribute('stroke-dasharray', `${reservedLen} ${C}`);
+        this.dom.gaugeReserved.setAttribute('stroke-dashoffset', `-${activeLen + idleTxLen + idleLen}`);
+
+        // Update Text Counts & Progress Bars
+        this.dom.metricActiveCount.textContent = `${p.active} / ${p.maxConnections}`;
+        this.dom.metricIdleTxCount.textContent = `${p.idleInTx} / ${p.maxConnections}`;
+        this.dom.metricIdleCount.textContent = `${p.idle} / ${p.maxConnections}`;
+        this.dom.metricReservedCount.textContent = `${p.reserved} / ${p.maxConnections}`;
+
+        this.dom.barActive.style.width = `${(p.active / p.maxConnections) * 100}%`;
+        this.dom.barIdleTx.style.width = `${(p.idleInTx / p.maxConnections) * 100}%`;
+        this.dom.barIdle.style.width = `${(p.idle / p.maxConnections) * 100}%`;
+        this.dom.barReserved.style.width = `${(p.reserved / p.maxConnections) * 100}%`;
+      }
+
+      injectBurst(count = 25) {
+        this.sound.playClick();
+        this.state.pool.active = Math.min(this.state.pool.maxConnections - 10, this.state.pool.active + count);
+        this.state.pool.avgWaitMs = 4.8;
+        this.renderPoolGauge();
+        this.topology.spawnBurst(count);
+        this.showToast(`Injected ${count} active client connections into PgBouncer pool`);
+        this.log('WARN', `POOL_BURST: Active connections increased to ${this.state.pool.active}. Client queue wait time surged to 4.8ms`);
+      }
+
+      drainPool() {
+        this.sound.playClick();
+        this.state.pool.idle = 5;
+        this.state.pool.idleInTx = 2;
+        this.state.pool.avgWaitMs = 0.9;
+        this.renderPoolGauge();
+        this.showToast('Drained idle connections and reclaimed PgBouncer memory');
+        this.log('INFO', 'POOL_DRAIN: Idle connections flushed to base baseline. Server socket reuse 99.2%');
+      }
+
+      simulatePoolExhaustion() {
+        this.sound.playAlarm();
+        this.state.pool.active = 90;
+        this.state.pool.idleInTx = 5;
+        this.state.pool.reserved = 5;
+        this.state.pool.idle = 0;
+        this.state.pool.avgWaitMs = 540.0;
+        this.renderPoolGauge();
+        this.showToast('FATAL: 53300: remaining connection slots are reserved for non-replication superuser connections', true);
+        this.log('ERROR', 'FATAL_53300: Connection pool exhausted (100/100 slots). Incoming app connections rejected with HTTP 500');
+      }
+
+      /**
+       * Slow Query & Lock Contention Table
+       */
+      renderQueryTable() {
+        this.dom.countAllQueries.textContent = this.state.queries.length;
+        this.dom.sqlTableBody.innerHTML = '';
+
+        const filtered = this.state.queries.filter(q => {
+          // Type filter
+          if (this.activeFilter === 'slow' && q.durationMs <= 100) return false;
+          if (this.activeFilter === 'locked' && q.lockMode === 'None') return false;
+
+          // Search query
+          if (this.searchQuery) {
+            const str = `${q.pid} ${q.user} ${q.clientIp} ${q.lockMode} ${q.query}`.toLowerCase();
+            return str.includes(this.searchQuery);
+          }
+          return true;
+        });
+
+        if (filtered.length === 0) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td colspan="7" style="text-align:center; padding: 20px; color: var(--text-dim);">No active SQL queries matching filter</td>`;
+          this.dom.sqlTableBody.appendChild(tr);
+          return;
+        }
+
+        filtered.forEach(q => {
+          const tr = document.createElement('tr');
+          if (q.lockMode === 'ExclusiveLock' || q.blockedBy) {
+            tr.className = 'locked-row';
+          }
+
+          let lockBadgeClass = 'none';
+          if (q.lockMode === 'ExclusiveLock') lockBadgeClass = 'exclusive';
+          else if (q.lockMode.includes('Share')) lockBadgeClass = 'rowshare';
+
+          let durationColor = 'var(--emerald-light)';
+          if (q.durationMs > 2000) durationColor = 'var(--crimson-light)';
+          else if (q.durationMs > 100) durationColor = 'var(--amber-light)';
+
+          tr.innerHTML = `
+            <td><strong style="color:var(--cyan-light);">#${q.pid}</strong></td>
+            <td>
+              <div>${q.user}</div>
+              <div style="font-size:0.68rem; color:var(--text-dim);">${q.clientIp}</div>
+            </td>
+            <td>
+              <span class="badge-lock ${lockBadgeClass}">
+                ${q.lockMode === 'ExclusiveLock' ? '🔒 ' : ''}${q.lockMode}
+              </span>
+            </td>
+            <td>
+              ${q.blockedBy ? `<span style="color:var(--crimson-light); font-weight:700;">PID #${q.blockedBy}</span>` : '<span style="color:var(--text-dim);">-</span>'}
+            </td>
+            <td><strong style="color:${durationColor};">${(q.durationMs / 1000).toFixed(2)}s</strong></td>
+            <td class="query-cell" title="${q.query}">${q.query}</td>
+            <td>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-sm" style="padding:2px 6px;" data-testid="btn-explain-${q.pid}" onclick="window.__GCP_SQL_NETWORKING__.explainQuery(${q.pid})">Plan</button>
+                <button class="btn btn-sm btn-crimson" style="padding:2px 6px;" data-testid="btn-kill-pid-${q.pid}" onclick="window.__GCP_SQL_NETWORKING__.killQuery(${q.pid})">Kill</button>
+                <button class="btn btn-sm btn-emerald" style="padding:2px 6px;" data-testid="btn-add-index-${q.pid}" onclick="window.__GCP_SQL_NETWORKING__.addIndex(${q.pid})">+Idx</button>
+              </div>
+            </td>
+          `;
+
+          this.dom.sqlTableBody.appendChild(tr);
+        });
+      }
+
+      injectLockContention() {
+        this.sound.playWarn();
+        const newPid = 14900 + Math.floor(Math.random() * 90);
+        this.state.queries.push({
+          pid: newPid,
+          user: 'worker_batch_sync',
+          clientIp: '10.140.10.15:49102',
+          lockMode: 'ExclusiveLock',
+          blockedBy: null,
+          durationMs: 5120,
+          state: 'active',
+          query: 'UPDATE accounts SET status = \'SUSPENDED\' WHERE status = \'OVERDUE\' FOR UPDATE;',
+          plan: 'Update on accounts  (cost=0.00..3210.00 rows=150 width=48)\n  ->  Seq Scan on accounts (Locking table row blocks exclusively)'
+        });
+
+        // Add a dependent blocked query
+        this.state.queries.push({
+          pid: newPid + 1,
+          user: 'pos_terminal_feed',
+          clientIp: '10.140.10.15:49108',
+          lockMode: 'RowShareLock',
+          blockedBy: newPid,
+          durationMs: 4890,
+          state: 'waiting',
+          query: 'SELECT * FROM accounts WHERE status = \'OVERDUE\' FOR SHARE;',
+          plan: `LockRows waiting on PID #${newPid}`
+        });
+
+        this.renderQueryTable();
+        this.showToast(`Injected artificial lock contention (PID #${newPid} holding ExclusiveLock)`, true);
+        this.log('WARN', `LOCK_CONTENTION: PID #${newPid} holding ExclusiveLock on accounts table. Blocked PID #${newPid + 1}`);
+      }
+
+      killQuery(pid) {
+        this.sound.playClick();
+        const idx = this.state.queries.findIndex(q => q.pid === pid);
+        if (idx !== -1) {
+          const removed = this.state.queries.splice(idx, 1)[0];
+          
+          // Free any queries blocked by this PID
+          this.state.queries.forEach(q => {
+            if (q.blockedBy === pid) {
+              q.blockedBy = null;
+              q.durationMs = 12;
+              q.state = 'active';
+              q.lockMode = 'None';
+            }
+          });
+
+          this.renderQueryTable();
+          this.showToast(`Terminated PostgreSQL backend PID #${pid} (pg_terminate_backend)`);
+          this.log('SUCCESS', `QUERY_KILLED: Backend PID #${pid} terminated. Held locks released and waiting transactions unblocked.`);
+        }
+      }
+
+      addIndex(pid) {
+        this.sound.playSuccess();
+        const q = this.state.queries.find(item => item.pid === pid);
+        if (q) {
+          q.durationMs = 4;
+          q.lockMode = 'None';
+          q.blockedBy = null;
+          q.query = q.query.replace('Seq Scan', 'Index Scan');
+          q.plan = `Index Scan using idx_accounts_optimized (cost=0.15..2.10 rows=1) (actual time=0.02..0.04 ms)`;
+          
+          this.renderQueryTable();
+          this.showToast(`Created index concurrently for PID #${pid}. Query execution time reduced to 4ms.`);
+          this.log('SUCCESS', `INDEX_CREATED: CREATE INDEX CONCURRENTLY idx_accounts_optimized deployed. Execution time: 4ms.`);
+        }
+      }
+
+      explainQuery(pid) {
+        this.sound.playClick();
+        const q = this.state.queries.find(item => item.pid === pid);
+        if (q) {
+          this.dom.explainModalTitle.textContent = `EXPLAIN ANALYZE for PID #${q.pid}`;
+          this.dom.explainModalContent.innerHTML = `
+            <div style="color:var(--cyan-light); margin-bottom:8px;">-- SQL Statement</div>
+            <div style="margin-bottom:14px; color:#ffffff;">${q.query}</div>
+            <div style="color:var(--emerald-light); margin-bottom:8px;">-- Execution Query Plan</div>
+            <pre style="white-space:pre-wrap; font-size:0.75rem;">${q.plan}</pre>
+          `;
+          this.dom.explainModal.classList.add('open');
+        }
+      }
+
+      /**
+       * Cloud KMS Key Rotation
+       */
+      async rotateKmsKey() {
+        this.sound.playSuccess();
+        const nextVersion = 'v' + (parseInt(this.state.cmek.keyVersion.replace('v', ''), 10) + 1);
+        this.state.cmek.keyVersion = nextVersion;
+        this.state.cmek.daysRemaining = 90;
+        this.dom.kpiCmekStatus.textContent = `ENCRYPTED (${nextVersion})`;
+        this.dom.cmekRotationCountdown.textContent = '90 Days Remaining (Rotated Now)';
+        
+        this.showToast(`Cloud KMS CMEK key successfully rotated to ${nextVersion}!`);
+        this.log('SEC', `KMS_ROTATION: Key version promoted to ${nextVersion}. Database WAL and disk partition re-encrypted with zero downtime.`);
+      }
+
+      /**
+       * Export Telemetry Report as JSON
+       */
+      exportTelemetry() {
+        this.sound.playSuccess();
+        const report = {
+          exportTimestamp: new Date().toISOString(),
+          project: 'prj-prod-payments-9941',
+          region: 'us-east4',
+          cluster: {
+            name: 'pg-cluster-prod-01',
+            status: this.state.clusterHealth,
+            activeZone: this.state.activeZone,
+            standbyZone: this.state.standbyZone,
+            tier: 'db-perf-optimized-N-8',
+            engine: 'PostgreSQL 16.2',
+            failoverRtoSeconds: this.state.failoverDuration
+          },
+          vpcPeering: {
+            serviceProducer: 'servicenetworking.googleapis.com',
+            peeringRange: '10.200.0.0/20',
+            clientSubnet: '10.140.10.0/24',
+            mtu: 1460,
+            rttLatencyMs: 0.82
+          },
+          connectionPool: this.state.pool,
+          cmekSecurity: this.state.cmek,
+          activeQueries: this.state.queries,
+          auditLogs: this.state.logs
+        };
+
+        const jsonStr = JSON.stringify(report, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `gcp-sql-networking-telemetry-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        this.showToast('Telemetry & Architecture JSON Report downloaded successfully');
+        this.log('INFO', 'REPORT_EXPORTED: Complete telemetry state exported to JSON file for compliance review');
+        return report;
+      }
+
+      /**
+       * Terminal Logging
+       */
+      log(tag, msg) {
+        const time = new Date().toISOString().slice(11, 23);
+        const logEntry = { time, tag, msg };
+        this.state.logs.push(logEntry);
+
+        let tagClass = 'log-tag-info';
+        if (tag === 'NOTICE') tagClass = 'log-tag-notice';
+        else if (tag === 'WARN') tagClass = 'log-tag-warn';
+        else if (tag === 'ERROR') tagClass = 'log-tag-error';
+        else if (tag === 'SEC') tagClass = 'log-tag-sec';
+        else if (tag === 'SUCCESS') tagClass = 'log-tag-ok';
+
+        const row = document.createElement('div');
+        row.className = 'log-row';
+        row.dataset.tag = tag;
+        row.innerHTML = `
+          <span class="log-time">[${time}]</span>
+          <span class="${tagClass}">[${tag}]</span>
+          <span class="log-msg">${msg}</span>
+        `;
+
+        this.dom.terminalLogFeed.appendChild(row);
+        this.dom.terminalLogFeed.scrollTop = this.dom.terminalLogFeed.scrollHeight;
+      }
+
+      filterLogs(filter) {
+        const rows = this.dom.terminalLogFeed.querySelectorAll('.log-row');
+        rows.forEach(r => {
+          if (filter === 'ALL') {
+            r.style.display = 'flex';
+          } else if (filter === 'SECURITY') {
+            r.style.display = (r.dataset.tag === 'SEC') ? 'flex' : 'none';
+          } else {
+            r.style.display = (r.dataset.tag === filter || (filter === 'INFO' && r.dataset.tag === 'SUCCESS')) ? 'flex' : 'none';
+          }
+        });
+      }
+
+      showToast(msg, isDanger = false, customClass = '') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${isDanger ? 'toast-danger' : ''} ${customClass}`;
+        toast.innerHTML = `
+          <span class="luminous-icon ${isDanger ? 'glow-crimson' : 'glow-emerald'}">
+            ${isDanger ? '🚨' : '✨'}
+          </span>
+          <span>${msg}</span>
+        `;
+        this.dom.toastContainer.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateX(50px)';
+          toast.style.transition = 'all 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }, 4000);
+      }
+
+      sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      renderAll() {
+        this.renderPoolGauge();
+        this.renderQueryTable();
+      }
+    }
+
+    // --- Mount Application Instance on DOM Ready ---
+    document.addEventListener('DOMContentLoaded', () => {
+      window.sqlApp = new GcpSqlNetworkingApp();
+      
+      // Expose globally for automated E2E testing
+      window.__GCP_SQL_NETWORKING__ = {
+        app: window.sqlApp,
+        state: window.sqlApp.state,
+        simulatePrimaryCrash: () => window.sqlApp.simulatePrimaryCrash(),
+        reprovisionReplica: () => window.sqlApp.reprovisionReplica(),
+        injectBurst: (count) => window.sqlApp.injectBurst(count),
+        drainPool: () => window.sqlApp.drainPool(),
+        simulatePoolExhaustion: () => window.sqlApp.simulatePoolExhaustion(),
+        injectLockContention: () => window.sqlApp.injectLockContention(),
+        killQuery: (pid) => window.sqlApp.killQuery(pid),
+        addIndex: (pid) => window.sqlApp.addIndex(pid),
+        explainQuery: (pid) => window.sqlApp.explainQuery(pid),
+        rotateKmsKey: () => window.sqlApp.rotateKmsKey(),
+        exportTelemetry: () => window.sqlApp.exportTelemetry(),
+        setPacketSpeed: (speed) => window.sqlApp.setPacketSpeed(speed),
+        toggleSound: () => window.sqlApp.dom.btnSoundToggle.click()
+      };
+    });
+  </script>
+</body>
+</html>

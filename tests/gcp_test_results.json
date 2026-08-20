@@ -1,0 +1,169 @@
+{
+  "timestamp": "2026-08-20T03:46:22.256Z",
+  "totalExecuted": 70,
+  "totalPassed": 70,
+  "totalFailed": 0,
+  "durationMs": 53775,
+  "suites": [
+    {
+      "name": "Tier 1: GCP Serverless Pipeline Features",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 1296,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: GCP Serverless Pipeline Boundaries",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 1281,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: GCP Serverless Pipeline Combinations",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "duration": 960,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: GCP Serverless Blue/Green Scenario (S1)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 1605,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: GCP Event-Driven Pub/Sub Features",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 961,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: GCP Event-Driven Pub/Sub Boundaries",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 3543,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: GCP Event-Driven Pub/Sub Combinations",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "duration": 1156,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: GCP Pub/Sub DLQ Recovery Scenario (S2)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 1575,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: GCP Cloud SQL HA & VPC Features",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 7218,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: GCP Cloud SQL HA & VPC Boundaries",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 1514,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: GCP Cloud SQL HA & VPC Combinations",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "duration": 2179,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: GCP Cloud SQL HA Failover Scenario (S3)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 7168,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: GCP IAM Security & Secret Vault Features",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 774,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: GCP IAM Security & Secret Vault Boundaries",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 2499,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: GCP IAM Security & Secret Vault Combinations",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "duration": 1488,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: GCP IAM Compromise Response Scenario (S4)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 1494,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: GCP CloudOps SRE Cockpit Features",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 1037,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: GCP CloudOps SRE Cockpit Boundaries",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 4770,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: GCP CloudOps SRE Cockpit Combinations",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "duration": 5266,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: GCP CloudOps SRE SEV-1 Incident Response (S5)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 5656,
+      "failures": []
+    }
+  ]
+}

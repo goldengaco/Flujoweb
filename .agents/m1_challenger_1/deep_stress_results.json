@@ -1,0 +1,112 @@
+{
+  "totalDashboards": 15,
+  "passedDashboards": 15,
+  "failedDashboards": 0,
+  "results": {
+    "apigee-mulesoft-hybrid": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "emergency-evacuation-v1": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "emergency-evacuation-v2": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "emergency-evacuation-v3": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "gcp-cloudops-cockpit": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "gcp-event-pubsub": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "gcp-iam-security": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "gcp-serverless-pipeline": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "gcp-sql-networking": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "mulesoft-observability": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "network-health": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "security-audit": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "server-status": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "transaction-flow": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    },
+    "tv-diagnostic": {
+      "overflows": [],
+      "collisions": [],
+      "clipping": [],
+      "zIndexAnomalies": [],
+      "consoleErrors": []
+    }
+  }
+}

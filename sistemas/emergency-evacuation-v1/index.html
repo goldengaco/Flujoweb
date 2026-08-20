@@ -1,0 +1,2553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SALVAR VIDAS // Centro de Comando y Control de Evacuación</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #030812;
+      --bg-panel: #0a1124;
+      --bg-card: #111d38;
+      --bg-card-hover: #16264a;
+      --border-hud: #1e3258;
+      --border-glow: #00e5ff;
+      --hazard-crimson: #ef4444;
+      --hazard-fire: #f97316;
+      --hazard-amber: #f59e0b;
+      --safe-emerald: #10b981;
+      --safe-bright: #00ff88;
+      --cyber-cyan: #00e5ff;
+      --tactical-blue: #3b82f6;
+      --mesh-purple: #a855f7;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      line-height: 1.4;
+    }
+
+    /* Ambient Background Grid */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Emergency Strobe Overlay */
+    #strobe-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      max-width: 100vw;
+    }
+
+    body.strobe-active #strobe-overlay {
+      opacity: 1;
+      animation: tactical-strobe-pulse 1.2s infinite ease-in-out;
+    }
+
+    @keyframes tactical-strobe-pulse {
+      0%, 100% {
+        box-shadow: inset 0 0 80px rgba(239, 68, 68, 0.4), inset 0 0 160px rgba(239, 68, 68, 0.15);
+      }
+      50% {
+        box-shadow: inset 0 0 120px rgba(249, 115, 22, 0.6), inset 0 0 240px rgba(239, 68, 68, 0.35);
+      }
+    }
+
+    /* Header Bar */
+    header.tactical-header {
+      position: relative;
+      z-index: 50;
+      background: rgba(10, 17, 36, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-hud);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .branding-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(249, 115, 22, 0.3));
+      border: 1px solid var(--hazard-crimson);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+      animation: icon-glow 2s infinite alternate;
+    }
+
+    @keyframes icon-glow {
+      0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+      100% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.6); }
+    }
+
+    .branding-title {
+      font-size: clamp(1rem, 2.2vw, 1.25rem);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+    }
+
+    .branding-title span.badge-tag {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid var(--cyber-cyan);
+      color: var(--cyber-cyan);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .branding-subtitle {
+      font-size: clamp(0.68rem, 1.2vw, 0.78rem);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .header-telemetry {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .telemetry-chip {
+      background: rgba(17, 29, 56, 0.85);
+      border: 1px solid var(--border-hud);
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      min-width: 110px;
+    }
+
+    .telemetry-chip .chip-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+    }
+
+    .telemetry-chip .chip-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-badge.normal {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--safe-emerald);
+      color: var(--safe-bright);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .status-badge.evacuating {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--hazard-crimson);
+      color: #ff6b6b;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+      animation: badge-pulse 1s infinite alternate;
+    }
+
+    .status-badge.pre-alert {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid var(--hazard-amber);
+      color: #fcd34d;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
+
+    @keyframes badge-pulse {
+      0% { transform: scale(1); filter: brightness(1); }
+      100% { transform: scale(1.02); filter: brightness(1.2); }
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-hud {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      color: var(--text-main);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-hud:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--cyber-cyan);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    }
+
+    .btn-hud.active {
+      background: rgba(0, 229, 255, 0.18);
+      border-color: var(--cyber-cyan);
+      color: var(--cyber-cyan);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.35);
+    }
+
+    .btn-hud.danger {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--hazard-crimson);
+      color: #ff8585;
+    }
+
+    .btn-hud.danger:hover {
+      background: rgba(239, 68, 68, 0.3);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Main Container Layout */
+    main.tactical-main {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      padding: 18px 24px;
+      display: grid;
+      grid-template-columns: 340px 1fr 380px;
+      gap: 20px;
+      max-width: 2200px;
+      margin: 0 auto;
+      width: 100%;
+      min-width: 0;
+    }
+
+    @media (max-width: 1440px) {
+      main.tactical-main {
+        grid-template-columns: 310px 1fr 340px;
+        gap: 16px;
+        padding: 14px;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      main.tactical-main {
+        grid-template-columns: 1fr;
+      }
+      main.tactical-main > section,
+      main.tactical-main > div {
+        grid-column: 1 !important;
+      }
+    }
+
+    /* Generic Panel Box */
+    .hud-panel {
+      background: rgba(10, 17, 36, 0.88);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-hud);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .panel-header {
+      background: rgba(17, 29, 56, 0.9);
+      border-bottom: 1px solid var(--border-hud);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-family: var(--font-mono);
+      color: var(--cyber-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .panel-body {
+      padding: 12px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    /* PANEL 1: 12-FLOOR BUILDING MATRIX */
+    .floor-matrix-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .floor-matrix-container::-webkit-scrollbar {
+      width: 5px;
+    }
+    .floor-matrix-container::-webkit-scrollbar-thumb {
+      background: var(--border-hud);
+      border-radius: 4px;
+    }
+
+    .floor-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .floor-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--cyber-cyan);
+      transform: translateX(2px);
+    }
+
+    .floor-card.selected {
+      border-color: var(--cyber-cyan);
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.35);
+      background: rgba(0, 229, 255, 0.08);
+    }
+
+    .floor-card.critical {
+      border-color: var(--hazard-crimson);
+      background: rgba(239, 68, 68, 0.12);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+      animation: critical-border-pulse 1.5s infinite alternate;
+    }
+
+    .floor-card.advisory {
+      border-color: var(--hazard-amber);
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .floor-card.cleared {
+      border-color: var(--safe-emerald);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    @keyframes critical-border-pulse {
+      0% { border-color: var(--hazard-crimson); }
+      100% { border-color: var(--hazard-fire); }
+    }
+
+    .floor-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .floor-tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+    }
+
+    .floor-num-badge {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-hud);
+      color: var(--cyber-cyan);
+      font-size: 0.75rem;
+    }
+
+    .floor-status-indicator {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .floor-status-indicator.normal {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--safe-bright);
+    }
+
+    .floor-status-indicator.evacuating {
+      background: rgba(249, 115, 22, 0.25);
+      color: #ffaa5b;
+    }
+
+    .floor-status-indicator.critical {
+      background: rgba(239, 68, 68, 0.3);
+      color: #ff8585;
+    }
+
+    .floor-status-indicator.cleared {
+      background: rgba(0, 229, 255, 0.2);
+      color: var(--cyber-cyan);
+    }
+
+    .floor-metrics-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 6px;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .metric-micro {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .metric-micro .m-lbl {
+      font-size: 0.58rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .metric-micro .m-val {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .metric-micro .m-val.hot { color: var(--hazard-crimson); }
+    .metric-micro .m-val.warm { color: var(--hazard-fire); }
+    .metric-micro .m-val.smoke { color: #cbd5e1; }
+    .metric-micro .m-val.safe { color: var(--safe-bright); }
+
+    .floor-occupancy-bar {
+      height: 4px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 2px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .occupancy-fill-safe {
+      background: var(--safe-emerald);
+      transition: width 0.3s ease;
+    }
+    .occupancy-fill-transit {
+      background: var(--hazard-fire);
+      transition: width 0.3s ease;
+    }
+    .occupancy-fill-trapped {
+      background: var(--hazard-crimson);
+      transition: width 0.3s ease;
+    }
+
+    /* CENTER COLUMN: COMMAND COCKPIT & LIVE DECAY */
+    .center-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Master Broadcast Hero Banner */
+    .master-broadcast-banner {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(17, 29, 56, 0.95));
+      border: 1px solid var(--hazard-crimson);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .master-broadcast-banner::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--hazard-crimson), var(--hazard-fire), var(--cyber-cyan));
+    }
+
+    .broadcast-info {
+      flex: 1;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .broadcast-headline {
+      font-size: 1.1rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .broadcast-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      max-width: 620px;
+    }
+
+    /* Large Tactical Broadcast Button */
+    .tactical-broadcast-btn {
+      position: relative;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: #ffffff;
+      border: 2px solid #ef4444;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-family: var(--font-mono);
+      font-size: clamp(0.78rem, 1.8vw, 0.95rem);
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.2);
+      transition: all 0.2s ease;
+      user-select: none;
+      max-width: 100%;
+    }
+
+    .tactical-broadcast-btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 35px rgba(239, 68, 68, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.4);
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .tactical-broadcast-btn:active {
+      transform: scale(0.98);
+    }
+
+    .tactical-broadcast-btn.active-evac {
+      background: linear-gradient(135deg, #059669, #047857);
+      border-color: var(--safe-emerald);
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+    }
+
+    .btn-pulse-ring {
+      position: absolute;
+      inset: -6px;
+      border: 2px solid var(--hazard-crimson);
+      border-radius: 14px;
+      animation: pulse-ring 1.6s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      pointer-events: none;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      100% { transform: scale(1.15); opacity: 0; }
+    }
+
+    /* Real-Time Headcount Tracker 4-Card Grid */
+    .headcount-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .headcount-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      main.tactical-main {
+        padding: 12px 10px;
+        gap: 14px;
+      }
+      header.tactical-header {
+        padding: 10px 14px;
+      }
+      .tactical-broadcast-btn {
+        width: 100%;
+        white-space: normal;
+        text-align: center;
+        padding: 12px 16px;
+        font-size: 0.82rem;
+      }
+      .btn-pulse-ring {
+        inset: -4px;
+      }
+      .headcount-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .headcount-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease;
+    }
+
+    .headcount-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .headcount-card.safe {
+      border-color: var(--safe-emerald);
+      background: rgba(16, 185, 129, 0.08);
+    }
+    .headcount-card.transit {
+      border-color: var(--hazard-fire);
+      background: rgba(249, 115, 22, 0.08);
+    }
+    .headcount-card.trapped {
+      border-color: var(--hazard-crimson);
+      background: rgba(239, 68, 68, 0.08);
+    }
+    .headcount-card.total {
+      border-color: var(--cyber-cyan);
+      background: rgba(0, 229, 255, 0.08);
+    }
+
+    .hc-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .hc-title {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .hc-icon {
+      font-size: 1rem;
+    }
+
+    .hc-number {
+      font-size: 1.6rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: #fff;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .hc-sub {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Live Evacuation Chart Panel */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      background: rgba(3, 8, 18, 0.8);
+      border-radius: 6px;
+      border: 1px solid rgba(30, 50, 88, 0.6);
+      overflow: hidden;
+    }
+
+    #evacuation-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 8px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* Quick Scenarios & Injections */
+    .scenario-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .scenario-btn {
+      background: rgba(17, 29, 56, 0.7);
+      border: 1px solid var(--border-hud);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .scenario-btn:hover {
+      background: var(--bg-card);
+      border-color: var(--cyber-cyan);
+      color: var(--cyber-cyan);
+    }
+
+    /* RIGHT COLUMN: BRIGADE DISPATCHER & TACTICAL SCHEMATIC */
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Brigade Cards List */
+    .brigade-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .brigade-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .brigade-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--tactical-blue);
+    }
+
+    .brigade-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brigade-callsign {
+      font-size: 0.85rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #fff;
+    }
+
+    .brigade-badge {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .brigade-badge.combate {
+      background: rgba(239, 68, 68, 0.25);
+      border: 1px solid var(--hazard-crimson);
+      color: #ff8585;
+    }
+    .brigade-badge.busqueda {
+      background: rgba(245, 158, 11, 0.25);
+      border: 1px solid var(--hazard-amber);
+      color: #fcd34d;
+    }
+    .brigade-badge.triage {
+      background: rgba(16, 185, 129, 0.25);
+      border: 1px solid var(--safe-emerald);
+      color: var(--safe-bright);
+    }
+    .brigade-badge.medico {
+      background: rgba(59, 130, 246, 0.25);
+      border: 1px solid var(--tactical-blue);
+      color: #93c5fd;
+    }
+    .brigade-badge.ventilacion {
+      background: rgba(168, 85, 247, 0.25);
+      border: 1px solid var(--mesh-purple);
+      color: #d8b4fe;
+    }
+
+    .brigade-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .scba-gauge-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 4px;
+    }
+
+    .scba-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .scba-bar {
+      height: 4px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .scba-fill {
+      height: 100%;
+      background: var(--cyber-cyan);
+      transition: width 0.4s ease, background 0.3s ease;
+    }
+
+    .scba-fill.warning {
+      background: var(--hazard-amber);
+    }
+    .scba-fill.danger {
+      background: var(--hazard-crimson);
+    }
+
+    .brigade-actions-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .btn-brigade-dispatch {
+      flex: 1;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid var(--tactical-blue);
+      color: #93c5fd;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .btn-brigade-dispatch:hover {
+      background: rgba(59, 130, 246, 0.3);
+      color: #fff;
+    }
+
+    /* Tactical Building Cross Section Canvas/SVG */
+    .schematic-box {
+      width: 100%;
+      min-height: 160px;
+      height: clamp(160px, 20vw, 220px);
+      background: rgba(3, 8, 18, 0.85);
+      border: 1px solid var(--border-hud);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #schematic-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* BOTTOM ROW: LIVE ANSI AUDIT & RADIO LOG STREAM */
+    .tactical-log-panel {
+      grid-column: 1 / -1;
+      margin-top: 4px;
+    }
+
+    .log-stream-box {
+      min-height: 120px;
+      max-height: 240px;
+      height: auto;
+      background: #020610;
+      border: 1px solid rgba(30, 50, 88, 0.8);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: #cbd5e1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-stream-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    .log-stream-box::-webkit-scrollbar-thumb {
+      background: var(--border-hud);
+      border-radius: 3px;
+    }
+
+    .log-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      line-height: 1.35;
+    }
+
+    .log-time {
+      color: var(--text-dim);
+      font-size: 0.68rem;
+      white-space: nowrap;
+    }
+
+    .log-tag {
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .log-tag.broadcast { background: rgba(239, 68, 68, 0.3); color: #ff8585; border: 1px solid var(--hazard-crimson); }
+    .log-tag.brigade { background: rgba(59, 130, 246, 0.3); color: #93c5fd; border: 1px solid var(--tactical-blue); }
+    .log-tag.sensor { background: rgba(245, 158, 11, 0.3); color: #fcd34d; border: 1px solid var(--hazard-amber); }
+    .log-tag.occupant { background: rgba(16, 185, 129, 0.3); color: var(--safe-bright); border: 1px solid var(--safe-emerald); }
+    .log-tag.system { background: rgba(0, 229, 255, 0.2); color: var(--cyber-cyan); border: 1px solid var(--cyber-cyan); }
+
+    .log-msg {
+      color: #e2e8f0;
+      word-break: break-word;
+    }
+
+    /* MODALS */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 16, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-dialog {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-glow);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 820px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 40px rgba(0, 229, 255, 0.25), 0 20px 50px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+      animation: modal-scale 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modal-scale {
+      0% { transform: scale(0.94); }
+      100% { transform: scale(1); }
+    }
+
+    .modal-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-hud);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--hazard-crimson);
+    }
+
+    .modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-footer {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-hud);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Room Drilldown Specifics */
+    .rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 680px) {
+      .rooms-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .room-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .room-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--cyber-cyan);
+    }
+
+    .room-card.hazard-fire {
+      border-color: var(--hazard-crimson);
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    .room-card.hazard-smoke {
+      border-color: var(--hazard-amber);
+      background: rgba(245, 158, 11, 0.15);
+    }
+
+    .room-card.safe-clear {
+      border-color: var(--safe-emerald);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .room-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .room-id-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--cyber-cyan);
+    }
+
+    .room-name-lbl {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .room-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .occupant-roster-list {
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid var(--border-hud);
+      border-radius: 6px;
+      background: rgba(3, 8, 18, 0.6);
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .occupant-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(17, 29, 56, 0.6);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+    }
+
+    .occ-badge {
+      font-size: 0.6rem;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 700;
+    }
+    .occ-badge.safe { background: rgba(16, 185, 129, 0.2); color: var(--safe-bright); }
+    .occ-badge.transit { background: rgba(249, 115, 22, 0.2); color: #ffaa5b; }
+    .occ-badge.trapped { background: rgba(239, 68, 68, 0.25); color: #ff8585; }
+
+    /* Footer & System Signature */
+    footer.tactical-footer {
+      background: rgba(10, 17, 36, 0.95);
+      border-top: 1px solid var(--border-hud);
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      z-index: 10;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fullscreen Visual Strobe Container -->
+  <div id="strobe-overlay"></div>
+
+  <!-- Header Tactical Bar -->
+  <header class="tactical-header">
+    <div class="header-branding">
+      <div class="branding-icon">🚨</div>
+      <div>
+        <div class="branding-title">
+          SALVAR VIDAS // CENTRO DE COMANDO Y CONTROL
+          <span class="badge-tag">TORRE CENTRAL • 12 PISOS</span>
+        </div>
+        <div class="branding-subtitle">
+          SISTEMA INTEGRAL DE EVACUACIÓN Y TELEMETRÍA DE BRIGADAS EN TIEMPO REAL
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Counters -->
+    <div class="header-telemetry">
+      <div class="telemetry-chip">
+        <span class="chip-label">ESTADO GLOBAL</span>
+        <div class="chip-value">
+          <span id="global-status-badge" class="status-badge normal">STANDBY</span>
+        </div>
+      </div>
+
+      <div class="telemetry-chip">
+        <span class="chip-label">CRONÓMETRO EVAC</span>
+        <div class="chip-value" id="evac-timer">00:00:00</div>
+      </div>
+
+      <div class="telemetry-chip">
+        <span class="chip-label">PISO CRÍTICO</span>
+        <div class="chip-value" style="color: var(--hazard-crimson);" id="critical-floor-indicator">
+          🔥 PISO 7 (88°C)
+        </div>
+      </div>
+
+      <div class="telemetry-chip">
+        <span class="chip-label">MEGAVOZ & SIRENA</span>
+        <div class="chip-value" id="audio-status-label" style="color: var(--safe-bright);">
+          🔊 ACTIVO
+        </div>
+      </div>
+    </div>
+
+    <!-- Header Action Controls -->
+    <div class="header-controls">
+      <button class="btn-hud" id="btn-toggle-sound" title="Alternar audio de sirena">
+        🔊 Sonido
+      </button>
+      <button class="btn-hud" id="btn-toggle-strobe" title="Alternar estrobo visual">
+        ⚡ Estrobo
+      </button>
+      <button class="btn-hud" id="btn-sim-speed" title="Velocidad de simulación">
+        ⏩ 1.0x
+      </button>
+      <button class="btn-hud danger" id="btn-system-reset" title="Reiniciar ejercicio de evacuación">
+        🔄 Reiniciar
+      </button>
+    </div>
+  </header>
+
+  <!-- Main 3-Column Command Grid -->
+  <main class="tactical-main">
+
+    <!-- PANEL 1 (LEFT): 12-FLOOR ELEVATION MATRIX -->
+    <section class="hud-panel" style="grid-column: 1;">
+      <div class="panel-header">
+        <div class="panel-title">
+          🏢 MATRIZ DE ELEVACIÓN (12 PISOS)
+        </div>
+        <div class="panel-actions">
+          <span style="font-size: 0.65rem; font-family: var(--font-mono); color: var(--text-dim);">
+            1,240 OCUPANTES
+          </span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="floor-matrix-container" id="floor-matrix-list">
+          <!-- Dynamically Rendered Floor Cards 12 down to 1 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 2 (CENTER): BROADCAST HERO, HEADCOUNT & DECAY CHART -->
+    <section class="center-column" style="grid-column: 2;">
+
+      <!-- Master Evacuation Broadcast Trigger Banner -->
+      <div class="master-broadcast-banner">
+        <div class="broadcast-info">
+          <div class="broadcast-headline">
+            <span>🚨</span> DESPLIEGUE MASIVO DE EVACUACIÓN GENERAL
+          </div>
+          <div class="broadcast-desc">
+            Emite orden acústica/visual y sintetizador Web Audio a todos los pisos, bloquea ascensores en planta baja y activa telemetría de desalojo.
+          </div>
+        </div>
+        <button id="btn-master-broadcast" class="tactical-broadcast-btn">
+          <div class="btn-pulse-ring"></div>
+          <span>DESPLEGAR ALERTA DE EVACUACIÓN</span>
+        </button>
+      </div>
+
+      <!-- Real-Time Headcount 4-Card Tracker -->
+      <div class="headcount-grid">
+        <div class="headcount-card total">
+          <div class="hc-top">
+            <span class="hc-title">CENSO TOTAL</span>
+            <span class="hc-icon">👥</span>
+          </div>
+          <div class="hc-number" id="metric-total-census">1,240</div>
+          <div class="hc-sub">
+            <span>12 Pisos Habilitados</span>
+            <span>100% Censo</span>
+          </div>
+        </div>
+
+        <div class="headcount-card safe">
+          <div class="hc-top">
+            <span class="hc-title">A SALVO (PTO. ENCUENTRO)</span>
+            <span class="hc-icon">🟢</span>
+          </div>
+          <div class="hc-number" id="metric-safe-count" style="color: var(--safe-bright);">0</div>
+          <div class="hc-sub">
+            <span id="metric-safe-pct">0.0% Evacuado</span>
+            <span style="color: var(--safe-bright);">✅ Seguro</span>
+          </div>
+        </div>
+
+        <div class="headcount-card transit">
+          <div class="hc-top">
+            <span class="hc-title">EN TRÁNSITO (ESCALERAS)</span>
+            <span class="hc-icon">🟠</span>
+          </div>
+          <div class="hc-number" id="metric-transit-count" style="color: #ffaa5b;">0</div>
+          <div class="hc-sub">
+            <span>Escaleras A y B</span>
+            <span>🚶 En Descenso</span>
+          </div>
+        </div>
+
+        <div class="headcount-card trapped">
+          <div class="hc-top">
+            <span class="hc-title">PENDIENTES / SOS</span>
+            <span class="hc-icon">🔴</span>
+          </div>
+          <div class="hc-number" id="metric-trapped-count" style="color: #ff8585;">1,240</div>
+          <div class="hc-sub">
+            <span id="metric-trapped-pct">100.0% En Edificio</span>
+            <span style="color: var(--hazard-crimson);">⚠️ En Riesgo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evacuation Decay Real-Time Chart -->
+      <div class="hud-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            📈 CURVA DE DECAIMIENTO DE POBLACIÓN Y EGRESO (TIEMPO REAL)
+          </div>
+          <div class="panel-actions">
+            <span style="font-size: 0.65rem; font-family: var(--font-mono); color: var(--cyber-cyan);">
+              FLUID MODEL KINETICS
+            </span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="chart-container">
+            <canvas id="evacuation-canvas"></canvas>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background: var(--safe-bright);"></div>
+              <span>A Salvo (Punto de Encuentro)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: var(--hazard-fire);"></div>
+              <span>En Tránsito por Escaleras</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: var(--hazard-crimson);"></div>
+              <span>Pendientes / Atrapados</span>
+            </div>
+            <div class="legend-item" style="margin-left: auto;">
+              <span style="color: var(--text-dim);">Capacidad Vía: 1.4 pers/s</span>
+            </div>
+          </div>
+
+          <!-- Quick Scenario Toggles -->
+          <div class="scenario-tools">
+            <span style="font-size: 0.68rem; font-family: var(--font-mono); color: var(--text-dim); text-transform: uppercase;">
+              Inyectores Tácticos:
+            </span>
+            <button class="scenario-btn" onclick="app.injectScenario('FIRE_P7')">🔥 Foco Fuego Piso 7</button>
+            <button class="scenario-btn" onclick="app.injectScenario('BLOCK_STAIR_B')">🚧 Bloqueo Escalera B</button>
+            <button class="scenario-btn" onclick="app.injectScenario('SMOKE_SPREAD')">💨 Propagar Humo P8</button>
+            <button class="scenario-btn" onclick="app.injectScenario('FAST_DRILL')">⚡ Simulacro Rápido</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- PANEL 3 (RIGHT): BRIGADE DISPATCHER CONSOLE & SCHEMATIC -->
+    <section class="right-column" style="grid-column: 3;">
+
+      <!-- Brigade Teams Dispatcher -->
+      <div class="hud-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            🚒 CONSOLA DE DESPACHO DE BRIGADAS
+          </div>
+          <div class="panel-actions">
+            <span style="font-size: 0.65rem; font-family: var(--font-mono); color: var(--safe-bright);">
+              5 EQUIPOS ACTIVOS
+            </span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="brigade-list" id="brigade-teams-list">
+            <!-- Dynamically Rendered Brigade Cards -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Tactical Building Schematic Cross-Section -->
+      <div class="hud-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            📐 CORTE ESQUEMÁTICO DEL EDIFICIO
+          </div>
+          <div class="panel-actions">
+            <span style="font-size: 0.65rem; font-family: var(--font-mono); color: var(--text-muted);">
+              ESC. A (NORTE) | ESC. B (SUR)
+            </span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="schematic-box">
+            <canvas id="schematic-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- PANEL 4 (BOTTOM): LIVE ANSI AUDIT LOG STREAM -->
+    <section class="hud-panel tactical-log-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          📟 REGISTRO DE AUDITORÍA Y TRANSCRIPCIONES DE RADIO EN VIVO (ANSI LOG STREAM)
+        </div>
+        <div class="panel-actions">
+          <button class="btn-hud" onclick="app.clearLogs()" style="padding: 3px 8px; font-size: 0.65rem;">
+            Limpiar
+          </button>
+        </div>
+      </div>
+      <div class="panel-body" style="padding: 8px;">
+        <div class="log-stream-box" id="audit-log-stream">
+          <!-- Dynamically Appended Real-Time Logs -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ROOM-LEVEL DRILLDOWN MODAL -->
+  <div class="modal-backdrop" id="room-drilldown-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="drilldown-modal-title">
+          🔍 DETALLE TÁCTICO DE PLANTA // PISO 7
+        </div>
+        <button class="modal-close-btn" onclick="app.closeDrilldownModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Floor Telemetry Overview Bar -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: var(--bg-card); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-hud); font-family: var(--font-mono); font-size: 0.75rem;">
+          <div><span style="color: var(--text-dim);">OCUPANTES:</span> <strong id="modal-floor-occ" style="color: #fff;">145</strong></div>
+          <div><span style="color: var(--text-dim);">TEMPERATURA:</span> <strong id="modal-floor-temp" style="color: var(--hazard-crimson);">88.5°C</strong></div>
+          <div><span style="color: var(--text-dim);">DENSIDAD HUMO:</span> <strong id="modal-floor-smoke" style="color: #ffaa5b;">82.0%/m</strong></div>
+          <div><span style="color: var(--text-dim);">ESTADO ALARMA:</span> <strong id="modal-floor-alarm" style="color: var(--hazard-crimson);">DISPARADA</strong></div>
+        </div>
+
+        <!-- 8 Room Grid -->
+        <div>
+          <div style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--cyber-cyan); text-transform: uppercase; margin-bottom: 8px; font-weight: 700;">
+            DISTRIBUCIÓN POR RECINTOS (SECTORES 701 - 708)
+          </div>
+          <div class="rooms-grid" id="modal-rooms-container">
+            <!-- Dynamically populated room cards -->
+          </div>
+        </div>
+
+        <!-- Selected Room Occupant Roster -->
+        <div>
+          <div style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between;">
+            <span id="modal-roster-title">CENSO NOMINAL DE RECINTO</span>
+            <span id="modal-roster-count" style="color: var(--cyber-cyan);">8 Ocupantes</span>
+          </div>
+          <div class="occupant-roster-list" id="modal-roster-container">
+            <!-- Dynamically populated occupants -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-hud" onclick="app.dispatchBrigadeToModalFloor()">🚒 Despachar Brigada a este Piso</button>
+        <button class="btn-hud danger" onclick="app.triggerRoomVentilation()">💨 Activar Extracción de Humos</button>
+        <button class="btn-hud" onclick="app.closeDrilldownModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BRIGADE DISPATCH SELECTION MODAL -->
+  <div class="modal-backdrop" id="brigade-dispatch-modal">
+    <div class="modal-dialog" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title" id="dispatch-modal-title">
+          🚒 ORDEN DE ASIGNACIÓN TÁCTICA
+        </div>
+        <button class="modal-close-btn" onclick="app.closeDispatchModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+          Seleccione el piso y objetivo operacional para la brigada seleccionada:
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 10px; font-family: var(--font-mono); font-size: 0.8rem;">
+          <label>
+            <span style="color: var(--text-dim);">PISO DESTINO:</span>
+            <select id="dispatch-target-floor" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-hud); color: #fff; padding: 8px; border-radius: 6px; margin-top: 4px; font-family: var(--font-mono);">
+              <option value="12">Piso 12 - Terraza / Helipuerto</option>
+              <option value="11">Piso 11 - Presidencia</option>
+              <option value="10">Piso 10 - Auditorio</option>
+              <option value="9">Piso 9 - Legal / RRHH</option>
+              <option value="8">Piso 8 - Operaciones</option>
+              <option value="7" selected>Piso 7 - Finanzas / TI (FOCO FUEGO 🔥)</option>
+              <option value="6">Piso 6 - Ventas</option>
+              <option value="5">Piso 5 - Marketing</option>
+              <option value="4">Piso 4 - Logística</option>
+              <option value="3">Piso 3 - Soporte</option>
+              <option value="2">Piso 2 - Coworking</option>
+              <option value="1">Piso 1 - Lobby Principal</option>
+            </select>
+          </label>
+
+          <label>
+            <span style="color: var(--text-dim);">SECTOR / VÍA:</span>
+            <select id="dispatch-target-sector" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-hud); color: #fff; padding: 8px; border-radius: 6px; margin-top: 4px; font-family: var(--font-mono);">
+              <option value="Ala Este">Ala Este (Zona Crítica)</option>
+              <option value="Ala Oeste">Ala Oeste</option>
+              <option value="Escalera Norte (A)">Escalera Norte (Vía A)</option>
+              <option value="Escalera Sur (B)">Escalera Sur (Vía B)</option>
+              <option value="Ducto Presurizado">Ducto Central Presurizado</option>
+            </select>
+          </label>
+
+          <label>
+            <span style="color: var(--text-dim);">OBJETIVO OPERACIONAL:</span>
+            <select id="dispatch-target-objective" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-hud); color: #fff; padding: 8px; border-radius: 6px; margin-top: 4px; font-family: var(--font-mono);">
+              <option value="COMBATE">Combate de Fuego Directo</option>
+              <option value="BUSQUEDA">Búsqueda y Rescate de Atrapados</option>
+              <option value="TRIAGE">Triage y Agilización de Escaleras</option>
+              <option value="VENTILACION">Ventilación y Extracción de Gases</option>
+              <option value="EVACUAR">Evacuación Forzada de Recinto</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-hud" onclick="app.closeDispatchModal()">Cancelar</button>
+        <button class="btn-hud danger" onclick="app.confirmBrigadeDispatch()">🚀 Transmitir Orden de Despacho</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Info Bar -->
+  <footer class="tactical-footer">
+    <div>
+      SISTEMA TÁCTICO // PROTOCOLO NFPA 101 • EN 54-2 • MESH TELEMETRY
+    </div>
+    <div>
+      EDIFICIO TORRE CENTRAL • SEGURIDAD HUMANA 100% OPERATIVA • 60 FPS HUD
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    /**
+     * Web Audio API Synthesizer for Tactical Siren and Radio Squelch Chimes
+     */
+    class CommandAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+        this.oscillator = null;
+        this.lfo = null;
+        this.gainNode = null;
+        this.isAlarmPlaying = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            this.ctx = new AudioContextClass();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      startAlarm() {
+        if (this.isMuted) return;
+        this.init();
+        if (!this.ctx || this.isAlarmPlaying) return;
+
+        try {
+          const now = this.ctx.currentTime;
+          this.gainNode = this.ctx.createGain();
+          this.gainNode.gain.setValueAtTime(0.01, now);
+          this.gainNode.gain.linearRampToValueAtTime(0.2, now + 0.3);
+          this.gainNode.connect(this.ctx.destination);
+
+          // Warble dual-tone siren
+          this.oscillator = this.ctx.createOscillator();
+          this.oscillator.type = 'sawtooth';
+          this.oscillator.frequency.setValueAtTime(820, now);
+
+          this.lfo = this.ctx.createOscillator();
+          this.lfo.type = 'sine';
+          this.lfo.frequency.setValueAtTime(3.2, now);
+
+          const lfoGain = this.ctx.createGain();
+          lfoGain.gain.setValueAtTime(260, now);
+
+          this.lfo.connect(this.oscillator.frequency);
+          this.oscillator.connect(this.gainNode);
+
+          this.oscillator.start(now);
+          this.lfo.start(now);
+          this.isAlarmPlaying = true;
+        } catch (e) {
+          console.warn("Audio playback not allowed yet", e);
+        }
+      }
+
+      stopAlarm() {
+        if (!this.isAlarmPlaying || !this.gainNode) return;
+        try {
+          const now = this.ctx.currentTime;
+          this.gainNode.gain.cancelScheduledValues(now);
+          this.gainNode.gain.linearRampToValueAtTime(0.001, now + 0.3);
+          setTimeout(() => {
+            if (this.oscillator) {
+              this.oscillator.stop();
+              this.lfo.stop();
+              this.oscillator.disconnect();
+              this.lfo.disconnect();
+              this.isAlarmPlaying = false;
+            }
+          }, 350);
+        } catch (e) {}
+      }
+
+      playChirp() {
+        if (this.isMuted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(1200, now);
+          osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.09);
+        } catch (e) {}
+      }
+
+      playRadioBeep() {
+        if (this.isMuted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1760, now);
+          osc.frequency.setValueAtTime(2200, now + 0.06);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.14);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } catch (e) {}
+      }
+
+      toggleMute() {
+        this.isMuted = !this.isMuted;
+        if (this.isMuted && this.isAlarmPlaying) {
+          this.stopAlarm();
+        }
+        return this.isMuted;
+      }
+    }
+
+    /**
+     * Master Building Command & Floor Matrix Application
+     */
+    class EvacuationMasterApp {
+      constructor() {
+        this.audio = new CommandAudioEngine();
+        this.evacuationActive = false;
+        this.strobeEnabled = true;
+        this.simSpeed = 1.0;
+        this.elapsedSeconds = 0;
+        this.timerInterval = null;
+
+        // Baseline 1,240 Total Occupants across 12 Floors
+        this.floors = [
+          { floor: 12, name: 'Piso 12 - Terraza / Helipuerto', maxCap: 50, occupants: 35, safe: 0, transit: 0, temp: 24.2, smoke: 0.1, co: 2, status: 'NORMAL', alarm: false, stairA: 'CLEAR', stairB: 'CLEAR' },
+          { floor: 11, name: 'Piso 11 - Presidencia / Directorio', maxCap: 80, occupants: 62, safe: 0, transit: 0, temp: 24.8, smoke: 0.2, co: 3, status: 'NORMAL', alarm: false, stairA: 'CLEAR', stairB: 'CLEAR' },
+          { floor: 10, name: 'Piso 10 - Auditorio Principal', maxCap: 120, occupants: 88, safe: 0, transit: 0, temp: 25.1, smoke: 0.3, co: 4, status: 'NORMAL', alarm: false, stairA: 'CLEAR', stairB: 'CLEAR' },
+          { floor: 9,  name: 'Piso 9 - Legal y RRHH', maxCap: 110, occupants: 95, safe: 0, transit: 0, temp: 26.5, smoke: 0.8, co: 8, status: 'NORMAL', alarm: false, stairA: 'CLEAR', stairB: 'CLEAR' },
+          { floor: 8,  name: 'Piso 8 - Operaciones & Ductos', maxCap: 130, occupants: 110, safe: 0, transit: 0, temp: 38.2, smoke: 4.5, co: 35, status: 'ADVISORY', alarm: false, stairA: 'CLEAR', stairB: 'CLEAR' },
+          { floor: 7,  name: 'Piso 7 - Finanzas / TI (FOCO 🔥)', maxCap: 160, occupants: 145, safe: 0, transit: 0, temp: 88.5, smoke: 82.0, co: 310, status: 'CRITICAL', alarm: true, stairA: 'CLEAR', stairB: 'SMOKE_WARN' },
+          { floor: 6,  name: 'Piso 6 - Ventas y Comercial', maxCap: 140, occupants: 120, safe: 0, transit: 0, temp: 41.0, smoke: 6.2, co: 42, status: 'ADVISORY', alarm: false, stairA: 'CLEAR', stairB: 'CLEAR' },
+          { floor: 5,  name: 'Piso 5 - Marketing y Diseño', maxCap: 120, occupants: 105, safe: 0, transit: 0, temp: 25.4, smoke: 0.4, co: 5, status: 'NORMAL', alarm: false, stairA: 'CLEAR', stairB: 'CLEAR' },
+          { floor: 4,  name: 'Piso 4 - Logística y Compras', maxCap: 130, occupants: 115, safe: 0, transit: 0, temp: 24.1, smoke: 0.1, co: 2, status: 'NORMAL', alarm: false, stairA: 'CLEAR', stairB: 'CLEAR' },
+          { floor: 3,  name: 'Piso 3 - Soporte al Cliente', maxCap: 150, occupants: 130, safe: 0, transit: 0, temp: 23.8, smoke: 0.0, co: 1, status: 'NORMAL', alarm: false, stairA: 'CLEAR', stairB: 'CLEAR' },
+          { floor: 2,  name: 'Piso 2 - Coworking & Innovación', maxCap: 160, occupants: 140, safe: 0, transit: 0, temp: 22.9, smoke: 0.0, co: 0, status: 'NORMAL', alarm: false, stairA: 'CLEAR', stairB: 'CLEAR' },
+          { floor: 1,  name: 'Piso 1 - Lobby y Recepción', maxCap: 120, occupants: 95, safe: 0, transit: 0, temp: 22.0, smoke: 0.0, co: 0, status: 'NORMAL', alarm: false, stairA: 'CLEAR', stairB: 'CLEAR' }
+        ];
+
+        // 5 Specialized Brigade Teams
+        this.brigades = [
+          { id: 'brig-alpha', name: 'Brigada Alfa', icon: '🚒', role: 'COMBATE', location: 'Piso 7 - Ala Este', personnel: 4, scba: 4200, temp: 88.5, status: 'SUPPRESSING', targetFloor: 7 },
+          { id: 'brig-bravo', name: 'Brigada Bravo', icon: '🦺', role: 'BUSQUEDA', location: 'Piso 7 - Escalera Norte', personnel: 4, scba: 4050, temp: 42.0, status: 'RESCUING', targetFloor: 7 },
+          { id: 'brig-charlie', name: 'Brigada Charlie', icon: '🚪', role: 'TRIAGE', location: 'Piso 4 - Escalera Sur', personnel: 3, scba: 4400, temp: 24.1, status: 'TRIAGE_FLOW', targetFloor: 4 },
+          { id: 'brig-delta', name: 'Brigada Delta', icon: '🚑', role: 'MEDICO', location: 'Planta Baja - Punto A', personnel: 5, scba: 4500, temp: 22.0, status: 'STAGING', targetFloor: 1 },
+          { id: 'brig-echo', name: 'Brigada Eco', icon: '💨', role: 'VENTILACION', location: 'Piso 8 - Techo Ductos', personnel: 3, scba: 3900, temp: 35.8, status: 'VENTILATING', targetFloor: 8 }
+        ];
+
+        // Detailed Floor 7 Room Breakdown
+        this.roomsFloor7 = [
+          { id: 'R701', name: 'Open Space Norte', occupants: 25, temp: 45.0, smoke: 25.0, status: 'HAZARD', safeCount: 0 },
+          { id: 'R702', name: 'Sala Conferencias A', occupants: 18, temp: 36.0, smoke: 12.0, status: 'ALERT', safeCount: 0 },
+          { id: 'R703', name: 'Sala Servidores (Datacenter)', occupants: 4, temp: 92.0, smoke: 95.0, status: 'SOS_TRAPPED', safeCount: 0 },
+          { id: 'R704', name: 'Sanitarios y Pasillos', occupants: 6, temp: 58.0, smoke: 48.0, status: 'HAZARD', safeCount: 0 },
+          { id: 'R705', name: 'Oficina Director (Refugio)', occupants: 12, temp: 28.0, smoke: 5.0, status: 'ALERT', safeCount: 0 },
+          { id: 'R706', name: 'Open Space Este (FOCO)', occupants: 40, temp: 88.5, smoke: 82.0, status: 'SOS_TRAPPED', safeCount: 0 },
+          { id: 'R707', name: 'Finanzas & Facturación', occupants: 28, temp: 52.0, smoke: 35.0, status: 'HAZARD', safeCount: 0 },
+          { id: 'R708', name: 'Kitchenette y Racks', occupants: 12, temp: 64.0, smoke: 60.0, status: 'HAZARD', safeCount: 0 }
+        ];
+
+        this.selectedFloorNum = 7;
+        this.selectedBrigadeId = null;
+        this.historyData = [];
+        this.logs = [];
+
+        this.initDOM();
+        this.initCanvases();
+        this.initInitialLog();
+        this.startSimulationLoop();
+      }
+
+      initDOM() {
+        // Master Broadcast Button
+        const btnBroadcast = document.getElementById('btn-master-broadcast');
+        if (btnBroadcast) {
+          btnBroadcast.addEventListener('click', () => {
+            this.toggleMasterBroadcast();
+          });
+        }
+
+        // Header controls
+        document.getElementById('btn-toggle-sound').addEventListener('click', () => {
+          const muted = this.audio.toggleMute();
+          const lbl = document.getElementById('audio-status-label');
+          const btn = document.getElementById('btn-toggle-sound');
+          if (muted) {
+            lbl.textContent = '🔇 MUTE';
+            lbl.style.color = 'var(--text-dim)';
+            btn.classList.remove('active');
+          } else {
+            lbl.textContent = '🔊 ACTIVO';
+            lbl.style.color = 'var(--safe-bright)';
+            btn.classList.add('active');
+            this.audio.playChirp();
+          }
+        });
+
+        document.getElementById('btn-toggle-strobe').addEventListener('click', () => {
+          this.strobeEnabled = !this.strobeEnabled;
+          const btn = document.getElementById('btn-toggle-strobe');
+          btn.classList.toggle('active', this.strobeEnabled);
+          if (!this.strobeEnabled) {
+            document.body.classList.remove('strobe-active');
+          } else if (this.evacuationActive) {
+            document.body.classList.add('strobe-active');
+          }
+        });
+
+        document.getElementById('btn-sim-speed').addEventListener('click', () => {
+          const speeds = [1.0, 2.0, 5.0, 0.5];
+          const currIdx = speeds.indexOf(this.simSpeed);
+          this.simSpeed = speeds[(currIdx + 1) % speeds.length];
+          document.getElementById('btn-sim-speed').textContent = `⏩ ${this.simSpeed}x`;
+          this.audio.playChirp();
+        });
+
+        document.getElementById('btn-system-reset').addEventListener('click', () => {
+          this.resetSimulation();
+        });
+
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+          if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+            e.preventDefault();
+            this.toggleMasterBroadcast();
+          } else if (e.key === 'm' || e.key === 'M') {
+            document.getElementById('btn-toggle-sound').click();
+          } else if (e.key === 'Escape') {
+            this.closeDrilldownModal();
+            this.closeDispatchModal();
+          }
+        });
+
+        this.renderFloorsMatrix();
+        this.renderBrigades();
+        this.updateHeadcountMetrics();
+      }
+
+      initInitialLog() {
+        this.addLog('SYSTEM', 'Centro de Comando iniciado. Torre Central conectada vía LoRaWAN/BACnet.');
+        this.addLog('SENSOR', 'Piso 7 Sensor Térmico Ala Este emite advertencia: 88.5°C.');
+        this.addLog('BRIGADE', 'Brigada Alfa desplegada en Piso 7 con mangueras presurizadas.');
+      }
+
+      toggleMasterBroadcast() {
+        this.audio.init();
+        this.evacuationActive = !this.evacuationActive;
+        const btn = document.getElementById('btn-master-broadcast');
+        const badge = document.getElementById('global-status-badge');
+
+        if (this.evacuationActive) {
+          btn.classList.add('active-evac');
+          btn.innerHTML = '<div class="btn-pulse-ring"></div><span>🚨 DESACTIVAR / CANCELAR ALERTA</span>';
+          badge.textContent = 'EVACUACIÓN ACTIVA';
+          badge.className = 'status-badge evacuating';
+          if (this.strobeEnabled) {
+            document.body.classList.add('strobe-active');
+          }
+          this.audio.startAlarm();
+          this.addLog('BROADCAST', '¡ALERTA MAESTRA DE EVACUACIÓN DESPLEGADA POR COMANDANTE DE INCIDENTE!');
+          this.addLog('SYSTEM', 'Ascensores bloqueados en PB. Transmisores de emergencia activados.');
+
+          // Set all floors to evacuating
+          this.floors.forEach(f => {
+            if (f.occupants > 0 && f.status !== 'CRITICAL') {
+              f.status = 'EVACUATING';
+              f.alarm = true;
+            }
+          });
+          this.renderFloorsMatrix();
+        } else {
+          btn.classList.remove('active-evac');
+          btn.innerHTML = '<div class="btn-pulse-ring"></div><span>DESPLEGAR ALERTA DE EVACUACIÓN</span>';
+          badge.textContent = 'STANDBY / CONTROL';
+          badge.className = 'status-badge normal';
+          document.body.classList.remove('strobe-active');
+          this.audio.stopAlarm();
+          this.addLog('BROADCAST', 'Alerta de evacuación suspendida / Modo de control restablecido.');
+        }
+      }
+
+      renderFloorsMatrix() {
+        const container = document.getElementById('floor-matrix-list');
+        if (!container) return;
+        container.innerHTML = '';
+
+        this.floors.forEach(f => {
+          const card = document.createElement('div');
+          let statusClass = 'normal';
+          if (f.status === 'CRITICAL') statusClass = 'critical';
+          else if (f.status === 'ADVISORY') statusClass = 'advisory';
+          else if (f.status === 'CLEARED') statusClass = 'cleared';
+          else if (f.status === 'EVACUATING') statusClass = 'evacuating';
+
+          card.className = `floor-card ${statusClass} ${f.floor === this.selectedFloorNum ? 'selected' : ''}`;
+          card.onclick = () => this.openFloorDrilldown(f.floor);
+
+          const totalFloorInit = f.occupants + f.safe + f.transit;
+          const safePct = totalFloorInit > 0 ? (f.safe / totalFloorInit) * 100 : 0;
+          const transitPct = totalFloorInit > 0 ? (f.transit / totalFloorInit) * 100 : 0;
+          const trappedPct = totalFloorInit > 0 ? (f.occupants / totalFloorInit) * 100 : 0;
+
+          card.innerHTML = `
+            <div class="floor-card-top">
+              <div class="floor-tag">
+                <span class="floor-num-badge">P${f.floor}</span>
+                <span>${f.name.split(' - ')[1] || f.name}</span>
+              </div>
+              <span class="floor-status-indicator ${statusClass}">${f.status}</span>
+            </div>
+            <div class="floor-metrics-row">
+              <div class="metric-micro">
+                <span class="m-lbl">Ocupantes</span>
+                <span class="m-val ${f.occupants === 0 ? 'safe' : ''}">${f.occupants}</span>
+              </div>
+              <div class="metric-micro">
+                <span class="m-lbl">Temp</span>
+                <span class="m-val ${f.temp > 50 ? 'hot' : (f.temp > 30 ? 'warm' : '')}">${f.temp.toFixed(1)}°C</span>
+              </div>
+              <div class="metric-micro">
+                <span class="m-lbl">Humo</span>
+                <span class="m-val ${f.smoke > 20 ? 'hot' : 'smoke'}">${f.smoke.toFixed(1)}%</span>
+              </div>
+              <div class="metric-micro">
+                <span class="m-lbl">Vía Esc.</span>
+                <span class="m-val ${f.stairB === 'SMOKE_WARN' ? 'warm' : 'safe'}">${f.stairA === 'CLEAR' && f.stairB === 'CLEAR' ? '2 Libres' : '1 Alerta'}</span>
+              </div>
+            </div>
+            <div class="floor-occupancy-bar">
+              <div class="occupancy-fill-safe" style="width: ${safePct}%;"></div>
+              <div class="occupancy-fill-transit" style="width: ${transitPct}%;"></div>
+              <div class="occupancy-fill-trapped" style="width: ${trappedPct}%;"></div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      renderBrigades() {
+        const container = document.getElementById('brigade-teams-list');
+        if (!container) return;
+        container.innerHTML = '';
+
+        this.brigades.forEach(b => {
+          const card = document.createElement('div');
+          card.className = 'brigade-card';
+          
+          let scbaClass = '';
+          if (b.scba < 2000) scbaClass = 'danger';
+          else if (b.scba < 3000) scbaClass = 'warning';
+
+          const scbaPct = Math.max(0, Math.min(100, (b.scba / 4500) * 100));
+
+          card.innerHTML = `
+            <div class="brigade-card-header">
+              <div class="brigade-callsign">
+                <span>${b.icon}</span>
+                <span>${b.name}</span>
+              </div>
+              <span class="brigade-badge ${b.role.toLowerCase()}">${b.status}</span>
+            </div>
+            <div class="brigade-details">
+              <div><span style="color: var(--text-dim);">Ubicación:</span> ${b.location}</div>
+              <div><span style="color: var(--text-dim);">Personal:</span> ${b.personnel} Efectivos</div>
+              <div><span style="color: var(--text-dim);">Temp Zona:</span> ${b.temp.toFixed(1)}°C</div>
+              <div><span style="color: var(--text-dim);">Piso Obj:</span> Piso ${b.targetFloor}</div>
+            </div>
+            <div class="scba-gauge-container">
+              <div class="scba-top">
+                <span>Aire SCBA (Respirador)</span>
+                <span><strong>${b.scba} PSI</strong> (${scbaPct.toFixed(0)}%)</span>
+              </div>
+              <div class="scba-bar">
+                <div class="scba-fill ${scbaClass}" style="width: ${scbaPct}%;"></div>
+              </div>
+            </div>
+            <div class="brigade-actions-bar">
+              <button class="btn-brigade-dispatch" onclick="app.openDispatchModal('${b.id}')">
+                🎯 Reasignar / Despachar
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      updateHeadcountMetrics() {
+        let totalSafe = 0;
+        let totalTransit = 0;
+        let totalTrapped = 0;
+
+        this.floors.forEach(f => {
+          totalSafe += f.safe;
+          totalTransit += f.transit;
+          totalTrapped += f.occupants;
+        });
+
+        const totalCensus = 1240;
+        document.getElementById('metric-total-census').textContent = totalCensus.toLocaleString();
+        document.getElementById('metric-safe-count').textContent = totalSafe.toLocaleString();
+        document.getElementById('metric-transit-count').textContent = totalTransit.toLocaleString();
+        document.getElementById('metric-trapped-count').textContent = totalTrapped.toLocaleString();
+
+        const safePct = ((totalSafe / totalCensus) * 100).toFixed(1);
+        const trappedPct = ((totalTrapped / totalCensus) * 100).toFixed(1);
+
+        document.getElementById('metric-safe-pct').textContent = `${safePct}% Evacuado`;
+        document.getElementById('metric-trapped-pct').textContent = `${trappedPct}% En Riesgo`;
+
+        // Push to chart history
+        this.historyData.push({
+          time: this.elapsedSeconds,
+          safe: totalSafe,
+          transit: totalTransit,
+          trapped: totalTrapped
+        });
+
+        if (this.historyData.length > 100) {
+          this.historyData.shift();
+        }
+      }
+
+      openFloorDrilldown(floorNum) {
+        this.selectedFloorNum = floorNum;
+        const floorObj = this.floors.find(f => f.floor === floorNum);
+        if (!floorObj) return;
+
+        this.audio.playChirp();
+        const modal = document.getElementById('room-drilldown-modal');
+        document.getElementById('drilldown-modal-title').textContent = `🔍 DETALLE TÁCTICO // PISO ${floorNum} (${floorObj.name.split(' - ')[1]})`;
+        document.getElementById('modal-floor-occ').textContent = floorObj.occupants;
+        document.getElementById('modal-floor-temp').textContent = `${floorObj.temp.toFixed(1)}°C`;
+        document.getElementById('modal-floor-smoke').textContent = `${floorObj.smoke.toFixed(1)}%/m`;
+        document.getElementById('modal-floor-alarm').textContent = floorObj.alarm ? 'DISPARADA' : 'STANDBY';
+
+        const roomsContainer = document.getElementById('modal-rooms-container');
+        roomsContainer.innerHTML = '';
+
+        // Generate or load rooms for this floor
+        const rooms = (floorNum === 7) ? this.roomsFloor7 : this.generateRoomsForFloor(floorNum, floorObj);
+
+        rooms.forEach(r => {
+          const roomCard = document.createElement('div');
+          let rClass = 'safe-clear';
+          if (r.status === 'SOS_TRAPPED') rClass = 'hazard-fire';
+          else if (r.status === 'HAZARD') rClass = 'hazard-smoke';
+          else if (r.status === 'ALERT') rClass = 'hazard-smoke';
+
+          roomCard.className = `room-card ${rClass}`;
+          roomCard.onclick = () => this.selectRoomOccupants(r);
+
+          roomCard.innerHTML = `
+            <div class="room-card-head">
+              <span class="room-id-tag">${r.id}</span>
+              <span style="font-size: 0.65rem; font-weight: 700;">${r.occupants} pers</span>
+            </div>
+            <div class="room-name-lbl" title="${r.name}">${r.name}</div>
+            <div class="room-stats">
+              <span>${r.temp.toFixed(0)}°C</span>
+              <span>Humo: ${r.smoke.toFixed(0)}%</span>
+            </div>
+          `;
+          roomsContainer.appendChild(roomCard);
+        });
+
+        // Load first room occupants by default
+        this.selectRoomOccupants(rooms[0]);
+
+        modal.classList.add('open');
+        this.renderFloorsMatrix();
+      }
+
+      generateRoomsForFloor(floorNum, floorObj) {
+        const roomNames = [
+          'Open Space Norte', 'Sala Reuniones A', 'Oficina Gerencia', 
+          'Sanitarios y Pasillos', 'Archivo / IT Rack', 'Open Space Sur',
+          'Finanzas & Operaciones', 'Kitchenette / Descanso'
+        ];
+        const perRoom = Math.floor(floorObj.occupants / 8);
+        return roomNames.map((name, i) => ({
+          id: `R${floorNum}0${i + 1}`,
+          name: name,
+          occupants: (i === 7) ? (floorObj.occupants - perRoom * 7) : perRoom,
+          temp: floorObj.temp + (Math.random() * 2 - 1),
+          smoke: floorObj.smoke + (Math.random() * 1 - 0.5),
+          status: floorObj.status === 'CRITICAL' ? 'HAZARD' : (floorObj.status === 'ADVISORY' ? 'ALERT' : 'CLEAR')
+        }));
+      }
+
+      selectRoomOccupants(room) {
+        const rosterContainer = document.getElementById('modal-roster-container');
+        document.getElementById('modal-roster-title').textContent = `OCUPANTES // ${room.id} (${room.name})`;
+        document.getElementById('modal-roster-count').textContent = `${room.occupants} Personas`;
+
+        rosterContainer.innerHTML = '';
+        if (room.occupants === 0) {
+          rosterContainer.innerHTML = '<div style="color: var(--safe-bright); font-size: 0.72rem; padding: 6px;">🟢 Recinto despejado. 0 personas en riesgo.</div>';
+          return;
+        }
+
+        const sampleNames = ['Juan Pérez', 'María Gómez', 'Carlos Vega', 'Elena Rostova', 'Pedro Morales', 'Lucía Flores', 'David Sotomayor', 'Andrea Silva'];
+        for (let i = 0; i < Math.min(room.occupants, 12); i++) {
+          const name = sampleNames[i % sampleNames.length] + (i >= 8 ? ` (#${i+1})` : '');
+          const item = document.createElement('div');
+          item.className = 'occupant-item';
+          
+          let badgeText = 'EN RIESGO';
+          let badgeClass = 'trapped';
+          if (room.status === 'CLEAR') { badgeText = 'A SALVO'; badgeClass = 'safe'; }
+          else if (room.status === 'ALERT') { badgeText = 'EN RUTA'; badgeClass = 'transit'; }
+
+          item.innerHTML = `
+            <span>👤 ${name}</span>
+            <span class="occ-badge ${badgeClass}">${badgeText}</span>
+          `;
+          rosterContainer.appendChild(item);
+        }
+      }
+
+      closeDrilldownModal() {
+        document.getElementById('room-drilldown-modal').classList.remove('open');
+      }
+
+      openDispatchModal(brigadeId) {
+        this.selectedBrigadeId = brigadeId;
+        const brigade = this.brigades.find(b => b.id === brigadeId);
+        if (!brigade) return;
+
+        this.audio.playRadioBeep();
+        document.getElementById('dispatch-modal-title').textContent = `🚒 ASIGNACIÓN TÁCTICA // ${brigade.name.toUpperCase()}`;
+        document.getElementById('dispatch-target-floor').value = brigade.targetFloor;
+        document.getElementById('brigade-dispatch-modal').classList.add('open');
+      }
+
+      closeDispatchModal() {
+        document.getElementById('brigade-dispatch-modal').classList.remove('open');
+      }
+
+      confirmBrigadeDispatch() {
+        const brigade = this.brigades.find(b => b.id === this.selectedBrigadeId);
+        if (!brigade) return;
+
+        const targetFloor = parseInt(document.getElementById('dispatch-target-floor').value);
+        const sector = document.getElementById('dispatch-target-sector').value;
+        const objective = document.getElementById('dispatch-target-objective').value;
+
+        brigade.targetFloor = targetFloor;
+        brigade.location = `Piso ${targetFloor} - ${sector}`;
+        brigade.status = objective;
+        brigade.role = objective;
+
+        this.audio.playRadioBeep();
+        this.addLog('BRIGADE', `[RADIO] ${brigade.name} asignada a Piso ${targetFloor} (${sector}). Objetivo: ${objective}.`);
+        this.closeDispatchModal();
+        this.renderBrigades();
+      }
+
+      dispatchBrigadeToModalFloor() {
+        this.closeDrilldownModal();
+        this.openDispatchModal('brig-bravo');
+      }
+
+      triggerRoomVentilation() {
+        this.audio.playChirp();
+        this.addLog('SYSTEM', `Ventilación táctica presurizada activada en Piso ${this.selectedFloorNum}.`);
+        const floor = this.floors.find(f => f.floor === this.selectedFloorNum);
+        if (floor) {
+          floor.smoke = Math.max(0.1, floor.smoke * 0.4);
+          floor.temp = Math.max(22.0, floor.temp - 12.0);
+          this.openFloorDrilldown(this.selectedFloorNum);
+        }
+      }
+
+      injectScenario(type) {
+        this.audio.playChirp();
+        if (type === 'FIRE_P7') {
+          const p7 = this.floors.find(f => f.floor === 7);
+          if (p7) {
+            p7.temp = 94.0;
+            p7.smoke = 92.0;
+            p7.co = 400;
+            p7.status = 'CRITICAL';
+            p7.alarm = true;
+            p7.stairB = 'SMOKE_WARN';
+            this.addLog('SENSOR', '🔥 INYECCIÓN: Foco de fuego incrementado en Piso 7 (94.0°C).');
+          }
+        } else if (type === 'BLOCK_STAIR_B') {
+          this.floors.forEach(f => {
+            if (f.floor >= 6) f.stairB = 'BLOCKED';
+          });
+          this.addLog('SENSOR', '🚧 INYECCIÓN: Escalera Sur (Vía B) bloqueada por humo y escombros desde Piso 6.');
+        } else if (type === 'SMOKE_SPREAD') {
+          const p8 = this.floors.find(f => f.floor === 8);
+          if (p8) {
+            p8.temp = 54.0;
+            p8.smoke = 28.0;
+            p8.co = 95;
+            p8.status = 'CRITICAL';
+            this.addLog('SENSOR', '💨 INYECCIÓN: Propagación de humo tóxico a Piso 8 vía ductos.');
+          }
+        } else if (type === 'FAST_DRILL') {
+          this.simSpeed = 5.0;
+          document.getElementById('btn-sim-speed').textContent = '⏩ 5.0x';
+          if (!this.evacuationActive) this.toggleMasterBroadcast();
+          this.addLog('SYSTEM', '⚡ SIMULACRO RÁPIDO: Velocidad acelerada a 5.0x.');
+        }
+        this.renderFloorsMatrix();
+      }
+
+      resetSimulation() {
+        this.audio.playChirp();
+        this.evacuationActive = false;
+        this.elapsedSeconds = 0;
+        this.simSpeed = 1.0;
+        document.getElementById('btn-sim-speed').textContent = '⏩ 1.0x';
+
+        const btn = document.getElementById('btn-master-broadcast');
+        btn.classList.remove('active-evac');
+        btn.innerHTML = '<div class="btn-pulse-ring"></div><span>DESPLEGAR ALERTA DE EVACUACIÓN</span>';
+        
+        const badge = document.getElementById('global-status-badge');
+        badge.textContent = 'STANDBY';
+        badge.className = 'status-badge normal';
+        document.body.classList.remove('strobe-active');
+        this.audio.stopAlarm();
+
+        // Reset floor occupants to initial 1,240 baseline
+        const initCounts = [35, 62, 88, 95, 110, 145, 120, 105, 115, 130, 140, 95];
+        this.floors.forEach((f, idx) => {
+          f.occupants = initCounts[idx];
+          f.safe = 0;
+          f.transit = 0;
+          f.status = (f.floor === 7) ? 'CRITICAL' : (f.floor === 8 || f.floor === 6 ? 'ADVISORY' : 'NORMAL');
+          f.alarm = (f.floor === 7);
+          f.temp = (f.floor === 7) ? 88.5 : (f.floor === 8 ? 38.2 : 24.0);
+          f.smoke = (f.floor === 7) ? 82.0 : (f.floor === 8 ? 4.5 : 0.2);
+          f.stairA = 'CLEAR';
+          f.stairB = (f.floor === 7) ? 'SMOKE_WARN' : 'CLEAR';
+        });
+
+        this.brigades.forEach(b => {
+          b.scba = 4200;
+        });
+
+        this.historyData = [];
+        this.addLog('SYSTEM', 'Simulador de evacuación reiniciado a condiciones basales (1,240 personas).');
+        this.renderFloorsMatrix();
+        this.renderBrigades();
+        this.updateHeadcountMetrics();
+      }
+
+      addLog(category, message) {
+        const timeStr = this.formatTime(this.elapsedSeconds);
+        const logObj = { time: timeStr, category, message };
+        this.logs.unshift(logObj);
+        if (this.logs.length > 80) this.logs.pop();
+
+        const container = document.getElementById('audit-log-stream');
+        if (!container) return;
+
+        const row = document.createElement('div');
+        row.className = 'log-row';
+        row.innerHTML = `
+          <span class="log-time">[${timeStr}]</span>
+          <span class="log-tag ${category.toLowerCase()}">${category}</span>
+          <span class="log-msg">${message}</span>
+        `;
+        container.insertBefore(row, container.firstChild);
+      }
+
+      clearLogs() {
+        this.logs = [];
+        const container = document.getElementById('audit-log-stream');
+        if (container) container.innerHTML = '';
+        this.addLog('SYSTEM', 'Registro de auditoría limpiado.');
+      }
+
+      formatTime(sec) {
+        const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+        const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        return `${h}:${m}:${s}`;
+      }
+
+      startSimulationLoop() {
+        setInterval(() => {
+          if (this.evacuationActive) {
+            this.elapsedSeconds += Math.round(this.simSpeed);
+            document.getElementById('evac-timer').textContent = this.formatTime(this.elapsedSeconds);
+            this.stepEvacuationPhysics();
+          }
+          this.stepBrigadeTelemetry();
+        }, 1000 / this.simSpeed);
+
+        // Canvas Rendering Loop
+        const renderLoop = () => {
+          this.drawEvacuationChart();
+          this.drawSchematic();
+          requestAnimationFrame(renderLoop);
+        };
+        requestAnimationFrame(renderLoop);
+      }
+
+      stepEvacuationPhysics() {
+        let anyMoved = false;
+
+        this.floors.forEach(f => {
+          if (f.occupants > 0) {
+            // Egress rate dependent on stairwell impedance
+            let egressCap = 2.5 * this.simSpeed;
+            if (f.stairB === 'SMOKE_WARN') egressCap *= 0.6;
+            if (f.stairB === 'BLOCKED') egressCap *= 0.4;
+
+            const leaving = Math.min(f.occupants, Math.ceil(egressCap));
+            if (leaving > 0) {
+              f.occupants -= leaving;
+              f.transit += leaving;
+              anyMoved = true;
+            }
+          }
+
+          // Movement from transit in stairs to ground safe assembly point
+          if (f.transit > 0) {
+            const arrivingSafe = Math.min(f.transit, Math.ceil(2.0 * this.simSpeed));
+            f.transit -= arrivingSafe;
+            f.safe += arrivingSafe;
+            anyMoved = true;
+          }
+
+          if (f.occupants === 0 && f.transit === 0 && f.status !== 'CLEARED') {
+            f.status = 'CLEARED';
+            this.addLog('OCCUPANT', `✅ Piso ${f.floor} (${f.name.split(' - ')[1]}) totalmente despejado.`);
+          }
+        });
+
+        if (anyMoved) {
+          this.renderFloorsMatrix();
+          this.updateHeadcountMetrics();
+        }
+      }
+
+      stepBrigadeTelemetry() {
+        this.brigades.forEach(b => {
+          if (b.status === 'SUPPRESSING' || b.status === 'RESCUING') {
+            // SCBA oxygen consumption
+            if (b.scba > 500) {
+              b.scba = Math.max(500, b.scba - Math.round(15 * this.simSpeed));
+            }
+            // Fire suppression effect
+            const target = this.floors.find(f => f.floor === b.targetFloor);
+            if (target && target.temp > 24.0) {
+              target.temp = Math.max(24.0, target.temp - (0.4 * this.simSpeed));
+              target.smoke = Math.max(0.2, target.smoke - (0.6 * this.simSpeed));
+            }
+          }
+        });
+      }
+
+      initCanvases() {
+        const evacCanvas = document.getElementById('evacuation-canvas');
+        const schemCanvas = document.getElementById('schematic-canvas');
+
+        const resize = () => {
+          if (evacCanvas && evacCanvas.parentElement) {
+            evacCanvas.width = evacCanvas.parentElement.clientWidth;
+            evacCanvas.height = evacCanvas.parentElement.clientHeight;
+          }
+          if (schemCanvas && schemCanvas.parentElement) {
+            schemCanvas.width = schemCanvas.parentElement.clientWidth;
+            schemCanvas.height = schemCanvas.parentElement.clientHeight;
+          }
+        };
+
+        window.addEventListener('resize', resize);
+        setTimeout(resize, 50);
+      }
+
+      drawEvacuationChart() {
+        const canvas = document.getElementById('evacuation-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Draw gridlines
+        ctx.strokeStyle = 'rgba(30, 50, 88, 0.4)';
+        ctx.lineWidth = 1;
+        for (let y = 0; y < h; y += 40) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+
+        if (this.historyData.length < 2) return;
+
+        const maxCensus = 1240;
+        const stepX = w / Math.max(1, this.historyData.length - 1);
+
+        // Safe line (Green)
+        this.renderChartLine(ctx, this.historyData.map(d => d.safe), maxCensus, stepX, h, '#00ff88', 'rgba(0, 255, 136, 0.15)');
+
+        // Transit line (Orange)
+        this.renderChartLine(ctx, this.historyData.map(d => d.transit), maxCensus, stepX, h, '#f97316', 'rgba(249, 115, 22, 0.15)');
+
+        // Trapped line (Red)
+        this.renderChartLine(ctx, this.historyData.map(d => d.trapped), maxCensus, stepX, h, '#ef4444', 'rgba(239, 68, 68, 0.15)');
+      }
+
+      renderChartLine(ctx, values, maxVal, stepX, h, strokeColor, fillColor) {
+        ctx.beginPath();
+        values.forEach((v, i) => {
+          const x = i * stepX;
+          const y = h - (v / maxVal) * (h - 20) - 10;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+
+      drawSchematic() {
+        const canvas = document.getElementById('schematic-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        const floorH = h / 12;
+
+        // Draw Building Floors
+        this.floors.forEach((f, idx) => {
+          const y = (12 - f.floor) * floorH;
+          
+          // Floor background
+          if (f.floor === 7) {
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+          } else if (f.status === 'CLEARED') {
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+          } else {
+            ctx.fillStyle = 'rgba(17, 29, 56, 0.5)';
+          }
+          ctx.fillRect(40, y + 2, w - 80, floorH - 4);
+
+          // Floor label
+          ctx.fillStyle = '#64748b';
+          ctx.font = '9px JetBrains Mono';
+          ctx.fillText(`P${f.floor}`, 10, y + floorH - 4);
+
+          // Stairwell A (Left) & Stairwell B (Right)
+          ctx.fillStyle = f.stairA === 'CLEAR' ? '#10b981' : '#ef4444';
+          ctx.fillRect(44, y + 4, 12, floorH - 8);
+
+          ctx.fillStyle = f.stairB === 'CLEAR' ? '#10b981' : (f.stairB === 'SMOKE_WARN' ? '#f59e0b' : '#ef4444');
+          ctx.fillRect(w - 56, y + 4, 12, floorH - 8);
+
+          // Brigades on floor icon
+          const brigadeHere = this.brigades.find(b => b.targetFloor === f.floor);
+          if (brigadeHere) {
+            ctx.fillStyle = '#00e5ff';
+            ctx.font = '11px sans-serif';
+            ctx.fillText(brigadeHere.icon, w / 2 - 8, y + floorH - 3);
+          }
+        });
+      }
+    }
+
+    // Initialize Application on DOM Ready
+    let app = null;
+    document.addEventListener('DOMContentLoaded', () => {
+      app = new EvacuationMasterApp();
+      window.app = app; // Expose for inline handlers and testing
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network Health Check — Diagnostic Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{min-height:100%}
+body{
+  min-height:100%;font-family:'Inter',system-ui,sans-serif;
+  background:#030812;color:#e0eaff;
+  display:flex;flex-direction:column;align-items:center;
+  overflow-x:hidden;position:relative;
+}
+
+/* ── Hex grid ────────────────────────────── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(30deg,rgba(0,255,136,.025) 12%,transparent 12.5%,transparent 87%,rgba(0,255,136,.025) 87.5%),
+    linear-gradient(150deg,rgba(0,255,136,.025) 12%,transparent 12.5%,transparent 87%,rgba(0,255,136,.025) 87.5%),
+    linear-gradient(30deg,rgba(0,255,136,.025) 12%,transparent 12.5%,transparent 87%,rgba(0,255,136,.025) 87.5%),
+    linear-gradient(150deg,rgba(0,255,136,.025) 12%,transparent 12.5%,transparent 87%,rgba(0,255,136,.025) 87.5%),
+    linear-gradient(60deg,rgba(0,255,136,.015) 25%,transparent 25.5%,transparent 75%,rgba(0,255,136,.015) 75%),
+    linear-gradient(60deg,rgba(0,255,136,.015) 25%,transparent 25.5%,transparent 75%,rgba(0,255,136,.015) 75%);
+  background-size:40px 70px;
+  background-position:0 0,0 0,20px 35px,20px 35px,0 0,20px 35px;
+  pointer-events:none;z-index:0;opacity:.5;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 55% 45% at 50% 25%,rgba(0,255,136,.03) 0%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── Layout ──────────────────────────────── */
+.app{position:relative;z-index:2;width:100%;max-width:1020px;padding:clamp(24px, 4vw, 44px) clamp(12px, 3vw, 20px) 36px}
+
+/* ── Header ──────────────────────────────── */
+.hdr{text-align:center;margin-bottom:40px}
+.hdr h1{
+  font-size:clamp(1.4rem,3.8vw,2.3rem);font-weight:800;letter-spacing:-.02em;
+  background:linear-gradient(135deg,#00ff88,#00e5ff 50%,#00ff88);
+  background-size:200% 200%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:gs 5s ease infinite;margin-bottom:8px;
+}
+@keyframes gs{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.hdr__sub{font-size:clamp(0.75rem, 1.6vw, 0.88rem);color:rgba(200,220,255,.45);margin-bottom:16px}
+
+.pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 18px;border-radius:6px;
+  background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.18);
+  font-size:clamp(0.62rem, 1.3vw, 0.72rem);font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:#6bffbb;transition:all .5s;
+}
+.pill .pip{width:6px;height:6px;border-radius:50%;background:#00ff88;box-shadow:0 0 6px #00ff88;animation:pp 2s ease infinite}
+@keyframes pp{0%,100%{opacity:1}50%{opacity:.3}}
+.pill[data-s="run"]{border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.05);color:#6bfaff}
+.pill[data-s="run"] .pip{background:#00e5ff;box-shadow:0 0 6px #00e5ff}
+.pill[data-s="done"]{border-color:rgba(0,255,136,.35);background:rgba(0,255,136,.07);color:#00ff88}
+.pill[data-s="done"] .pip{animation:none}
+.pill[data-s="error"]{border-color:rgba(255,50,80,.35);background:rgba(255,50,80,.06);color:#ff5070}
+.pill[data-s="error"] .pip{background:#ff3250;box-shadow:0 0 6px #ff3250;animation:none}
+
+/* ── Stepper ─────────────────────────────── */
+.stepper{
+  display:flex;align-items:flex-start;
+  justify-content:space-between;
+  position:relative;margin:0 auto 40px;padding:0 6px;
+}
+
+/* Track */
+.trk{position:absolute;top:calc(clamp(52px, 12vw, 88px) / 2);left:calc(clamp(52px, 12vw, 88px) / 2);right:calc(clamp(52px, 12vw, 88px) / 2);height:2px;z-index:1}
+.trk__bg{position:absolute;inset:0;border-radius:2px;background:rgba(0,255,136,.07)}
+.trk__fill{
+  position:absolute;top:-1px;left:0;bottom:-1px;width:0%;border-radius:2px;
+  background:linear-gradient(90deg,#00ff88,#00ffc8);
+  transition:width 1s cubic-bezier(.4,.9,.3,1),opacity .8s ease .4s,filter .6s ease .4s;
+  box-shadow:0 0 6px rgba(0,255,136,.3),0 0 14px rgba(0,255,136,.12);
+}
+.trk__fill::after{
+  content:'';position:absolute;right:-3px;top:50%;transform:translateY(-50%);
+  width:10px;height:10px;border-radius:50%;background:#00ff88;
+  box-shadow:0 0 6px #00ff88,0 0 12px rgba(0,255,136,.5);
+  opacity:0;transition:opacity .3s;
+}
+.trk__fill[data-f="1"]::after{opacity:1}
+.trk__fill[data-done="1"]{opacity:.12;box-shadow:none;filter:blur(.5px)}
+.trk__fill[data-done="1"]::after{opacity:0}
+
+/* ── Node ────────────────────────────────── */
+.nd{
+  display:flex;flex-direction:column;align-items:center;
+  gap:10px;position:relative;z-index:2;flex:1;cursor:default;
+}
+.nd__c{
+  width:clamp(52px, 12vw, 88px);height:clamp(52px, 12vw, 88px);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(0,255,136,.1);
+  background:radial-gradient(circle at 50% 40%,rgba(0,255,136,.03),#060e18 70%);
+  position:relative;
+  transition:border-color .5s,background .5s,box-shadow .6s,transform .3s;
+}
+.nd:hover .nd__c{transform:scale(1.05)}
+.nd__c .em{font-size:clamp(1.1rem, 2.8vw, 1.9rem);filter:saturate(.4) brightness(.5);transition:filter .5s;position:relative;z-index:2}
+
+/* Spin ring */
+.nd__c::before{
+  content:'';position:absolute;inset:-5px;border-radius:50%;
+  border:2px solid transparent;opacity:0;transition:opacity .3s;
+}
+/* Glow pad */
+.nd__c::after{
+  content:'';position:absolute;inset:-20px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,255,136,.15) 0%,transparent 65%);
+  opacity:0;transition:opacity .6s;z-index:-1;
+}
+
+/* ACTIVE */
+.nd[data-s="active"] .nd__c{
+  border-color:#00e5ff;
+  background:radial-gradient(circle at 50% 40%,rgba(0,229,255,.07),#060e18 70%);
+  box-shadow:0 0 12px rgba(0,229,255,.2),0 0 30px rgba(0,229,255,.07);
+  animation:aP 2.2s ease infinite;
+}
+.nd[data-s="active"] .nd__c .em{filter:saturate(1) brightness(1);animation:efl 2.5s ease-in-out infinite}
+.nd[data-s="active"] .nd__c::before{
+  opacity:1;border-top-color:#00e5ff;border-right-color:rgba(0,229,255,.15);
+  animation:sp 1.4s linear infinite;
+}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes aP{
+  0%,100%{box-shadow:0 0 12px rgba(0,229,255,.2),0 0 30px rgba(0,229,255,.07)}
+  50%{box-shadow:0 0 20px rgba(0,229,255,.3),0 0 45px rgba(0,229,255,.1)}
+}
+@keyframes efl{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+/* DONE */
+.nd[data-s="done"] .nd__c{
+  border-color:#00ff88;
+  background:radial-gradient(circle at 50% 40%,rgba(0,255,136,.1),#060e18 65%);
+  box-shadow:0 0 10px rgba(0,255,136,.4),0 0 25px rgba(0,255,136,.18),0 0 50px rgba(0,255,136,.08),0 0 80px rgba(0,255,136,.04),inset 0 0 16px rgba(0,255,136,.07);
+  animation:none;
+}
+.nd[data-s="done"] .nd__c .em{filter:saturate(1.1) brightness(1.1) drop-shadow(0 0 6px #00ff88) drop-shadow(0 0 14px rgba(0,255,136,.5))}
+.nd[data-s="done"] .nd__c::before{opacity:0;animation:none}
+.nd[data-s="done"] .nd__c::after{opacity:1}
+
+/* ERROR */
+.nd[data-s="error"] .nd__c{
+  border-color:#ff3250;box-shadow:0 0 10px rgba(255,50,80,.3),0 0 28px rgba(255,50,80,.1);animation:none;
+  background:radial-gradient(circle at 50% 40%,rgba(255,50,80,.07),#060e18 70%);
+}
+.nd[data-s="error"] .nd__c .em{filter:saturate(1) brightness(1) drop-shadow(0 0 5px #ff3250)}
+.nd[data-s="error"] .nd__c::before{opacity:0;animation:none}
+
+/* Labels */
+.nd__lb{font-size:clamp(0.6rem, 1.4vw, 0.75rem);font-weight:600;color:rgba(200,220,255,.28);text-align:center;transition:color .5s,text-shadow .5s;line-height:1.3;max-width:clamp(56px, 16vw, 95px)}
+.nd[data-s="active"] .nd__lb{color:#00e5ff}
+.nd[data-s="done"] .nd__lb{color:#00ff88;text-shadow:0 0 8px rgba(0,255,136,.2)}
+.nd[data-s="error"] .nd__lb{color:#ff5070}
+
+.nd__mt{
+  font-size:clamp(0.58rem, 1.3vw, 0.7rem);font-weight:600;
+  font-family:'Cascadia Code','Fira Code',monospace;
+  color:transparent;min-height:1.1em;transition:color .5s,text-shadow .5s;
+}
+.nd[data-s="done"] .nd__mt{color:rgba(0,255,136,.65);text-shadow:0 0 5px rgba(0,255,136,.2)}
+.nd[data-s="active"] .nd__mt{color:rgba(0,229,255,.65)}
+.nd[data-s="error"] .nd__mt{color:rgba(255,80,110,.6)}
+
+/* ── Summary Panel ───────────────────────── */
+.summary{
+  width:100%;border-radius:10px;overflow:hidden;
+  background:rgba(0,255,136,.02);border:1px solid rgba(0,255,136,.06);
+  margin-bottom:36px;
+  max-height:0;opacity:0;
+  transition:max-height .6s cubic-bezier(.4,0,.2,1),opacity .5s,margin .4s;
+}
+.summary[data-show="1"]{max-height:800px;opacity:1;margin-bottom:36px}
+.summary__head{
+  padding:14px 20px;
+  border-bottom:1px solid rgba(0,255,136,.06);
+  font-size:clamp(0.72rem, 1.6vw, 0.85rem);font-weight:700;color:#00ff88;
+  display:flex;align-items:center;gap:8px;
+}
+.summary__grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:1px;background:rgba(0,255,136,.04);
+}
+.s-card{
+  padding:16px;background:rgba(3,8,18,.9);
+  display:flex;flex-direction:column;gap:6px;
+}
+.s-card__label{font-size:.65rem;font-weight:600;color:rgba(200,220,255,.35);text-transform:uppercase;letter-spacing:.06em}
+.s-card__value{font-size:clamp(0.95rem, 2.5vw, 1.25rem);font-weight:800;color:#00ff88;font-family:'Cascadia Code','Fira Code',monospace}
+.s-card__value.warn{color:#ffaa40}
+.s-card__value.bad{color:#ff5070}
+.s-card__sub{font-size:.62rem;color:rgba(0,255,136,.4)}
+
+/* ── Buttons ─────────────────────────────── */
+.btn-area{text-align:center;margin-bottom:36px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:clamp(12px, 2.5vw, 14px) clamp(28px, 5vw, 40px);font-family:'Inter',sans-serif;font-size:clamp(0.8rem, 2vw, 0.95rem);font-weight:700;
+  letter-spacing:.04em;color:#00ff88;
+  background:rgba(0,255,136,.05);border:2px solid rgba(0,255,136,.45);
+  border-radius:8px;cursor:pointer;position:relative;
+  transition:all .3s;
+  box-shadow:0 0 8px rgba(0,255,136,.12),0 0 20px rgba(0,255,136,.05),inset 0 0 12px rgba(0,255,136,.02);
+}
+.btn:hover:not(:disabled){
+  background:rgba(0,255,136,.1);transform:translateY(-2px);
+  box-shadow:0 0 14px rgba(0,255,136,.25),0 0 35px rgba(0,255,136,.08),inset 0 0 20px rgba(0,255,136,.04);
+}
+.btn:active:not(:disabled){transform:translateY(0)}
+.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important}
+.btn::before{
+  content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(0,255,136,.1),transparent);
+  transform:skewX(-20deg);transition:left .5s;
+}
+.btn:hover:not(:disabled)::before{left:130%}
+
+.btn2{
+  padding:8px 26px;font-size:clamp(0.65rem, 1.4vw, 0.75rem);font-weight:600;
+  color:rgba(200,220,255,.35);background:transparent;
+  border:1px solid rgba(200,220,255,.08);border-radius:6px;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:all .3s;display:none;
+}
+.btn2:hover{border-color:rgba(200,220,255,.2);color:rgba(200,220,255,.6)}
+.btn2[data-show="1"]{display:inline-block}
+
+/* ── Logs ────────────────────────────────── */
+.logs{
+  width:100%;border-radius:10px;overflow:hidden;
+  background:rgba(3,8,18,.7);border:1px solid rgba(0,255,136,.06);
+  backdrop-filter:blur(6px);
+}
+.logs__head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;cursor:pointer;user-select:none;
+  border-bottom:1px solid rgba(0,255,136,.04);transition:background .2s;
+}
+.logs__head:hover{background:rgba(0,255,136,.02)}
+.logs__t{font-size:clamp(0.68rem, 1.4vw, 0.78rem);font-weight:600;letter-spacing:.06em;color:rgba(0,255,136,.45);display:flex;align-items:center;gap:10px}
+.logs__b{background:#00ff88;color:#030812;font-size:.56rem;font-weight:800;padding:2px 7px;border-radius:8px;min-width:18px;text-align:center}
+.logs__ch{font-size:.7rem;color:rgba(0,255,136,.35);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.logs[data-open="true"] .logs__ch{transform:rotate(180deg)}
+.logs__body{max-height:0;overflow:hidden;transition:max-height .45s cubic-bezier(.4,0,.2,1)}
+.logs[data-open="true"] .logs__body{max-height:340px}
+.log-list{list-style:none;padding:4px 18px 14px;max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
+.log-list::-webkit-scrollbar{width:4px}
+.log-list::-webkit-scrollbar-track{background:transparent}
+.log-list::-webkit-scrollbar-thumb{background:rgba(0,255,136,.12);border-radius:4px}
+.le{display:flex;align-items:center;gap:8px;font-size:.68rem;line-height:1.6;padding:3px 5px;border-radius:4px;animation:ls .3s ease-out}
+.le:hover{background:rgba(0,255,136,.015)}
+@keyframes ls{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
+.le__ts{color:rgba(0,255,136,.25);white-space:nowrap;font-family:'Cascadia Code','Fira Code',monospace;font-size:.6rem;min-width:75px}
+.le__ico{font-size:.7rem;flex-shrink:0}
+.le__msg{color:rgba(200,220,255,.45)}
+.le__msg b{color:#e0eaff;font-weight:600}
+.le__msg .ok{color:#00ff88}
+.le__msg .wn{color:#ffaa40}
+.le__msg .err{color:#ff5070}
+
+/* ── Responsive ──────────────────────────── */
+@media(max-width:480px){
+  .stepper{padding:0}
+}
+
+.footer{position:relative;z-index:2;margin-top:auto;padding:24px 0 14px;text-align:center;font-size:.6rem;color:rgba(200,220,255,.15);letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="hdr">
+    <h1>Network Health Check</h1>
+    <p class="hdr__sub">Diagnóstico completo de red — Ping, Puertos, DNS, Traceroute y Velocidad</p>
+    <div class="pill" id="pill" data-s="idle">
+      <span class="pip"></span>
+      <span id="pillTxt">Listo para escanear</span>
+    </div>
+  </header>
+
+  <!-- STEPPER: 5 nodes -->
+  <div class="stepper">
+    <div class="trk"><div class="trk__bg"></div><div class="trk__fill" id="tf" data-f="0" data-done="0"></div></div>
+
+    <div class="nd" data-s="pending"><div class="nd__c"><span class="em">📶</span></div><span class="nd__lb">Ping</span><span class="nd__mt" id="m0"></span></div>
+    <div class="nd" data-s="pending"><div class="nd__c"><span class="em">🔓</span></div><span class="nd__lb">Puertos</span><span class="nd__mt" id="m1"></span></div>
+    <div class="nd" data-s="pending"><div class="nd__c"><span class="em">🌐</span></div><span class="nd__lb">DNS</span><span class="nd__mt" id="m2"></span></div>
+    <div class="nd" data-s="pending"><div class="nd__c"><span class="em">🗺️</span></div><span class="nd__lb">Traceroute</span><span class="nd__mt" id="m3"></span></div>
+    <div class="nd" data-s="pending"><div class="nd__c"><span class="em">⚡</span></div><span class="nd__lb">Velocidad</span><span class="nd__mt" id="m4"></span></div>
+  </div>
+
+  <!-- SUMMARY PANEL (hidden until done) -->
+  <div class="summary" id="summ" data-show="0">
+    <div class="summary__head">📊 Resumen del Diagnóstico</div>
+    <div class="summary__grid">
+      <div class="s-card"><span class="s-card__label">Latencia (Ping)</span><span class="s-card__value" id="sv0">—</span><span class="s-card__sub" id="ss0"></span></div>
+      <div class="s-card"><span class="s-card__label">Puertos Abiertos</span><span class="s-card__value" id="sv1">—</span><span class="s-card__sub" id="ss1"></span></div>
+      <div class="s-card"><span class="s-card__label">Resolución DNS</span><span class="s-card__value" id="sv2">—</span><span class="s-card__sub" id="ss2"></span></div>
+      <div class="s-card"><span class="s-card__label">Saltos (Hops)</span><span class="s-card__value" id="sv3">—</span><span class="s-card__sub" id="ss3"></span></div>
+      <div class="s-card"><span class="s-card__label">Velocidad</span><span class="s-card__value" id="sv4">—</span><span class="s-card__sub" id="ss4"></span></div>
+    </div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="btn-area">
+    <button class="btn" id="btnA">▶ Iniciar Escaneo</button>
+    <button class="btn2" id="btnB" data-show="0" onclick="doReset()">Reiniciar diagnóstico</button>
+  </div>
+
+  <!-- LOGS -->
+  <div class="logs" id="lp" data-open="false">
+    <div class="logs__head" onclick="togLog()">
+      <span class="logs__t">Registro de eventos <span class="logs__b" id="lb">0</span></span>
+      <span class="logs__ch">▾</span>
+    </div>
+    <div class="logs__body">
+      <ul class="log-list" id="ll"></ul>
+    </div>
+  </div>
+</div>
+<footer class="footer">Depredador · Network Health v1.0</footer>
+
+<script>
+const EMO=['📶','🔓','🌐','🗺️','⚡'];
+const CFG=[
+  {label:'Ping',      dur:1400, ok:'Ping estable',       fail:'Host inalcanzable'},
+  {label:'Puertos',   dur:1800, ok:'Puertos verificados', fail:'Puertos bloqueados'},
+  {label:'DNS',       dur:1600, ok:'DNS resuelto',        fail:'Fallo de resolución DNS'},
+  {label:'Traceroute',dur:2200, ok:'Ruta trazada',        fail:'Ruta incompleta'},
+  {label:'Velocidad', dur:2600, ok:'Velocidad medida',    fail:'Velocidad insuficiente'}
+];
+
+let busy=false,si=-1,ln=0,results={};
+const $n=document.querySelectorAll('.nd');
+const $tf=document.getElementById('tf');
+const $btnA=document.getElementById('btnA');
+const $btnB=document.getElementById('btnB');
+const $pill=document.getElementById('pill');
+const $pTxt=document.getElementById('pillTxt');
+const $ll=document.getElementById('ll');
+const $lb=document.getElementById('lb');
+const $lp=document.getElementById('lp');
+const $sum=document.getElementById('summ');
+
+const ts=()=>{const d=new Date();return d.toLocaleTimeString('es-MX',{hour12:false})+'.'+String(d.getMilliseconds()).padStart(3,'0')};
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const slp=ms=>new Promise(r=>setTimeout(r,ms));
+
+function log(m,ico=''){
+  const li=document.createElement('li');li.className='le';
+  li.innerHTML=`<span class="le__ts">${ts()}</span>${ico?`<span class="le__ico">${ico}</span>`:''}<span class="le__msg">${m}</span>`;
+  $ll.prepend(li);ln++;$lb.textContent=ln;
+}
+function setS(i,s){$n[i].setAttribute('data-s',s)}
+function setM(i,t){document.getElementById('m'+i).textContent=t}
+function setTr(p,f){$tf.style.width=p+'%';$tf.setAttribute('data-f',f?'1':'0')}
+function setTrD(d){$tf.setAttribute('data-done',d?'1':'0')}
+function setPill(t,s){$pTxt.textContent=t;$pill.setAttribute('data-s',s)}
+
+function setSummary(i,val,sub,cls){
+  document.getElementById('sv'+i).textContent=val;
+  document.getElementById('sv'+i).className='s-card__value'+(cls?' '+cls:'');
+  document.getElementById('ss'+i).textContent=sub;
+}
+
+function doReset(){
+  si=-1;ln=0;$lb.textContent='0';$ll.innerHTML='';results={};
+  setTr(0,false);setTrD(false);
+  $n.forEach((_,i)=>{setS(i,'pending');setM(i,'')});
+  setPill('Listo para escanear','idle');
+  $btnA.textContent='▶ Iniciar Escaneo';$btnA.disabled=false;
+  $btnB.setAttribute('data-show','0');
+  $sum.setAttribute('data-show','0');
+  [0,1,2,3,4].forEach(i=>{
+    document.getElementById('sv'+i).textContent='—';
+    document.getElementById('ss'+i).textContent='';
+  });
+}
+
+$btnA.addEventListener('click', async function(){
+  if(busy)return;
+  if(si>=CFG.length){doReset();await slp(300)}
+  busy=true;$btnA.disabled=true;$btnA.textContent='Escaneando red...';
+  $btnB.setAttribute('data-show','0');
+  $sum.setAttribute('data-show','0');
+  setTrD(false);
+  setPill('Escaneando red...','run');
+  log('Escaneo de red iniciado','🚀');
+  if($lp.getAttribute('data-open')==='false')togLog();
+
+  const N=CFG.length;
+
+  for(let i=0;i<N;i++){
+    si=i;const c=CFG[i];
+    setS(i,'active');
+    setTr((i/(N-1))*100,true);
+
+    // Step-specific simulation
+    if(i===0){ // PING
+      log(`Enviando paquetes ICMP...`,EMO[i]);
+      const ping=rnd(8,65);let cur=0;
+      const iv=setInterval(()=>{cur+=rnd(1,5);if(cur>ping)cur=ping;setM(i,cur+' ms')},80);
+      await slp(c.dur);clearInterval(iv);setM(i,ping+' ms');
+      results.ping=ping;
+      const cls=ping<30?'ok':ping<60?'wn':'err';
+      log(`<span class="${cls}">Ping: <b>${ping} ms</b> ${ping<30?'— Excelente':ping<60?'— Aceptable':'— Alto'}</span>`,EMO[i]);
+      setSummary(0,ping+' ms',ping<30?'Excelente':ping<60?'Aceptable':'Alto',ping>=60?'warn':'');
+
+    } else if(i===1){ // PUERTOS
+      const ports=[80,443,8080,3306,5432];
+      log(`Escaneando puertos: <b>${ports.join(', ')}</b>`,EMO[i]);
+      const open=rnd(3,5);
+      let scanned=0;
+      const iv=setInterval(()=>{scanned++;if(scanned<=ports.length)setM(i,scanned+'/'+ports.length)},300);
+      await slp(c.dur);clearInterval(iv);
+      setM(i,open+'/'+ports.length);
+      results.ports=open+'/'+ports.length;
+      log(`<span class="ok">${open} puertos abiertos de ${ports.length} escaneados ✓</span>`,EMO[i]);
+      setSummary(1,open+'/'+ports.length,'Puertos: 80, 443, 8080'+(open>3?', 3306':''),'');
+
+    } else if(i===2){ // DNS
+      log(`Resolviendo <b>dns.google.com</b>...`,EMO[i]);
+      const dnsMs=rnd(5,35);let cur=0;
+      const iv=setInterval(()=>{cur+=rnd(1,3);if(cur>dnsMs)cur=dnsMs;setM(i,cur+' ms')},100);
+      await slp(c.dur);clearInterval(iv);setM(i,dnsMs+' ms');
+      results.dns=dnsMs;
+      log(`<span class="ok">DNS resuelto en <b>${dnsMs} ms</b> → 8.8.8.8 ✓</span>`,EMO[i]);
+      setSummary(2,dnsMs+' ms','Servidor: 8.8.8.8','');
+
+    } else if(i===3){ // TRACEROUTE
+      const hops=rnd(6,14);
+      log(`Trazando ruta... <b>${hops} saltos</b>`,EMO[i]);
+      let h=0;
+      const iv=setInterval(()=>{h++;if(h<=hops)setM(i,h+' hops')},180);
+      await slp(c.dur);clearInterval(iv);setM(i,hops+' hops');
+      results.hops=hops;
+      const cls=hops<=8?'ok':hops<=12?'wn':'err';
+      log(`<span class="${cls}">Ruta: <b>${hops} saltos</b> ${hops<=8?'— Óptima':hops<=12?'— Normal':'— Larga'}</span>`,EMO[i]);
+      setSummary(3,hops+' hops',hops<=8?'Ruta óptima':hops<=12?'Ruta normal':'Ruta larga',hops>12?'warn':'');
+
+    } else if(i===4){ // VELOCIDAD
+      const speed=rnd(25,180);
+      log(`Midiendo velocidad de descarga...`,EMO[i]);
+      let cur=0;
+      const iv=setInterval(()=>{cur+=rnd(2,12);if(cur>speed)cur=speed;setM(i,cur+' Mbps')},80);
+      await slp(c.dur);clearInterval(iv);setM(i,speed+' Mbps');
+      results.speed=speed;
+      const cls=speed>=80?'ok':speed>=30?'wn':'err';
+      log(`<span class="${cls}">Velocidad: <b>${speed} Mbps</b> ${speed>=80?'— Rápida':speed>=30?'— Normal':'— Lenta'}</span>`,EMO[i]);
+      setSummary(4,speed+' Mbps',speed>=80?'Rápida':speed>=30?'Normal':'Lenta',speed<30?'bad':speed<80?'warn':'');
+    }
+
+    setS(i,'done');
+    setTr(Math.min(((i+1)/(N-1))*100,100),i<N-1);
+    await slp(350);
+  }
+
+  setTr(100,false);await slp(500);setTrD(true);
+
+  // Show summary
+  $sum.setAttribute('data-show','1');
+
+  log('<b>Escaneo de red completado</b>','🎉');
+  setPill('Red saludable','done');
+  $btnA.textContent='Escaneo completo';$btnA.disabled=true;
+  $btnB.setAttribute('data-show','1');
+  busy=false;
+});
+
+function togLog(){const o=$lp.getAttribute('data-open')==='true';$lp.setAttribute('data-open',String(!o))}
+</script>
+</body>
+</html>

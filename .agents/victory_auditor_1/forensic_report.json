@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-08-20T00:04:44.720Z",
+  "filesChecked": {
+    "security": {
+      "path": "C:\\DevWork\\Depredador\\Flujoweb\\sistemas\\security-audit\\index.html",
+      "size": 101327,
+      "lines": 2954,
+      "externalScripts": 0,
+      "dummyFunctions": 0
+    },
+    "server": {
+      "path": "C:\\DevWork\\Depredador\\Flujoweb\\sistemas\\server-status\\index.html",
+      "size": 120293,
+      "lines": 3667,
+      "externalScripts": 0,
+      "dummyFunctions": 0
+    },
+    "transaction": {
+      "path": "C:\\DevWork\\Depredador\\Flujoweb\\sistemas\\transaction-flow\\index.html",
+      "size": 118240,
+      "lines": 3391,
+      "externalScripts": 0,
+      "dummyFunctions": 0
+    }
+  },
+  "integrityViolations": [],
+  "featureVerifications": {
+    "security": {
+      "has7Nodes": true,
+      "hasCircularSvgGauge": true,
+      "hasDrawerController": true,
+      "hasVulnerabilityTable": true,
+      "hasSeverityFilters": true,
+      "hasPatchSimulate": true,
+      "hasReportExport": true
+    },
+    "server": {
+      "has9Services": false,
+      "hasSparklines": true,
+      "has90DaySlaBar": true,
+      "hasCpuMemErrTelemetry": true,
+      "hasChaosInjection": true,
+      "hasAutoHealing": true,
+      "hasTerminalConsole": true
+    },
+    "transaction": {
+      "has6Nodes": false,
+      "hasFraudBifurcation": true,
+      "hasDeclineBifurcation": true,
+      "hasScenarioSelector": true,
+      "has30sTtlTimer": true,
+      "hasReversalFlow": true,
+      "hasPayloadInspector": true
+    }
+  }
+}

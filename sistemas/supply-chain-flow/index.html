@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OmniChain Global — Cold-Chain Cargo & Customs Telemetry</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#090d16;--card-bg:#0f1523;--card-border:rgba(255,255,255,.07);
+  --text-main:#f1f5f9;--text-sub:#94a3b8;--text-dim:#64748b;
+  --accent:#38bdf8;--safe:#10b981;--warn:#f59e0b;--danger:#f43f5e;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg);color:var(--text-main);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:32px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1120px;display:flex;flex-direction:column;gap:24px}
+
+/* Header */
+.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--card-border)}
+.header__title{font-size:clamp(1.2rem,2.5vw,1.6rem);font-weight:700;color:#fff}
+.header__badge{
+  font-size:.75rem;font-weight:600;padding:6px 14px;border-radius:20px;
+  background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:var(--accent);
+}
+
+/* 4 Key Metrics */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.metric-box{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:16px 20px}
+.metric-box__lbl{font-size:.7rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)}
+.metric-box__val{font-size:1.5rem;font-weight:700;font-family:var(--mono);color:#fff;margin:4px 0}
+.metric-box__sub{font-size:.72rem;color:var(--text-sub)}
+
+/* Pipeline Stepper Clean */
+.pipeline-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:24px}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;position:relative}
+@media(max-width:768px){.steps{grid-template-columns:1fr}}
+
+.step{
+  background:rgba(255,255,255,.02);border:1px solid var(--card-border);border-radius:10px;
+  padding:16px;display:flex;flex-direction:column;gap:8px;transition:all .3s;
+}
+.step.active{border-color:var(--accent);box-shadow:0 0 16px rgba(56,189,248,.15)}
+.step.done{border-color:var(--safe);background:rgba(16,185,129,.03)}
+.step__num{font-size:.65rem;font-weight:700;color:var(--text-dim);font-family:var(--mono)}
+.step__name{font-size:.82rem;font-weight:700;color:#fff}
+.step__meta{font-size:.68rem;font-family:var(--mono);color:var(--text-sub)}
+
+/* Controls & Telemetry Grid */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:800px){.detail-grid{grid-template-columns:1fr}}
+
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.card__title{font-size:.85rem;font-weight:700;color:#fff}
+
+.sensor-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.78rem}
+.sensor-val{font-family:var(--mono);font-weight:700;color:var(--accent)}
+
+.btn-row{display:flex;gap:10px}
+.btn{
+  padding:10px 20px;border-radius:8px;font-family:var(--font);font-size:.82rem;font-weight:600;
+  cursor:pointer;border:none;transition:all .2s;
+}
+.btn-primary{background:var(--accent);color:#090d16}
+.btn-primary:hover{background:#7dd3fc}
+.btn-secondary{background:rgba(255,255,255,.06);color:var(--text-main);border:1px solid var(--card-border)}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="header">
+    <div>
+      <h1 class="header__title">OmniChain Global · Cadena de Frío & Logística</h1>
+      <p style="font-size:.82rem;color:var(--text-sub)">Rastreo y telemetría de cargamento farmacéutico crítico de alto valor</p>
+    </div>
+    <div class="header__badge">Lote: #PHARMA-VAC-9842 · Conexión IoT 5G</div>
+  </header>
+
+  <div class="metrics">
+    <div class="metric-box">
+      <div class="metric-box__lbl">Temperatura Actual</div>
+      <div class="metric-box__val" style="color:var(--accent)" id="valTemp">-78.4 °C</div>
+      <div class="metric-box__sub">Rango seguro: -85°C a -70°C</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-box__lbl">Sello Aduanal Digital</div>
+      <div class="metric-box__val" style="color:var(--safe)">INTACTO</div>
+      <div class="metric-box__sub">Hash SHA-256 verificado</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-box__lbl">Tiempo en Tránsito</div>
+      <div class="metric-box__val" id="valEta">14h 22m</div>
+      <div class="metric-box__sub">Entrega estimada: 08:30 AM</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-box__lbl">Nivel de Batería Sensor</div>
+      <div class="metric-box__val" style="color:var(--safe)">94%</div>
+      <div class="metric-box__sub">Autonomía: 120 horas</div>
+    </div>
+  </div>
+
+  <div class="pipeline-card">
+    <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:16px">📍 Etapas de la Cadena de Suministro</div>
+    <div class="steps">
+      <div class="step done" id="st-1">
+        <span class="step__num">FASE 01</span>
+        <span class="step__name">📦 Laboratorio</span>
+        <span class="step__meta">Envasado &lt; -80°C ✓</span>
+      </div>
+      <div class="step done" id="st-2">
+        <span class="step__num">FASE 02</span>
+        <span class="step__name">✈️ Vuelo Cargo</span>
+        <span class="step__meta">Frankfurt → CDMX ✓</span>
+      </div>
+      <div class="step active" id="st-3">
+        <span class="step__num">FASE 03</span>
+        <span class="step__name">🛃 Aduana Fiscal</span>
+        <span class="step__meta">Inspección Digital...</span>
+      </div>
+      <div class="step" id="st-4">
+        <span class="step__num">FASE 04</span>
+        <span class="step__name">🚚 Transporte Frío</span>
+        <span class="step__meta">Pendiente</span>
+      </div>
+      <div class="step" id="st-5">
+        <span class="step__num">FASE 05</span>
+        <span class="step__name">🏥 Hospital Destino</span>
+        <span class="step__meta">Recepción Final</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="card">
+      <div class="card__title">📡 Telemetría en Tiempo Real del Contenedor</div>
+      <div class="sensor-row">
+        <span style="color:var(--text-sub)">Sensor Criogénico Principal:</span>
+        <span class="sensor-val">-78.4 °C</span>
+      </div>
+      <div class="sensor-row">
+        <span style="color:var(--text-sub)">Humedad Relativa:</span>
+        <span class="sensor-val">12.4 %</span>
+      </div>
+      <div class="sensor-row">
+        <span style="color:var(--text-sub)">Acelerómetro (Impactos G):</span>
+        <span class="sensor-val">0.02 G (Estable)</span>
+      </div>
+      <div class="sensor-row">
+        <span style="color:var(--text-sub)">Ubicación GPS:</span>
+        <span class="sensor-val">19.4361° N, 99.0719° W</span>
+      </div>
+
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn btn-primary" onclick="advanceStep()">▶ Avanzar Siguiente Etapa</button>
+        <button class="btn btn-secondary" onclick="simulateTempSpike()">⚠️ Simular Variación Térmica</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__title">📜 Log de Eventos de Cadena de Custodia</div>
+      <div id="logArea" style="font-family:var(--mono);font-size:.72rem;display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto">
+        <div style="color:var(--safe)">[08:12:00] Contenedor sellado en Frankfurt con nitrógeno líquido.</div>
+        <div style="color:var(--text-sub)">[14:45:20] Aterrizaje en Terminal de Carga. Sello digital intacto.</div>
+        <div style="color:var(--accent)">[16:20:10] Trámite aduanal iniciado. API SAT validando pedimento.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentStep = 3;
+
+function advanceStep(){
+  if(currentStep > 5) return;
+  const curr = document.getElementById(`st-${currentStep}`);
+  curr.className = 'step done';
+  currentStep++;
+  if(currentStep <= 5){
+    const next = document.getElementById(`st-${currentStep}`);
+    next.className = 'step active';
+    const log = document.getElementById('logArea');
+    const time = new Date().toTimeString().split(' ')[0];
+    log.innerHTML += `<div style="color:var(--safe)">[${time}] Fase completada. Avanzando a: ${next.querySelector('.step__name').textContent}</div>`;
+  }
+}
+
+function simulateTempSpike(){
+  const temp = document.getElementById('valTemp');
+  temp.textContent = '-64.2 °C (ALERTA)';
+  temp.style.color = 'var(--danger)';
+  const log = document.getElementById('logArea');
+  const time = new Date().toTimeString().split(' ')[0];
+  log.innerHTML += `<div style="color:var(--danger)">[${time}] ⚠️ ALERTA: Temperatura fuera de rango crítico (-64.2°C). Actuadores de enfriamiento activados.</div>`;
+}
+</script>
+</body>
+</html>

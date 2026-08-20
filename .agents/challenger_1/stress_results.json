@@ -1,0 +1,246 @@
+{
+  "r1_hybrid": {
+    "concurrent_policy_toggling": [
+      {
+        "check": "zero_errors",
+        "passed": true,
+        "detail": "Errors: 0"
+      },
+      {
+        "check": "pod_bounds",
+        "passed": true,
+        "detail": "Pods: 2"
+      },
+      {
+        "check": "high_rate_execution",
+        "passed": true,
+        "detail": "50 toggles in 148.8ms"
+      }
+    ],
+    "spike_arrest_flooding": [
+      {
+        "check": "drop_count_incremented",
+        "passed": true,
+        "detail": "Dropped: 100 (Delta: 100)"
+      },
+      {
+        "check": "429_throttled_badge",
+        "passed": true,
+        "detail": "Badge: 429 THROTTLED"
+      },
+      {
+        "check": "flood_throughput",
+        "passed": true,
+        "detail": "100 injections in 55.8ms"
+      }
+    ],
+    "token_expiry_injection": [
+      {
+        "check": "401_expired_badge",
+        "passed": true,
+        "detail": "Badge: 401 EXPIRED"
+      },
+      {
+        "check": "security_logs_appended",
+        "passed": true,
+        "detail": "Logs in ringbuffer: 70"
+      }
+    ],
+    "waf_threat_injection": [
+      {
+        "check": "403_blocked_badge",
+        "passed": true,
+        "detail": "Badge: 403 BLOCKED"
+      },
+      {
+        "check": "threat_score_calculated",
+        "passed": true,
+        "detail": "Score: Score: 0.99 (SQLi Threat)"
+      }
+    ],
+    "sap_latency_degradation": [
+      {
+        "check": "circuit_breaker_tripped",
+        "passed": true,
+        "detail": "Circuit Breaker state: OPEN (Consecutive Lags: 2)"
+      },
+      {
+        "check": "sla_breach_detected",
+        "passed": true,
+        "detail": "SLA Pill: SLA BREACHED (>500ms), Latency: 910 ms"
+      }
+    ],
+    "worker_scaling_load": [
+      {
+        "check": "vcore_metric_present",
+        "passed": true,
+        "detail": "vCore: 42%"
+      },
+      {
+        "check": "heap_memory_active",
+        "passed": true,
+        "detail": "Heap MB: 780"
+      },
+      {
+        "check": "gc_pause_telemetry",
+        "passed": true,
+        "detail": "GC Pause: 17 ms"
+      }
+    ],
+    "log_ringbuffer": [
+      {
+        "check": "bounded_max_capacity",
+        "passed": true,
+        "detail": "Log length: 190 <= 200"
+      }
+    ],
+    "r1_global_robustness": [
+      {
+        "check": "zero_console_errors",
+        "passed": true,
+        "detail": "Console Errors: 0"
+      }
+    ]
+  },
+  "r2_evac_v1": {
+    "headcount_conservation": [
+      {
+        "check": "baseline_conservation",
+        "passed": true,
+        "detail": "Grand Total: 1240 == 1240"
+      },
+      {
+        "check": "per_floor_conservation",
+        "passed": true,
+        "detail": "Every individual floor strictly conserves initial capacity"
+      }
+    ],
+    "rapid_alarm_triggers": [
+      {
+        "check": "conservation_under_toggles",
+        "passed": true,
+        "detail": "Grand Total: 1240 in 34.9ms"
+      }
+    ],
+    "mass_hazard_propagation": [
+      {
+        "check": "conservation_under_hazards",
+        "passed": true,
+        "detail": "Grand Total: 1240"
+      }
+    ],
+    "brigade_reassignments": [
+      {
+        "check": "conservation_under_brigade_moves",
+        "passed": true,
+        "detail": "Grand Total: 1240"
+      }
+    ],
+    "evacuation_lifecycle": [
+      {
+        "check": "strict_conservation_all_ticks",
+        "passed": true,
+        "detail": "Invariant failures: 0 / 6 ticks"
+      },
+      {
+        "check": "safe_count_positive",
+        "passed": true,
+        "detail": "Safe: 510, Transit: 90, Trapped: 640 (Total: 1240)"
+      }
+    ],
+    "drilldown_inspector": [
+      {
+        "check": "modal_renders_correctly",
+        "passed": true,
+        "detail": "Modal Title: \ud83d\udd0d DETALLE T\u00c1CTICO // PISO 7 (Finanzas / TI (FOCO \ud83d\udd25)), Occupants: 115"
+      }
+    ],
+    "system_reset": [
+      {
+        "check": "reset_conservation",
+        "passed": true,
+        "detail": "Reset Trapped: 1240/1240"
+      }
+    ],
+    "r2_global_robustness": [
+      {
+        "check": "zero_console_errors",
+        "passed": true,
+        "detail": "Console Errors: 0"
+      }
+    ]
+  },
+  "r4_evac_v3": {
+    "scale_configuration": [
+      {
+        "check": "5000_nodes_configured",
+        "passed": true,
+        "detail": "Population: 5000"
+      }
+    ],
+    "chaos_injection": [
+      {
+        "check": "multiple_chaos_active",
+        "passed": true,
+        "detail": "Chaos Active Count: 3 INYECCIONES"
+      }
+    ],
+    "circuit_breaker_failover": [
+      {
+        "check": "cb_tripped_open",
+        "passed": true,
+        "detail": "Circuit Breaker: OPEN (Error Rate: 100%)"
+      },
+      {
+        "check": "failover_rerouted_positive",
+        "passed": true,
+        "detail": "Rerouted packets: 1800"
+      }
+    ],
+    "zero_loss_delivery": [
+      {
+        "check": "total_packet_accounting",
+        "passed": true,
+        "detail": "Processed 5000/5000 (Delivered: 3930, Failed: 1070)"
+      }
+    ],
+    "latency_histogram": [
+      {
+        "check": "samples_recorded",
+        "passed": true,
+        "detail": "Latency samples: 3930 == Delivered 3930"
+      },
+      {
+        "check": "p99_metric_present",
+        "passed": true,
+        "detail": "p99 latency: 956 ms"
+      },
+      {
+        "check": "percentile_monotonicity",
+        "passed": true,
+        "detail": "P50(362) <= P90(818.6478378201954) <= P95(877.5662791456903) <= P99(955.6199396485073)"
+      }
+    ],
+    "carrier_recovery": [
+      {
+        "check": "cb_restored_closed",
+        "passed": true,
+        "detail": "Restored CB: CLOSED"
+      }
+    ],
+    "r4_global_robustness": [
+      {
+        "check": "zero_console_errors",
+        "passed": true,
+        "detail": "Console Errors: 0"
+      }
+    ]
+  },
+  "summary": {
+    "total_checks": 37,
+    "passed_checks": 37,
+    "failed_checks": 0,
+    "start_time": "2026-08-20T03:46:26Z",
+    "end_time": "2026-08-20T03:46:51Z"
+  }
+}

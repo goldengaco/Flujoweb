@@ -1,0 +1,2795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SALVAR VIDAS // Mobile Occupant HUD & Dynamic Escape Route</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       TACTICAL DESIGN TOKENS & RESET
+       ========================================================================== */
+    :root {
+      --bg-dark: #070a10;
+      --bg-primary: #0b111c;
+      --bg-surface: #101927;
+      --bg-panel: rgba(16, 25, 39, 0.92);
+      --bg-card: rgba(22, 34, 53, 0.85);
+      --bg-card-hover: rgba(30, 47, 72, 0.95);
+      
+      --border-dim: #1e2c42;
+      --border-hud: #2b3e5e;
+      --border-glow: #00e5ff;
+
+      --hazard-crimson: #ff003c;
+      --hazard-crimson-glow: rgba(255, 0, 60, 0.45);
+      --hazard-fire: #ff4500;
+      --hazard-orange: #f97316;
+      --hazard-yellow: #facc15;
+      --hazard-yellow-glow: rgba(250, 204, 21, 0.4);
+
+      --safe-emerald: #00ff88;
+      --safe-emerald-glow: rgba(0, 255, 136, 0.45);
+      --safe-dark: #064e3b;
+
+      --cyber-cyan: #00e5ff;
+      --cyber-cyan-glow: rgba(0, 229, 255, 0.4);
+      --mesh-purple: #a855f7;
+      --mesh-purple-glow: rgba(168, 85, 247, 0.35);
+
+      --text-white: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-white);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      overflow-y: auto;
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(255, 0, 60, 0.08) 0%, transparent 60%),
+        radial-gradient(circle at 80% 80%, rgba(0, 229, 255, 0.05) 0%, transparent 50%),
+        linear-gradient(to bottom, #070a10, #0a101d);
+    }
+
+    /* Scanline effect */
+    body::before {
+      content: " ";
+      display: block;
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    /* Ambient noise & grid */
+    .ambient-grid {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(30, 44, 66, 0.15) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(30, 44, 66, 0.15) 1px, transparent 1px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ==========================================================================
+       CONTAINER & PHONE FRAME / FULLSCREEN / RESPONSIVE COCKPIT MODES
+       ========================================================================== */
+    .app-viewport {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 440px;
+      margin: 20px auto;
+      padding: 12px;
+      transition: max-width 0.3s ease;
+    }
+
+    @media (min-width: 768px) {
+      .app-viewport {
+        max-width: min(94vw, 1400px);
+        margin: 16px auto;
+        padding: 16px;
+      }
+      .phone-housing {
+        border-radius: var(--radius-lg) !important;
+        border: 1px solid var(--border-hud) !important;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6) !important;
+      }
+      .phone-notch-area {
+        display: none !important;
+      }
+      .app-main-content {
+        display: grid !important;
+        grid-template-columns: 1.25fr 0.75fr !important;
+        gap: 16px !important;
+        max-height: none !important;
+      }
+    }
+
+    .app-viewport.fullscreen-mode {
+      max-width: 1280px;
+      padding: 16px;
+    }
+
+    .phone-housing {
+      background: #0d1421;
+      border: 3px solid #23344d;
+      border-radius: 40px;
+      box-shadow: 
+        0 0 0 1px rgba(0, 229, 255, 0.2),
+        0 25px 60px -15px rgba(0, 0, 0, 0.8),
+        0 0 35px rgba(255, 0, 60, 0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .app-viewport.fullscreen-mode .phone-housing {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-hud);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    }
+
+    /* Dynamic Notch / Island */
+    .phone-notch-area {
+      background: #000;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 20;
+    }
+
+    .app-viewport.fullscreen-mode .phone-notch-area {
+      display: none;
+    }
+
+    .dynamic-island {
+      width: 120px;
+      height: 22px;
+      background: #000;
+      border-radius: 14px;
+      border: 1px solid #222;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: clamp(9px, 0.8vw, 11px);
+      color: var(--hazard-crimson);
+      font-family: var(--font-mono);
+    }
+
+    .island-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--hazard-crimson);
+      border-radius: 50%;
+      animation: pulse-dot 1s infinite alternate;
+    }
+
+    @keyframes pulse-dot {
+      0% { opacity: 0.3; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 8px var(--hazard-crimson); }
+    }
+
+    /* Phone Status Bar */
+    .phone-status-bar {
+      background: rgba(10, 16, 26, 0.95);
+      padding: 6px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: clamp(10px, 0.85vw, 12px);
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-dim);
+    }
+
+    .status-left, .status-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-signal {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--safe-emerald);
+      font-weight: 600;
+    }
+
+    .badge-signal.mesh-active {
+      color: var(--mesh-purple);
+    }
+
+    .badge-signal.cell-offline {
+      color: var(--hazard-orange);
+    }
+
+    .battery-icon-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--safe-emerald);
+      font-weight: bold;
+    }
+
+    /* ==========================================================================
+       TACTICAL EMERGENCY STROBE BANNER
+       ========================================================================== */
+    .strobe-alert-banner {
+      background: linear-gradient(135deg, #7f001c 0%, #ff003c 50%, #990024 100%);
+      color: #fff;
+      padding: 10px 14px;
+      border-bottom: 2px solid var(--hazard-yellow);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 20px var(--hazard-crimson-glow);
+      animation: tactical-strobe 1.4s infinite;
+    }
+
+    .strobe-alert-banner.state-safe {
+      background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #047857 100%);
+      border-bottom: 2px solid var(--safe-emerald);
+      box-shadow: 0 0 25px var(--safe-emerald-glow);
+      animation: safe-pulse 2s infinite;
+    }
+
+    .strobe-alert-banner.state-sos {
+      background: linear-gradient(135deg, #9a3412 0%, #ea580c 50%, #c2410c 100%);
+      border-bottom: 2px solid var(--hazard-crimson);
+      box-shadow: 0 0 25px var(--hazard-yellow-glow);
+      animation: tactical-strobe 0.8s infinite;
+    }
+
+    @keyframes tactical-strobe {
+      0%, 100% { filter: brightness(1) drop-shadow(0 0 8px rgba(255,0,60,0.8)); }
+      50% { filter: brightness(1.35) drop-shadow(0 0 20px rgba(250,204,21,0.9)); }
+    }
+
+    @keyframes safe-pulse {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.2) drop-shadow(0 0 15px rgba(0,255,136,0.6)); }
+    }
+
+    .strobe-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .strobe-title {
+      font-size: clamp(11.5px, 1.1vw, 15px);
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .hazard-level-badge {
+      background: #000;
+      color: var(--hazard-yellow);
+      font-family: var(--font-mono);
+      font-size: clamp(9px, 0.8vw, 11px);
+      font-weight: 800;
+      padding: clamp(1px, 0.3vw, 3px) clamp(4px, 0.6vw, 8px);
+      border-radius: 4px;
+      border: 1px solid var(--hazard-yellow);
+      letter-spacing: 0.5px;
+    }
+
+    .strobe-message-box {
+      font-size: clamp(10.5px, 0.95vw, 13px);
+      line-height: 1.35;
+      font-weight: 600;
+      opacity: 0.95;
+    }
+
+    .strobe-target-route {
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: clamp(10px, 0.9vw, 12.5px);
+      color: #fffae6;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    /* ==========================================================================
+       APP MAIN CONTENT & TACTICAL CONTROL BAR
+       ========================================================================== */
+    .app-main-content {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 85vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-hud) transparent;
+    }
+
+    .app-viewport.fullscreen-mode .app-main-content {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      grid-template-rows: auto auto auto;
+      gap: 16px;
+      max-height: none;
+    }
+
+    .app-viewport.fullscreen-mode .col-left {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .app-viewport.fullscreen-mode .col-right {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Tactical Quick Controls */
+    .quick-controls-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hud);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .audio-voice-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-tactical-icon {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      color: var(--text-white);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: clamp(10px, 0.9vw, 12px);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-tactical-icon:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--cyber-cyan);
+      color: var(--cyber-cyan);
+      box-shadow: 0 0 10px var(--cyber-cyan-glow);
+    }
+
+    .btn-tactical-icon.active {
+      background: rgba(255, 0, 60, 0.2);
+      border-color: var(--hazard-crimson);
+      color: var(--hazard-crimson);
+      box-shadow: 0 0 12px var(--hazard-crimson-glow);
+    }
+
+    .volume-slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .volume-slider-wrap input[type="range"] {
+      width: 55px;
+      accent-color: var(--cyber-cyan);
+      cursor: pointer;
+    }
+
+    .view-mode-toggle {
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px solid var(--cyber-cyan);
+      color: var(--cyber-cyan);
+      font-size: clamp(9px, 0.85vw, 11.5px);
+      padding: 5px 8px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    /* ==========================================================================
+       CANVAS BLUEPRINT CONTAINER & TACTICAL HUD
+       ========================================================================== */
+    .blueprint-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hud);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .blueprint-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-dim);
+      padding-bottom: 6px;
+    }
+
+    .blueprint-title-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .blueprint-title {
+      font-size: clamp(11px, 1vw, 14px);
+      font-weight: 800;
+      color: var(--cyber-cyan);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .blueprint-coords {
+      font-family: var(--font-mono);
+      font-size: clamp(9px, 0.8vw, 11px);
+      color: var(--text-dim);
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      background: #070e1a;
+      border: 1px solid #1a273b;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #floorplan-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 380px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    /* Blueprint Tool Toolbar */
+    .blueprint-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      background: rgba(11, 17, 28, 0.85);
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-dim);
+    }
+
+    .tool-selector-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .tool-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      color: var(--text-muted);
+      font-size: clamp(9px, 0.85vw, 11.5px);
+      font-family: var(--font-mono);
+      padding: 4px 7px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.15s ease;
+    }
+
+    .tool-btn.active {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: var(--cyber-cyan);
+      color: var(--cyber-cyan);
+      font-weight: 700;
+      box-shadow: 0 0 8px var(--cyber-cyan-glow);
+    }
+
+    .tool-btn.danger-tool.active {
+      background: rgba(255, 0, 60, 0.2);
+      border-color: var(--hazard-crimson);
+      color: var(--hazard-crimson);
+      box-shadow: 0 0 8px var(--hazard-crimson-glow);
+    }
+
+    .preset-selector-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      color: var(--text-white);
+      font-family: var(--font-mono);
+      font-size: clamp(9px, 0.85vw, 11.5px);
+      padding: 4px 6px;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Route Telemetry strip */
+    .route-telemetry-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      font-family: var(--font-mono);
+      background: rgba(10, 16, 26, 0.7);
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--safe-emerald);
+    }
+
+    .route-telemetry-strip.hazard-high {
+      border-left-color: var(--hazard-crimson);
+    }
+
+    .tel-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tel-label {
+      font-size: clamp(8.5px, 0.75vw, 10.5px);
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .tel-value {
+      font-size: clamp(11px, 1vw, 14px);
+      font-weight: 700;
+      color: var(--safe-emerald);
+    }
+
+    .tel-value.hazard-val {
+      color: var(--hazard-yellow);
+    }
+
+    /* ==========================================================================
+       TURN-BY-TURN GUIDANCE & INSTRUCTIONS
+       ========================================================================== */
+    .guidance-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hud);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .guidance-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .guidance-title {
+      font-size: clamp(10px, 0.9vw, 13px);
+      font-weight: 800;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: clamp(10.5px, 0.95vw, 13px);
+      line-height: 1.35;
+      background: rgba(22, 34, 53, 0.6);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--border-hud);
+      transition: all 0.2s ease;
+    }
+
+    .step-item.step-active {
+      border-left-color: var(--safe-emerald);
+      background: rgba(0, 255, 136, 0.08);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.15);
+    }
+
+    .step-item.step-warning {
+      border-left-color: var(--hazard-yellow);
+      background: rgba(250, 204, 21, 0.08);
+      color: #fff;
+    }
+
+    .step-num {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: clamp(9px, 0.85vw, 11.5px);
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-top: 1px;
+    }
+
+    /* ==========================================================================
+       ACTION BAR: "ESTOY A SALVO" & "REPORTAR SOS"
+       ========================================================================== */
+    .action-bar-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .btn-action-primary {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      color: #03251a;
+      border: 2px solid var(--safe-emerald);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-family: var(--font-sans);
+      font-weight: 900;
+      font-size: clamp(12px, 1.1vw, 15px);
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      box-shadow: 0 4px 20px var(--safe-emerald-glow);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-action-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 255, 136, 0.6);
+      filter: brightness(1.1);
+    }
+
+    .btn-action-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-action-subtext {
+      font-family: var(--font-mono);
+      font-size: clamp(8.5px, 0.8vw, 11px);
+      font-weight: 700;
+      opacity: 0.85;
+      text-transform: uppercase;
+    }
+
+    .btn-action-sos {
+      background: linear-gradient(135deg, #990024 0%, #ff003c 100%);
+      color: #fff;
+      border: 2px solid var(--hazard-crimson);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-family: var(--font-sans);
+      font-weight: 900;
+      font-size: clamp(12px, 1.1vw, 15px);
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      box-shadow: 0 4px 20px var(--hazard-crimson-glow);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-action-sos:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(255, 0, 60, 0.6);
+      filter: brightness(1.15);
+    }
+
+    .btn-action-sos:active {
+      transform: translateY(1px);
+    }
+
+    /* ==========================================================================
+       OFFLINE MESH NETWORK SIMULATOR (BLE 5.3 / WI-FI DIRECT / LORA)
+       ========================================================================== */
+    .mesh-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hud);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mesh-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mesh-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mesh-title {
+      font-size: clamp(10px, 0.9vw, 13px);
+      font-weight: 800;
+      color: var(--mesh-purple);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .mesh-toggle-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--mesh-purple);
+      color: var(--mesh-purple);
+      font-family: var(--font-mono);
+      font-size: clamp(8.5px, 0.8vw, 11px);
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mesh-toggle-btn.offline-forced {
+      background: rgba(168, 85, 247, 0.2);
+      box-shadow: 0 0 10px var(--mesh-purple-glow);
+    }
+
+    .mesh-svg-container {
+      width: 100%;
+      height: 110px;
+      background: #080d17;
+      border: 1px solid #1c2738;
+      border-radius: var(--radius-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mesh-stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: clamp(8.5px, 0.8vw, 11px);
+      background: rgba(11, 17, 28, 0.8);
+      padding: 5px 8px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+    }
+
+    .mesh-stat-val {
+      font-weight: 700;
+      color: var(--cyber-cyan);
+    }
+
+    /* ==========================================================================
+       LIFE SAFETY ASSETS & LIVE TELEMETRY DRAWER
+       ========================================================================== */
+    .assets-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .asset-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .asset-icon-box {
+      font-size: 16px;
+      width: 28px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .asset-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .asset-name {
+      font-size: clamp(9.5px, 0.85vw, 12px);
+      font-weight: 700;
+      color: var(--text-white);
+    }
+
+    .asset-dist {
+      font-family: var(--font-mono);
+      font-size: clamp(8.5px, 0.8vw, 11px);
+      color: var(--safe-emerald);
+    }
+
+    /* Terminal Console */
+    .terminal-drawer {
+      background: #05080e;
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+      padding: 8px 10px;
+      font-family: var(--font-mono);
+      font-size: clamp(9px, 0.85vw, 11.5px);
+      color: var(--text-muted);
+      max-height: 120px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-dim);
+      font-size: clamp(8px, 0.75vw, 10.5px);
+      border-bottom: 1px solid #141f2d;
+      padding-bottom: 3px;
+    }
+
+    .log-entry {
+      line-height: 1.3;
+      word-break: break-all;
+    }
+
+    .log-time {
+      color: var(--cyber-cyan);
+    }
+
+    .log-tag-safe {
+      color: var(--safe-emerald);
+      font-weight: bold;
+    }
+
+    .log-tag-sos {
+      color: var(--hazard-crimson);
+      font-weight: bold;
+    }
+
+    .log-tag-mesh {
+      color: var(--mesh-purple);
+    }
+
+    .log-tag-route {
+      color: var(--hazard-yellow);
+    }
+
+    /* ==========================================================================
+       MODALS & OVERLAYS: SOS TRIAGE & SAFE CERTIFICATE
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(4, 7, 13, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: modal-fade 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    @keyframes modal-fade {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-card {
+      background: var(--bg-surface);
+      border: 2px solid var(--border-hud);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 420px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-card.sos-modal-border {
+      border-color: var(--hazard-crimson);
+      box-shadow: 0 0 35px var(--hazard-crimson-glow);
+    }
+
+    .modal-card.safe-modal-border {
+      border-color: var(--safe-emerald);
+      box-shadow: 0 0 35px var(--safe-emerald-glow);
+    }
+
+    .modal-header {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(10, 16, 26, 0.9);
+      border-bottom: 1px solid var(--border-dim);
+    }
+
+    .modal-title {
+      font-size: clamp(12px, 1.1vw, 15px);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: clamp(16px, 1.5vw, 22px);
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .btn-modal-close:hover {
+      color: var(--text-white);
+    }
+
+    .modal-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* SOS Triage Options */
+    .sos-triage-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .sos-option-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      padding: 10px 8px;
+      color: var(--text-white);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .sos-option-btn:hover, .sos-option-btn.selected {
+      background: rgba(255, 0, 60, 0.15);
+      border-color: var(--hazard-crimson);
+      color: #fff;
+      box-shadow: 0 0 10px var(--hazard-crimson-glow);
+    }
+
+    .sos-opt-icon {
+      font-size: 20px;
+    }
+
+    .sos-opt-label {
+      font-size: clamp(10px, 0.9vw, 13px);
+      font-weight: 700;
+    }
+
+    .sos-opt-desc {
+      font-size: clamp(8px, 0.75vw, 10.5px);
+      color: var(--text-muted);
+    }
+
+    .sos-textarea {
+      background: #080d16;
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: clamp(10px, 0.9vw, 12.5px);
+      padding: 8px;
+      resize: none;
+      height: 55px;
+      outline: none;
+    }
+
+    .sos-textarea:focus {
+      border-color: var(--hazard-crimson);
+    }
+
+    .btn-transmit-sos {
+      background: linear-gradient(135deg, #b91c1c 0%, #ff003c 100%);
+      border: none;
+      color: #fff;
+      font-weight: 900;
+      font-size: clamp(12px, 1.1vw, 15px);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 15px var(--hazard-crimson-glow);
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .btn-transmit-sos:hover {
+      filter: brightness(1.15);
+    }
+
+    /* Safe Certificate Modal Body */
+    .safe-cert-body {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cert-seal {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: rgba(0, 255, 136, 0.15);
+      border: 2px solid var(--safe-emerald);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 0 25px var(--safe-emerald-glow);
+    }
+
+    .cert-heading {
+      font-size: clamp(14px, 1.4vw, 19px);
+      font-weight: 900;
+      color: var(--safe-emerald);
+      letter-spacing: 0.5px;
+    }
+
+    .cert-details-table {
+      width: 100%;
+      background: #080d16;
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: clamp(9.5px, 0.85vw, 12px);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: left;
+    }
+
+    .cert-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #141f2e;
+      padding-bottom: 3px;
+    }
+
+    .cert-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .cert-key {
+      color: var(--text-dim);
+    }
+
+    .cert-val {
+      color: var(--text-white);
+      font-weight: 600;
+    }
+
+    .btn-safe-close {
+      background: var(--safe-emerald);
+      border: none;
+      color: #042f21;
+      font-weight: 800;
+      font-size: clamp(11px, 1vw, 14px);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      width: 100%;
+      font-family: var(--font-mono);
+    }
+
+    /* ==========================================================================
+       TOAST NOTIFICATION NOTICES
+       ========================================================================== */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      width: 90%;
+      max-width: 380px;
+    }
+
+    .toast-msg {
+      background: rgba(16, 25, 39, 0.95);
+      border: 1px solid var(--border-hud);
+      backdrop-filter: blur(10px);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: clamp(10.5px, 0.95vw, 13px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      animation: toast-in 0.3s ease;
+      color: #fff;
+    }
+
+    .toast-msg.toast-danger {
+      border-color: var(--hazard-crimson);
+      box-shadow: 0 0 15px var(--hazard-crimson-glow);
+    }
+
+    .toast-msg.toast-safe {
+      border-color: var(--safe-emerald);
+      box-shadow: 0 0 15px var(--safe-emerald-glow);
+    }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-grid"></div>
+
+  <div class="app-viewport" id="app-viewport">
+    <div class="phone-housing">
+      
+      <!-- Top Dynamic Island / Speaker -->
+      <div class="phone-notch-area">
+        <div class="dynamic-island">
+          <span>SALVAR VIDAS</span>
+          <div class="island-dot"></div>
+          <span id="island-clock">18:04:12</span>
+        </div>
+      </div>
+
+      <!-- Phone Status Bar -->
+      <div class="phone-status-bar">
+        <div class="status-left">
+          <span class="badge-signal" id="status-signal-badge">
+            <span id="signal-icon">📶</span> <span id="signal-text">MESH 4 HOPS</span>
+          </span>
+          <span>📍 PISO 7 - ALA ESTE</span>
+        </div>
+        <div class="status-right">
+          <span class="battery-icon-pill" id="battery-indicator">🔋 88%</span>
+          <span id="status-bar-clock">18:04:12</span>
+        </div>
+      </div>
+
+      <!-- Tactical Emergency Strobe Banner -->
+      <div class="strobe-alert-banner" id="strobe-banner">
+        <div class="strobe-header-row">
+          <div class="strobe-title" id="strobe-title">
+            <span>⚠️</span> <span>EVACUACIÓN INMEDIATA</span>
+          </div>
+          <span class="hazard-level-badge" id="hazard-badge">NIVEL 4: FUEGO ACTIVO</span>
+        </div>
+        <div class="strobe-message-box" id="strobe-message">
+          Fuego detectado en Sector Este (Sala 703). Proceda con calma hacia la salida despejada más cercana.
+        </div>
+        <div class="strobe-target-route" id="strobe-route-hint">
+          <span>🚶 RUTA ACTIVA:</span> <strong id="hint-exit-name">ESCALERA NORTE (SALIDA A)</strong>
+        </div>
+      </div>
+
+      <!-- App Main Content Container -->
+      <div class="app-main-content">
+        
+        <!-- COLUMN LEFT (In fullscreen) -->
+        <div class="col-left">
+
+          <!-- Tactical Quick Controls Card -->
+          <div class="quick-controls-card">
+            <div class="audio-voice-actions">
+              <button class="btn-tactical-icon active" id="btn-siren-toggle" title="Activar / Silenciar Sirena">
+                <span id="siren-icon">🔊</span> <span id="siren-label">SIRENA</span>
+              </button>
+              <button class="btn-tactical-icon" id="btn-voice-repeat" title="Repetir Instrucción por Voz">
+                <span>🗣️</span> <span>VOZ 🔁</span>
+              </button>
+              <div class="volume-slider-wrap" title="Volumen de Sirena">
+                <input type="range" id="siren-volume" min="0" max="1" step="0.05" value="0.4">
+              </div>
+            </div>
+            <button class="view-mode-toggle" id="btn-view-toggle">
+              <span id="view-toggle-text">🖥️ PANTALLA COMPLETA</span>
+            </button>
+          </div>
+
+          <!-- Interactive Blueprint Card -->
+          <div class="blueprint-card">
+            <div class="blueprint-header">
+              <div class="blueprint-title-group">
+                <span class="blueprint-title">🗺️ PLANO VECTORIAL DINÁMICO // PISO 7</span>
+              </div>
+              <div class="blueprint-coords" id="canvas-coords">X: 04 | Y: 08</div>
+            </div>
+
+            <!-- Blueprint Canvas -->
+            <div class="canvas-container">
+              <canvas id="floorplan-canvas" width="480" height="320"></canvas>
+            </div>
+
+            <!-- Blueprint Toolbar -->
+            <div class="blueprint-toolbar">
+              <div class="tool-selector-group">
+                <button class="tool-btn active" id="tool-move" data-tool="move" title="Mover posición del usuario">
+                  🚶 Mover
+                </button>
+                <button class="tool-btn danger-tool" id="tool-fire" data-tool="fire" title="Colocar foco de fuego">
+                  🔥 Fuego
+                </button>
+                <button class="tool-btn" id="tool-smoke" data-tool="smoke" title="Colocar nube de humo">
+                  💨 Humo
+                </button>
+                <button class="tool-btn" id="tool-clear" data-tool="clear" title="Limpiar casilla de peligro">
+                  🧽 Limpiar
+                </button>
+              </div>
+
+              <select class="preset-selector-select" id="preset-selector" title="Escenarios tácticos preconfigurados">
+                <option value="default">Escenario: Fuego Sector Este</option>
+                <option value="block_a">Escenario: Bloquear Salida A</option>
+                <option value="block_all">Escenario: Trampa Total (Refugio 705)</option>
+                <option value="clear_all">Escenario: Todo Despejado</option>
+              </select>
+            </div>
+
+            <!-- Route Telemetry Strip -->
+            <div class="route-telemetry-strip" id="route-telemetry">
+              <div class="tel-item">
+                <span class="tel-label">Destino</span>
+                <span class="tel-value" id="tel-destination">Salida A</span>
+              </div>
+              <div class="tel-item">
+                <span class="tel-label">Distancia / Tiempo</span>
+                <span class="tel-value" id="tel-dist-time">18.4m (~12s)</span>
+              </div>
+              <div class="tel-item">
+                <span class="tel-label">Nivel de Riesgo</span>
+                <span class="tel-value" id="tel-hazard-status">Bajo (Vía Segura)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Turn-by-Turn Guidance Card -->
+          <div class="guidance-card">
+            <div class="guidance-header">
+              <span class="guidance-title">🧭 GUÍA DE ESCAPE PASO A PASO</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; color: var(--safe-emerald);" id="path-steps-count">4 Pasos</span>
+            </div>
+            <div class="step-list" id="step-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div> <!-- /col-left -->
+
+        <!-- COLUMN RIGHT (In fullscreen) -->
+        <div class="col-right">
+
+          <!-- Action Bar: "ESTOY A SALVO" & "REPORTAR SOS" -->
+          <div class="action-bar-grid">
+            <button class="btn-action-primary" id="btn-im-safe">
+              <span>🟢 ¡ESTOY A SALVO!</span>
+              <span class="btn-action-subtext">Transmitir Baliza a Central</span>
+            </button>
+            <button class="btn-action-sos" id="btn-report-sos">
+              <span>🚨 SOS EMERGENCIA</span>
+              <span class="btn-action-subtext">Atrapado / Herido</span>
+            </button>
+          </div>
+
+          <!-- Offline Mesh Network Simulator Card -->
+          <div class="mesh-card">
+            <div class="mesh-header">
+              <div class="mesh-title-wrap">
+                <span>📡</span> <span class="mesh-title">SIMULADOR MESH OFFLINE (BLE 5.3)</span>
+              </div>
+              <button class="mesh-toggle-btn" id="btn-toggle-cellular">
+                📶 MODO: 5G + BLE MESH
+              </button>
+            </div>
+            
+            <div class="mesh-svg-container">
+              <svg id="mesh-svg" width="100%" height="100%" viewBox="0 0 380 110">
+                <!-- SVG mesh topology links and nodes dynamically drawn -->
+              </svg>
+            </div>
+
+            <div class="mesh-stats-row">
+              <div><span style="color:var(--text-dim)">Saltos:</span> <span class="mesh-stat-val" id="mesh-hops">3 Hops</span></div>
+              <div><span style="color:var(--text-dim)">Latencia:</span> <span class="mesh-stat-val" id="mesh-latency">68 ms</span></div>
+              <div><span style="color:var(--text-dim)">Entrega:</span> <span class="mesh-stat-val" id="mesh-delivery">100%</span></div>
+              <div><span style="color:var(--text-dim)">Potencia:</span> <span class="mesh-stat-val">0.8 mW</span></div>
+            </div>
+          </div>
+
+          <!-- Life Safety Assets Nearby -->
+          <div class="assets-grid">
+            <div class="asset-card">
+              <div class="asset-icon-box">🧯</div>
+              <div class="asset-info">
+                <span class="asset-name">Extintor CO2 #7A</span>
+                <span class="asset-dist" id="dist-extinguisher">Distancia: 4.2m</span>
+              </div>
+            </div>
+            <div class="asset-card">
+              <div class="asset-icon-box">🩹</div>
+              <div class="asset-info">
+                <span class="asset-name">Botiquín Primeros Aux.</span>
+                <span class="asset-dist" id="dist-firstaid">Distancia: 6.8m</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Real-Time Telemetry Log Terminal -->
+          <div class="terminal-drawer" id="telemetry-terminal">
+            <div class="terminal-header">
+              <span>CONSOLE TELEMETRÍA EN VIVO // DISPOSITIVO #OCC-7049</span>
+              <span id="terminal-status">CONECTADO</span>
+            </div>
+            <div id="terminal-logs">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div> <!-- /col-right -->
+
+      </div> <!-- /app-main-content -->
+
+    </div> <!-- /phone-housing -->
+  </div> <!-- /app-viewport -->
+
+  <!-- ==========================================================================
+       MODAL: SOS EMERGENCY TRIAGE SHEET
+       ========================================================================== -->
+  <div class="modal-overlay" id="modal-sos">
+    <div class="modal-card sos-modal-border">
+      <div class="modal-header">
+        <div class="modal-title" style="color: var(--hazard-crimson);">
+          <span>🚨</span> <span>REPORTE DE EMERGENCIA & SOS</span>
+        </div>
+        <button class="btn-modal-close" id="btn-close-sos">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size: 11.5px; color: var(--text-muted);">
+          Seleccione la situación crítica para despachar brigadistas a sus coordenadas inmediatas:
+        </div>
+        
+        <div class="sos-triage-grid">
+          <button class="sos-option-btn selected" data-triage="FIRE">
+            <span class="sos-opt-icon">🔥</span>
+            <span class="sos-opt-label">Fuego Directo</span>
+            <span class="sos-opt-desc">Llamas cortando paso</span>
+          </button>
+          <button class="sos-option-btn" data-triage="SMOKE">
+            <span class="sos-opt-icon">💨</span>
+            <span class="sos-opt-label">Humo Asfixiante</span>
+            <span class="sos-opt-desc">Cero visibilidad</span>
+          </button>
+          <button class="sos-option-btn" data-triage="INJURED">
+            <span class="sos-opt-icon">🚑</span>
+            <span class="sos-opt-label">Atrapado / Herido</span>
+            <span class="sos-opt-desc">Incapaz de caminar</span>
+          </button>
+          <button class="sos-option-btn" data-triage="BLOCKED">
+            <span class="sos-opt-icon">🚧</span>
+            <span class="sos-opt-label">Salida Colapsada</span>
+            <span class="sos-opt-desc">Escombros en puerta</span>
+          </button>
+        </div>
+
+        <textarea class="sos-textarea" id="sos-notes" placeholder="Detalles adicionales opcionales (ej: '2 personas en Sala 703')..."></textarea>
+
+        <button class="btn-transmit-sos" id="btn-send-sos-beacon">
+          <span>📡</span> <span>TRANSMITIR SOS PRIORITARIO</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: SAFE CHECK-IN VERIFICATION CERTIFICATE
+       ========================================================================== -->
+  <div class="modal-overlay" id="modal-safe">
+    <div class="modal-card safe-modal-border">
+      <div class="modal-header">
+        <div class="modal-title" style="color: var(--safe-emerald);">
+          <span>🛡️</span> <span>CONFIRMACIÓN DE SEGURIDAD</span>
+        </div>
+        <button class="btn-modal-close" id="btn-close-safe">&times;</button>
+      </div>
+      <div class="modal-body safe-cert-body">
+        <div class="cert-seal">✅</div>
+        <div class="cert-heading">¡ESTÁS REGISTRADO A SALVO!</div>
+        <p style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">
+          Tu baliza ha sido recibida y confirmada por el Centro de Comando y las Brigadas de Bomberos.
+        </p>
+
+        <div class="cert-details-table">
+          <div class="cert-row">
+            <span class="cert-key">OCUPANTE:</span>
+            <span class="cert-val">Dr. Elena Rostova (#OCC-7049)</span>
+          </div>
+          <div class="cert-row">
+            <span class="cert-key">ESTADO:</span>
+            <span class="cert-val" style="color: var(--safe-emerald);">EVACUACIÓN CONFIRMADA</span>
+          </div>
+          <div class="cert-row">
+            <span class="cert-key">PUNTO ENCUENTRO:</span>
+            <span class="cert-val">Zona Segura Exterior (Norte)</span>
+          </div>
+          <div class="cert-row">
+            <span class="cert-key">BALIZA GPS / BLE:</span>
+            <span class="cert-val">-12.04637, -77.04279 (BCN-01)</span>
+          </div>
+          <div class="cert-row">
+            <span class="cert-key">HORA RECEPCIÓN:</span>
+            <span class="cert-val" id="cert-timestamp">18:04:12 UTC</span>
+          </div>
+        </div>
+
+        <button class="btn-safe-close" id="btn-dismiss-safe">
+          ENTENDIDO // CONTINUAR EN PUNTO DE ENCUENTRO
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT ARCHITECTURE & ENGINES
+       ========================================================================== -->
+  <script>
+    /**
+     * SALVAR VIDAS — MOBILE OCCUPANT HUD ENGINE
+     * Architecture:
+     *  - TacticalAudioEngine: Web Audio API procedural dual-tone warble siren & sound FX.
+     *  - TacticalVoiceAlert: Web Speech API voice guidance in Spanish with visual fallback.
+     *  - DynamicAStarNavigator: 2D Grid pathfinding with dynamic hazard cost penalties.
+     *  - FloorplanRenderer: 24x16 interactive vector Canvas blueprint with fire/smoke particles.
+     *  - MeshNetworkSimulator: Multi-hop BLE 5.3 / LoRa / Wi-Fi Direct packet routing simulator.
+     *  - HUDController: Application lifecycle, DOM bindings, and telemetry streaming.
+     */
+
+    // --- SOUND ENGINE (Web Audio API) ---
+    class TacticalAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.masterGain = null;
+        this.sirenOsc = null;
+        this.sirenLfo = null;
+        this.sirenGain = null;
+        this.isPlayingSiren = false;
+        this.volume = 0.4;
+      }
+
+      init() {
+        if (this.ctx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        this.ctx = new AudioContext();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+        this.masterGain.connect(this.ctx.destination);
+      }
+
+      setVolume(val) {
+        this.volume = Math.max(0, Math.min(1, parseFloat(val)));
+        if (this.masterGain && this.ctx) {
+          this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
+          this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+        }
+      }
+
+      startSiren() {
+        this.init();
+        if (!this.ctx) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        if (this.isPlayingSiren) return;
+
+        const now = this.ctx.currentTime;
+        
+        // Carrier Oscillator (Sawtooth tone)
+        this.sirenOsc = this.ctx.createOscillator();
+        this.sirenOsc.type = 'sawtooth';
+        this.sirenOsc.frequency.setValueAtTime(750, now);
+
+        // LFO Modulator (Sine wave oscillating at 3.5 Hz between 700Hz and 1100Hz)
+        this.sirenLfo = this.ctx.createOscillator();
+        this.sirenLfo.type = 'sine';
+        this.sirenLfo.frequency.setValueAtTime(3.5, now);
+
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.setValueAtTime(250, now);
+        this.sirenLfo.connect(this.sirenOsc.frequency);
+
+        this.sirenGain = this.ctx.createGain();
+        this.sirenGain.gain.setValueAtTime(0.001, now);
+        this.sirenGain.gain.linearRampToValueAtTime(0.3, now + 0.3);
+
+        this.sirenOsc.connect(this.sirenGain);
+        this.sirenGain.connect(this.masterGain);
+
+        this.sirenOsc.start(now);
+        this.sirenLfo.start(now);
+        this.isPlayingSiren = true;
+      }
+
+      stopSiren() {
+        if (!this.isPlayingSiren || !this.sirenGain) return;
+        const now = this.ctx.currentTime;
+        this.sirenGain.gain.cancelScheduledValues(now);
+        this.sirenGain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+
+        setTimeout(() => {
+          if (this.sirenOsc) {
+            try {
+              this.sirenOsc.stop();
+              this.sirenLfo.stop();
+              this.sirenOsc.disconnect();
+              this.sirenLfo.disconnect();
+            } catch(e) {}
+            this.isPlayingSiren = false;
+          }
+        }, 220);
+      }
+
+      playBeep(freq = 880, type = 'sine', duration = 0.12) {
+        this.init();
+        if (!this.ctx || this.volume <= 0) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+
+      playSafeChime() {
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+          setTimeout(() => this.playBeep(freq, 'triangle', 0.25), i * 90);
+        });
+      }
+
+      playSosAlert() {
+        [880, 440, 880, 440].forEach((freq, i) => {
+          setTimeout(() => this.playBeep(freq, 'sawtooth', 0.15), i * 110);
+        });
+      }
+    }
+
+    // --- VOICE ENGINE (Web Speech API) ---
+    class TacticalVoiceAlert {
+      constructor() {
+        this.synth = window.speechSynthesis;
+        this.isMuted = false;
+        this.currentUtterance = null;
+      }
+
+      speakInstruction(text) {
+        if (!this.synth || this.isMuted) {
+          HUD.showToast(`🗣️ [Aviso de Voz]: ${text}`);
+          return;
+        }
+
+        try {
+          this.synth.cancel(); // Cancel any ongoing speech
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'es-ES';
+          utterance.rate = 1.05;
+          utterance.pitch = 1.05;
+          utterance.volume = 1.0;
+
+          const voices = this.synth.getVoices();
+          const spanishVoice = voices.find(v => v.lang.startsWith('es'));
+          if (spanishVoice) utterance.voice = spanishVoice;
+
+          this.synth.speak(utterance);
+          this.currentUtterance = utterance;
+        } catch(e) {
+          HUD.showToast(`🗣️ [Aviso de Voz]: ${text}`);
+        }
+      }
+
+      speakStandardAlert(exitName) {
+        this.speakInstruction(
+          `¡Atención! Alerta de emergencia en Piso 7. Siga la ruta verde hacia la ${exitName}. No use los ascensores. Manténgase agachado.`
+        );
+      }
+
+      speakRerouteAlert(blockedExit, newExit) {
+        this.speakInstruction(
+          `¡Peligro! ${blockedExit} está comprometida por fuego o humo. Re-calculando ruta. Diríjase de inmediato a la ${newExit}.`
+        );
+      }
+
+      speakTrapAlert() {
+        this.speakInstruction(
+          `¡Alerta crítica! Todas las salidas de evacuación están bloqueadas. Diríjase a la Sala Presurizada de Refugio número 705 y selle la puerta.`
+        );
+      }
+    }
+
+    // --- A* DYNAMIC PATHFINDING ENGINE ---
+    class DynamicAStarNavigator {
+      constructor(width, height, grid) {
+        this.width = width;
+        this.height = height;
+        this.grid = grid; // 2D array of tile properties
+      }
+
+      findOptimalPath(startX, startY, exits, hazardMap) {
+        let bestResult = null;
+        let lowestCost = Infinity;
+
+        // Try every exit that is not explicitly destroyed/blocked
+        for (const exit of exits) {
+          if (exit.isBlocked) continue;
+
+          const res = this.computeAStar(startX, startY, exit.x, exit.y, hazardMap);
+          if (res && res.totalCost < lowestCost) {
+            lowestCost = res.totalCost;
+            bestResult = {
+              targetExit: exit,
+              path: res.path,
+              totalCost: lowestCost,
+              isRefuge: exit.isRefuge || false
+            };
+          }
+        }
+
+        return bestResult;
+      }
+
+      computeAStar(startX, startY, targetX, targetY, hazardMap) {
+        const openSet = [];
+        const closedSet = new Set();
+        const key = (x, y) => `${x},${y}`;
+
+        const startNode = {
+          x: startX,
+          y: startY,
+          g: 0,
+          h: Math.hypot(startX - targetX, startY - targetY),
+          parent: null
+        };
+        startNode.f = startNode.g + startNode.h;
+        openSet.push(startNode);
+
+        while (openSet.length > 0) {
+          // Get lowest f score
+          let lowestIdx = 0;
+          for (let i = 1; i < openSet.length; i++) {
+            if (openSet[i].f < openSet[lowestIdx].f) lowestIdx = i;
+          }
+          const current = openSet.splice(lowestIdx, 1)[0];
+
+          // Target reached?
+          if (current.x === targetX && current.y === targetY) {
+            const path = [];
+            let curr = current;
+            while (curr) {
+              path.push({ x: curr.x, y: curr.y });
+              curr = curr.parent;
+            }
+            return { path: path.reverse(), totalCost: current.g };
+          }
+
+          closedSet.add(key(current.x, current.y));
+
+          // 4-directional cardinal neighbors
+          const neighbors = [
+            { x: current.x + 1, y: current.y },
+            { x: current.x - 1, y: current.y },
+            { x: current.x, y: current.y + 1 },
+            { x: current.x, y: current.y - 1 }
+          ];
+
+          for (const n of neighbors) {
+            if (n.x < 0 || n.x >= this.width || n.y < 0 || n.y >= this.height) continue;
+            if (closedSet.has(key(n.x, n.y))) continue;
+
+            // Is wall or impassable structure?
+            if (this.grid[n.y][n.x].isWall) continue;
+
+            // Check dynamic hazard
+            const h = hazardMap[`${n.x},${n.y}`] || 'NONE';
+            if (h === 'FIRE' || h === 'BLOCKED') continue; // Impassable
+
+            let stepCost = 1.0;
+            if (h === 'SMOKE_LIGHT') stepCost = 15.0;
+            else if (h === 'SMOKE_DENSE') stepCost = 80.0;
+
+            const tentativeG = current.g + stepCost;
+            let existing = openSet.find(node => node.x === n.x && node.y === n.y);
+
+            if (!existing) {
+              const hCost = Math.hypot(n.x - targetX, n.y - targetY);
+              openSet.push({
+                x: n.x,
+                y: n.y,
+                g: tentativeG,
+                h: hCost,
+                f: tentativeG + hCost,
+                parent: current
+              });
+            } else if (tentativeG < existing.g) {
+              existing.g = tentativeG;
+              existing.f = tentativeG + existing.h;
+              existing.parent = current;
+            }
+          }
+        }
+
+        return null; // No path found
+      }
+    }
+
+    // --- BLUEPRINT CANVAS RENDERER & SIMULATION ---
+    class FloorplanEngine {
+      constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.cols = 24;
+        this.rows = 16;
+        this.cellW = this.canvas.width / this.cols;
+        this.cellH = this.canvas.height / this.rows;
+
+        // Occupant initial position
+        this.occupant = { x: 4, y: 8, heading: 'NORTH' };
+
+        // Exits & Safe Refuge Rooms
+        this.exits = [
+          { id: 'exit-a', name: 'Escalera Norte (Salida A)', x: 2, y: 1, isBlocked: false, isRefuge: false },
+          { id: 'exit-b', name: 'Escalera Sur (Salida B)', x: 21, y: 14, isBlocked: true, isRefuge: false },
+          { id: 'refuge', name: 'Sala Presurizada 705 (Refugio)', x: 12, y: 8, isBlocked: false, isRefuge: true }
+        ];
+
+        // Safety Assets
+        this.assets = [
+          { type: 'EXTINGUISHER', label: '🧯', name: 'Extintor CO2 #7A', x: 3, y: 5 },
+          { type: 'EXTINGUISHER', label: '🧯', name: 'Extintor CO2 #7B', x: 18, y: 11 },
+          { type: 'FIRST_AID', label: '🩹', name: 'Botiquín Primeros Auxilios', x: 6, y: 2 },
+          { type: 'FIRST_AID', label: '🩹', name: 'Botiquín Trauma', x: 20, y: 8 },
+          { type: 'PULL_STATION', label: '🚨', name: 'Pulsador Alarma', x: 1, y: 1 },
+          { type: 'PULL_STATION', label: '🚨', name: 'Pulsador Alarma Sur', x: 22, y: 1 }
+        ];
+
+        // Rooms layout
+        this.rooms = [
+          { name: 'R701 Finanzas', x: 1, y: 2, w: 4, h: 3, color: '#162238' },
+          { name: 'R702 TI / Dev', x: 1, y: 9, w: 4, h: 4, color: '#162238' },
+          { name: 'R703 Servidores 🔥', x: 16, y: 2, w: 5, h: 4, color: '#2c151c' },
+          { name: 'R704 Baños', x: 16, y: 9, w: 5, h: 4, color: '#162238' },
+          { name: 'R705 Refugio Presurizado 🛡️', x: 10, y: 6, w: 4, h: 4, color: '#0f2922' },
+          { name: 'R706 Open Space Este', x: 8, y: 2, w: 6, h: 3, color: '#141e30' },
+          { name: 'R707 Open Space Sur', x: 7, y: 11, w: 8, h: 3, color: '#141e30' }
+        ];
+
+        // Grid matrix initialization
+        this.grid = [];
+        this.initGrid();
+
+        // Dynamic hazard map: key = 'x,y', val = 'FIRE' | 'SMOKE_LIGHT' | 'SMOKE_DENSE'
+        this.hazards = {
+          '17,3': 'FIRE',
+          '17,4': 'FIRE',
+          '18,3': 'FIRE',
+          '16,3': 'SMOKE_DENSE',
+          '16,4': 'SMOKE_LIGHT',
+          '15,3': 'SMOKE_LIGHT',
+          '21,14': 'BLOCKED' // Salida B initially blocked by smoke
+        };
+
+        // Active tool: 'move' | 'fire' | 'smoke' | 'clear'
+        this.activeTool = 'move';
+
+        // Particle system for fire and smoke
+        this.particles = [];
+        this.initParticles();
+
+        // Path navigation instance
+        this.navigator = new DynamicAStarNavigator(this.cols, this.rows, this.grid);
+        this.currentPathResult = null;
+
+        this.animFrame = null;
+        this.setupInteractions();
+      }
+
+      initGrid() {
+        this.grid = [];
+        for (let y = 0; y < this.rows; y++) {
+          const row = [];
+          for (let x = 0; x < this.cols; x++) {
+            let isWall = false;
+            // Boundary walls
+            if (x === 0 || x === this.cols - 1 || y === 0 || y === this.rows - 1) {
+              isWall = true;
+            }
+
+            // Internal partitions (leave door gaps)
+            if (x === 5 && y > 0 && y < 15 && y !== 6 && y !== 7 && y !== 8) isWall = true;
+            if (x === 15 && y > 0 && y < 15 && y !== 6 && y !== 7 && y !== 8) isWall = true;
+            if (y === 5 && ((x > 0 && x < 5 && x !== 2) || (x > 15 && x < 23 && x !== 18))) isWall = true;
+            if (y === 10 && ((x > 0 && x < 5 && x !== 3) || (x > 15 && x < 23 && x !== 19))) isWall = true;
+            
+            // Refuge room boundary (R705) with 1 single door at (10, 8)
+            if (x >= 10 && x <= 13 && y >= 6 && y <= 9) {
+              if ((x === 10 || x === 13 || y === 6 || y === 9) && !(x === 10 && y === 8)) {
+                isWall = true;
+              }
+            }
+
+            // Exits openings in boundary
+            if ((x === 2 && y === 1) || (x === 21 && y === 14)) {
+              isWall = false;
+            }
+
+            row.push({ x, y, isWall });
+          }
+          this.grid.push(row);
+        }
+      }
+
+      initParticles() {
+        for (let i = 0; i < 40; i++) {
+          this.particles.push({
+            x: 17 + Math.random() * 2,
+            y: 3 + Math.random() * 2,
+            vx: (Math.random() - 0.5) * 0.02,
+            vy: -0.015 - Math.random() * 0.02,
+            size: 2 + Math.random() * 4,
+            alpha: 0.8,
+            life: Math.random() * 60,
+            type: Math.random() > 0.4 ? 'fire' : 'smoke'
+          });
+        }
+      }
+
+      setupInteractions() {
+        const getCell = (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          const scaleX = this.canvas.width / rect.width;
+          const scaleY = this.canvas.height / rect.height;
+          const px = (clientX - rect.left) * scaleX;
+          const py = (clientY - rect.top) * scaleY;
+          const cellX = Math.floor(px / this.cellW);
+          const cellY = Math.floor(py / this.cellH);
+          return {
+            x: Math.max(0, Math.min(this.cols - 1, cellX)),
+            y: Math.max(0, Math.min(this.rows - 1, cellY))
+          };
+        };
+
+        const handlePointer = (e) => {
+          e.preventDefault();
+          const pos = getCell(e);
+          document.getElementById('canvas-coords').textContent = `X: ${String(pos.x).padStart(2, '0')} | Y: ${String(pos.y).padStart(2, '0')}`;
+          this.applyTool(pos.x, pos.y);
+        };
+
+        this.canvas.addEventListener('mousedown', handlePointer);
+        this.canvas.addEventListener('touchstart', handlePointer, { passive: false });
+      }
+
+      applyTool(x, y) {
+        const k = `${x},${y}`;
+
+        // Boundary or internal wall check
+        if (this.grid[y][x].isWall) {
+          HUD.showToast("🧱 Casilla bloqueada por muro estructural.");
+          return;
+        }
+
+        // Do not allow placing fire on occupant
+        if (this.occupant.x === x && this.occupant.y === y && this.activeTool !== 'move') {
+          HUD.showToast("⚠️ Ubicación del ocupante protegida.");
+          return;
+        }
+
+        if (this.activeTool === 'move') {
+          if (this.hazards[k] === 'FIRE' || this.hazards[k] === 'BLOCKED') {
+            HUD.showToast("🔥 ¡Peligro! No puedes moverte a una zona en llamas.");
+            audio.playBeep(220, 'sawtooth', 0.2);
+            return;
+          }
+          this.occupant.x = x;
+          this.occupant.y = y;
+          audio.playBeep(980, 'sine', 0.08);
+          HUD.logTerminal(`[MOVIMIENTO] Usuario trasladado a coordenadas (${x}, ${y})`, 'route');
+          this.recalculateRoute(true);
+        } 
+        else if (this.activeTool === 'fire') {
+          this.hazards[k] = 'FIRE';
+          audio.playBeep(330, 'sawtooth', 0.15);
+          HUD.logTerminal(`[PELIGRO] 🔥 Foco de fuego añadido en (${x}, ${y})`, 'sos');
+          this.checkExitsStatus();
+          this.recalculateRoute(true);
+        }
+        else if (this.activeTool === 'smoke') {
+          this.hazards[k] = 'SMOKE_DENSE';
+          audio.playBeep(440, 'sine', 0.1);
+          HUD.logTerminal(`[PELIGRO] 💨 Nube de humo denso reportada en (${x}, ${y})`, 'route');
+          this.checkExitsStatus();
+          this.recalculateRoute(true);
+        }
+        else if (this.activeTool === 'clear') {
+          delete this.hazards[k];
+          audio.playBeep(660, 'triangle', 0.08);
+          HUD.logTerminal(`[DESPEJE] Casilla (${x}, ${y}) declarada libre de peligro`, 'safe');
+          this.checkExitsStatus();
+          this.recalculateRoute(true);
+        }
+      }
+
+      checkExitsStatus() {
+        // Exit A at (2,1)
+        this.exits[0].isBlocked = (this.hazards['2,1'] === 'FIRE' || this.hazards['2,1'] === 'BLOCKED');
+        // Exit B at (21,14)
+        this.exits[1].isBlocked = (this.hazards['21,14'] === 'FIRE' || this.hazards['21,14'] === 'BLOCKED');
+      }
+
+      loadPreset(presetName) {
+        this.hazards = {};
+        if (presetName === 'default') {
+          this.hazards['17,3'] = 'FIRE';
+          this.hazards['17,4'] = 'FIRE';
+          this.hazards['18,3'] = 'FIRE';
+          this.hazards['16,3'] = 'SMOKE_DENSE';
+          this.hazards['21,14'] = 'BLOCKED';
+          this.occupant = { x: 4, y: 8 };
+        } else if (presetName === 'block_a') {
+          this.hazards['2,1'] = 'FIRE';
+          this.hazards['2,2'] = 'FIRE';
+          this.hazards['3,2'] = 'SMOKE_DENSE';
+          this.hazards['17,3'] = 'SMOKE_LIGHT';
+          this.occupant = { x: 4, y: 8 };
+        } else if (presetName === 'block_all') {
+          this.hazards['2,1'] = 'FIRE';
+          this.hazards['21,14'] = 'FIRE';
+          this.hazards['3,6'] = 'FIRE';
+          this.hazards['18,6'] = 'FIRE';
+          this.occupant = { x: 4, y: 8 };
+        } else if (presetName === 'clear_all') {
+          this.occupant = { x: 4, y: 8 };
+        }
+        this.checkExitsStatus();
+        this.recalculateRoute(true);
+        HUD.logTerminal(`[ESCENARIO] Configuración de simulación: "${presetName}" aplicada.`, 'safe');
+      }
+
+      recalculateRoute(triggerVoice = false) {
+        // Exits to search: primary exits first, then refuge if none found
+        const normalExits = this.exits.filter(e => !e.isRefuge);
+        let result = this.navigator.findOptimalPath(this.occupant.x, this.occupant.y, normalExits, this.hazards);
+
+        if (!result) {
+          // Trap scenario: search for safe refuge room R705
+          const refugeExit = this.exits.filter(e => e.isRefuge);
+          result = this.navigator.findOptimalPath(this.occupant.x, this.occupant.y, refugeExit, this.hazards);
+          
+          if (result) {
+            HUD.updateEmergencyBanner('TRAP_REFUGE', result.targetExit.name);
+            if (triggerVoice) voice.speakTrapAlert();
+          } else {
+            HUD.updateEmergencyBanner('CRITICAL_BLOCKED', 'SIN SALIDA POSIBLE');
+          }
+        } else {
+          HUD.updateEmergencyBanner('EVACUATION', result.targetExit.name);
+          if (triggerVoice) {
+            voice.speakStandardAlert(result.targetExit.name);
+          }
+        }
+
+        this.currentPathResult = result;
+        HUD.renderGuidanceSteps(result);
+        HUD.updateRouteMetrics(result);
+      }
+
+      startRenderLoop() {
+        const render = () => {
+          this.draw();
+          this.updateParticles();
+          this.animFrame = requestAnimationFrame(render);
+        };
+        this.animFrame = requestAnimationFrame(render);
+      }
+
+      updateParticles() {
+        for (const p of this.particles) {
+          p.y += p.vy;
+          p.x += p.vx;
+          p.life--;
+          if (p.life <= 0) {
+            // Respawn near active fire
+            const fireKeys = Object.keys(this.hazards).filter(k => this.hazards[k] === 'FIRE');
+            if (fireKeys.length > 0) {
+              const rk = fireKeys[Math.floor(Math.random() * fireKeys.length)].split(',');
+              p.x = parseInt(rk[0]) + Math.random();
+              p.y = parseInt(rk[1]) + Math.random();
+            } else {
+              p.x = -10; p.y = -10;
+            }
+            p.life = 40 + Math.random() * 30;
+            p.type = Math.random() > 0.4 ? 'fire' : 'smoke';
+          }
+        }
+      }
+
+      draw() {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const cw = this.cellW;
+        const ch = this.cellH;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // 1. Draw Blueprint Background Grid
+        ctx.fillStyle = '#0a111e';
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.strokeStyle = 'rgba(25, 42, 66, 0.4)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x <= this.cols; x++) {
+          ctx.beginPath(); ctx.moveTo(x * cw, 0); ctx.lineTo(x * cw, h); ctx.stroke();
+        }
+        for (let y = 0; y <= this.rows; y++) {
+          ctx.beginPath(); ctx.moveTo(0, y * ch); ctx.lineTo(w, y * ch); ctx.stroke();
+        }
+
+        // 2. Draw Rooms
+        for (const r of this.rooms) {
+          ctx.fillStyle = r.color;
+          ctx.fillRect(r.x * cw, r.y * ch, r.w * cw, r.h * ch);
+          ctx.strokeStyle = '#223552';
+          ctx.strokeRect(r.x * cw, r.y * ch, r.w * cw, r.h * ch);
+
+          ctx.fillStyle = 'rgba(255,255,255,0.45)';
+          ctx.font = '8px "JetBrains Mono"';
+          ctx.fillText(r.name, r.x * cw + 4, r.y * ch + 12);
+        }
+
+        // 3. Draw Static Walls
+        ctx.fillStyle = '#1c2d47';
+        for (let y = 0; y < this.rows; y++) {
+          for (let x = 0; x < this.cols; x++) {
+            if (this.grid[y][x].isWall) {
+              ctx.fillRect(x * cw, y * ch, cw, ch);
+              ctx.strokeStyle = '#2a4369';
+              ctx.strokeRect(x * cw, y * ch, cw, ch);
+            }
+          }
+        }
+
+        // 4. Draw Exits
+        for (const exit of this.exits) {
+          if (exit.isRefuge) {
+            ctx.fillStyle = '#059669';
+            ctx.fillRect(exit.x * cw, exit.y * ch, cw, ch);
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px sans-serif';
+            ctx.fillText('🛡️', exit.x * cw + 2, exit.y * ch + 15);
+          } else {
+            const isBlocked = exit.isBlocked;
+            ctx.fillStyle = isBlocked ? '#ff003c' : '#00ff88';
+            ctx.fillRect(exit.x * cw, exit.y * ch, cw, ch);
+            ctx.fillStyle = isBlocked ? '#fff' : '#000';
+            ctx.font = 'bold 9px "JetBrains Mono"';
+            ctx.fillText(isBlocked ? 'BLOQ' : 'EXIT', exit.x * cw + 1, exit.y * ch + 13);
+          }
+        }
+
+        // 5. Draw Safety Assets
+        for (const ast of this.assets) {
+          ctx.font = '11px sans-serif';
+          ctx.fillText(ast.label, ast.x * cw + 2, ast.y * ch + 14);
+        }
+
+        // 6. Draw Hazards (Fire & Smoke)
+        for (const [key, type] of Object.entries(this.hazards)) {
+          const [hx, hy] = key.split(',').map(Number);
+          if (type === 'FIRE') {
+            ctx.fillStyle = 'rgba(255, 69, 0, 0.65)';
+            ctx.fillRect(hx * cw, hy * ch, cw, ch);
+            ctx.fillStyle = '#ff003c';
+            ctx.strokeRect(hx * cw, hy * ch, cw, ch);
+            ctx.font = '12px sans-serif';
+            ctx.fillText('🔥', hx * cw + 2, hy * ch + 15);
+          } else if (type === 'SMOKE_DENSE') {
+            ctx.fillStyle = 'rgba(100, 116, 139, 0.75)';
+            ctx.fillRect(hx * cw, hy * ch, cw, ch);
+            ctx.font = '11px sans-serif';
+            ctx.fillText('💨', hx * cw + 2, hy * ch + 14);
+          } else if (type === 'SMOKE_LIGHT') {
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.4)';
+            ctx.fillRect(hx * cw, hy * ch, cw, ch);
+          } else if (type === 'BLOCKED') {
+            ctx.fillStyle = 'rgba(255, 0, 60, 0.4)';
+            ctx.fillRect(hx * cw, hy * ch, cw, ch);
+            ctx.font = '11px sans-serif';
+            ctx.fillText('⛔', hx * cw + 2, hy * ch + 14);
+          }
+        }
+
+        // 7. Draw Fire/Smoke Animated Particles
+        for (const p of this.particles) {
+          if (p.x < 0) continue;
+          ctx.beginPath();
+          ctx.arc(p.x * cw, p.y * ch, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = p.type === 'fire' 
+            ? `rgba(255, ${Math.floor(100 + Math.random() * 100)}, 0, ${p.life / 60})`
+            : `rgba(160, 160, 170, ${p.life / 90})`;
+          ctx.fill();
+        }
+
+        // 8. Draw A* Calculated Escape Path
+        if (this.currentPathResult && this.currentPathResult.path.length > 1) {
+          const path = this.currentPathResult.path;
+          const isRefuge = this.currentPathResult.isRefuge;
+          
+          ctx.save();
+          ctx.strokeStyle = isRefuge ? '#00e5ff' : '#00ff88';
+          ctx.lineWidth = 4;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.setLineDash([8, 6]);
+          ctx.lineDashOffset = -(Date.now() / 35) % 14;
+
+          // Glowing path effect
+          ctx.shadowColor = isRefuge ? 'rgba(0, 229, 255, 0.8)' : 'rgba(0, 255, 136, 0.8)';
+          ctx.shadowBlur = 10;
+
+          ctx.beginPath();
+          ctx.moveTo(path[0].x * cw + cw / 2, path[0].y * ch + ch / 2);
+          for (let i = 1; i < path.length; i++) {
+            ctx.lineTo(path[i].x * cw + cw / 2, path[i].y * ch + ch / 2);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 9. Draw Occupant Avatar
+        const ox = this.occupant.x * cw + cw / 2;
+        const oy = this.occupant.y * ch + ch / 2;
+
+        // Pulsing radar ripple
+        const pulse = (Date.now() % 1200) / 1200;
+        ctx.beginPath();
+        ctx.arc(ox, oy, 8 + pulse * 14, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 229, 255, ${1 - pulse})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Occupant Marker
+        ctx.beginPath();
+        ctx.arc(ox, oy, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#00e5ff';
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 8px "JetBrains Mono"';
+        ctx.fillText('TÚ', ox - 5, oy - 9);
+      }
+    }
+
+    // --- OFFLINE MESH NETWORK SIMULATOR ---
+    class MeshNetworkSimulator {
+      constructor(svgId) {
+        this.svg = document.getElementById(svgId);
+        this.isCellularActive = true;
+        this.nodes = [
+          { id: 'n-user', name: 'Tu Móvil (#7049)', x: 45, y: 55, type: 'USER', active: true, color: '#00e5ff' },
+          { id: 'n-peer1', name: 'Par #7082 (Piso 7)', x: 125, y: 28, type: 'PEER', active: true, color: '#a855f7' },
+          { id: 'n-peer2', name: 'Par #7099 (Ala O)', x: 130, y: 82, type: 'PEER', active: true, color: '#a855f7' },
+          { id: 'n-relay', name: 'Relay IoT Esc. A', x: 235, y: 55, type: 'RELAY', active: true, color: '#facc15' },
+          { id: 'n-gw', name: 'Gateway Satelital', x: 335, y: 55, type: 'GW', active: true, color: '#00ff88' }
+        ];
+        this.packets = [];
+        this.initSVG();
+        this.startPacketAnimation();
+      }
+
+      initSVG() {
+        this.renderSVG();
+      }
+
+      toggleCellularMode() {
+        this.isCellularActive = !this.isCellularActive;
+        const btn = document.getElementById('btn-toggle-cellular');
+        const sigBadge = document.getElementById('status-signal-badge');
+        const sigText = document.getElementById('signal-text');
+
+        if (this.isCellularActive) {
+          btn.textContent = '📶 MODO: 5G + BLE MESH';
+          btn.classList.remove('offline-forced');
+          sigBadge.className = 'badge-signal';
+          sigText.textContent = '5G ONLINE + MESH';
+          HUD.logTerminal('[RED] Conexión Celular 5G Reestablecida. Malla BLE en standby.', 'safe');
+        } else {
+          btn.textContent = '📵 MODO: MESH OFFLINE (P2P)';
+          btn.classList.add('offline-forced');
+          sigBadge.className = 'badge-signal mesh-active cell-offline';
+          sigText.textContent = 'BLE MESH (4 HOPS)';
+          HUD.logTerminal('[RED] ⚠️ Red Celular Inaccesible. Conmutando a BLE 5.3 & Wi-Fi Direct Mesh P2P.', 'mesh');
+          HUD.showToast('📡 Modo Mesh Offline Activado: Transmitiendo por salto entre pares.');
+        }
+        this.renderSVG();
+      }
+
+      togglePeerHealth(nodeId) {
+        const node = this.nodes.find(n => n.id === nodeId);
+        if (node && node.type === 'PEER') {
+          node.active = !node.active;
+          HUD.logTerminal(`[MESH] Nodo relay ${node.name} ${node.active ? 'RECUPERADO' : 'DESCONECTADO'}.`, 'mesh');
+          this.renderSVG();
+        }
+      }
+
+      renderSVG() {
+        let html = '';
+
+        // Links
+        const activePeer1 = this.nodes[1].active;
+        const activePeer2 = this.nodes[2].active;
+
+        if (activePeer1) {
+          html += `<line x1="${this.nodes[0].x}" y1="${this.nodes[0].y}" x2="${this.nodes[1].x}" y2="${this.nodes[1].y}" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+          html += `<line x1="${this.nodes[1].x}" y1="${this.nodes[1].y}" x2="${this.nodes[3].x}" y2="${this.nodes[3].y}" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+        }
+        if (activePeer2) {
+          html += `<line x1="${this.nodes[0].x}" y1="${this.nodes[0].y}" x2="${this.nodes[2].x}" y2="${this.nodes[2].y}" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+          html += `<line x1="${this.nodes[2].x}" y1="${this.nodes[2].y}" x2="${this.nodes[3].x}" y2="${this.nodes[3].y}" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+        }
+        html += `<line x1="${this.nodes[3].x}" y1="${this.nodes[3].y}" x2="${this.nodes[4].x}" y2="${this.nodes[4].y}" stroke="#00ff88" stroke-width="2"/>`;
+
+        // Nodes
+        for (const n of this.nodes) {
+          const fill = n.active ? n.color : '#475569';
+          html += `
+            <g style="cursor: pointer;" onclick="meshSim.togglePeerHealth('${n.id}')">
+              <circle cx="${n.x}" cy="${n.y}" r="12" fill="#0d1421" stroke="${fill}" stroke-width="2"/>
+              <circle cx="${n.x}" cy="${n.y}" r="4" fill="${fill}"/>
+              <text x="${n.x}" y="${n.y + 22}" fill="${n.active ? '#cbd5e1' : '#64748b'}" font-size="8.5" font-family="JetBrains Mono" text-anchor="middle">${n.name}</text>
+            </g>
+          `;
+        }
+
+        // Cellular Tower indicator
+        if (this.isCellularActive) {
+          html += `
+            <g transform="translate(190, 8)">
+              <rect x="0" y="0" width="70" height="16" rx="3" fill="#1e293b" stroke="#00e5ff" stroke-width="1"/>
+              <text x="35" y="11" fill="#00e5ff" font-size="8" font-family="JetBrains Mono" text-anchor="middle">5G TOWER OK</text>
+            </g>
+          `;
+        }
+
+        this.svg.innerHTML = html;
+      }
+
+      startPacketAnimation() {
+        setInterval(() => {
+          // Pulse packet animation on active links
+          const activePeer = this.nodes[1].active ? this.nodes[1] : (this.nodes[2].active ? this.nodes[2] : null);
+          if (!activePeer) return;
+
+          const packet = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          packet.setAttribute('r', '3');
+          packet.setAttribute('fill', '#00ff88');
+          packet.setAttribute('cx', this.nodes[0].x);
+          packet.setAttribute('cy', this.nodes[0].y);
+          this.svg.appendChild(packet);
+
+          let t = 0;
+          const anim = setInterval(() => {
+            t += 0.05;
+            if (t <= 1) {
+              // Hop 1: User -> Peer
+              packet.setAttribute('cx', this.nodes[0].x + (activePeer.x - this.nodes[0].x) * t);
+              packet.setAttribute('cy', this.nodes[0].y + (activePeer.y - this.nodes[0].y) * t);
+            } else if (t <= 2) {
+              // Hop 2: Peer -> Relay
+              const t2 = t - 1;
+              packet.setAttribute('cx', activePeer.x + (this.nodes[3].x - activePeer.x) * t2);
+              packet.setAttribute('cy', activePeer.y + (this.nodes[3].y - activePeer.y) * t2);
+            } else if (t <= 3) {
+              // Hop 3: Relay -> GW
+              const t3 = t - 2;
+              packet.setAttribute('cx', this.nodes[3].x + (this.nodes[4].x - this.nodes[3].x) * t3);
+              packet.setAttribute('cy', this.nodes[3].y + (this.nodes[4].y - this.nodes[3].y) * t3);
+            } else {
+              clearInterval(anim);
+              if (packet.parentNode) packet.parentNode.removeChild(packet);
+            }
+          }, 25);
+
+        }, 1600);
+      }
+    }
+
+    // --- MAIN APPLICATION CONTROLLER ---
+    class HUDAppController {
+      constructor() {
+        this.selectedTriage = 'FIRE';
+        this.isSafeState = false;
+        this.isSosState = false;
+        this.isFullscreen = false;
+      }
+
+      init() {
+        this.bindEvents();
+        this.startClock();
+        this.logTerminal('[INICIO] Sistema Personal Móvil "SALVAR VIDAS" inicializado.', 'safe');
+        this.logTerminal('[TELEMETRÍA] Sincronizando con Baliza BLE BCN-EXT-NORTH-01...', 'mesh');
+      }
+
+      bindEvents() {
+        // Siren Toggle
+        const btnSiren = document.getElementById('btn-siren-toggle');
+        btnSiren.addEventListener('click', () => {
+          if (audio.isPlayingSiren) {
+            audio.stopSiren();
+            btnSiren.classList.remove('active');
+            document.getElementById('siren-label').textContent = 'MUTE';
+            this.logTerminal('[AUDIO] Sirena acústica silenciada por el usuario.', 'route');
+          } else {
+            audio.startSiren();
+            btnSiren.classList.add('active');
+            document.getElementById('siren-label').textContent = 'SIRENA';
+            this.logTerminal('[AUDIO] Sirena acústica de emergencia activada.', 'sos');
+          }
+        });
+
+        // Siren Volume
+        document.getElementById('siren-volume').addEventListener('input', (e) => {
+          audio.setVolume(e.target.value);
+        });
+
+        // Voice Repeat
+        document.getElementById('btn-voice-repeat').addEventListener('click', () => {
+          audio.playBeep(880, 'sine', 0.1);
+          if (floorEngine.currentPathResult) {
+            voice.speakStandardAlert(floorEngine.currentPathResult.targetExit.name);
+          }
+        });
+
+        // View Mode Toggle (Mobile Mockup vs Fullscreen HUD)
+        const btnView = document.getElementById('btn-view-toggle');
+        btnView.addEventListener('click', () => {
+          this.isFullscreen = !this.isFullscreen;
+          const vp = document.getElementById('app-viewport');
+          if (this.isFullscreen) {
+            vp.classList.add('fullscreen-mode');
+            document.getElementById('view-toggle-text').textContent = '📱 MODO CELULAR';
+          } else {
+            vp.classList.remove('fullscreen-mode');
+            document.getElementById('view-toggle-text').textContent = '🖥️ PANTALLA COMPLETA';
+          }
+          // Resize canvas
+          floorEngine.cellW = floorEngine.canvas.width / floorEngine.cols;
+          floorEngine.cellH = floorEngine.canvas.height / floorEngine.rows;
+        });
+
+        // Blueprint Toolbar Buttons
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            const target = e.currentTarget;
+            target.classList.add('active');
+            floorEngine.activeTool = target.dataset.tool;
+            audio.playBeep(700, 'sine', 0.05);
+          });
+        });
+
+        // Preset Selector
+        document.getElementById('preset-selector').addEventListener('change', (e) => {
+          floorEngine.loadPreset(e.target.value);
+        });
+
+        // Mesh Network Toggle
+        document.getElementById('btn-toggle-cellular').addEventListener('click', () => {
+          meshSim.toggleCellularMode();
+        });
+
+        // Action: "ESTOY A SALVO"
+        document.getElementById('btn-im-safe').addEventListener('click', () => {
+          this.triggerSafeCheckin();
+        });
+
+        // Action: "REPORTAR SOS"
+        document.getElementById('btn-report-sos').addEventListener('click', () => {
+          this.openSosModal();
+        });
+
+        // SOS Modal Close
+        document.getElementById('btn-close-sos').addEventListener('click', () => {
+          document.getElementById('modal-sos').classList.remove('active');
+        });
+
+        // Safe Modal Close
+        document.getElementById('btn-close-safe').addEventListener('click', () => {
+          document.getElementById('modal-safe').classList.remove('active');
+        });
+        document.getElementById('btn-dismiss-safe').addEventListener('click', () => {
+          document.getElementById('modal-safe').classList.remove('active');
+        });
+
+        // SOS Triage Selection
+        document.querySelectorAll('.sos-option-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.sos-option-btn').forEach(b => b.classList.remove('selected'));
+            const target = e.currentTarget;
+            target.classList.add('selected');
+            this.selectedTriage = target.dataset.triage;
+            audio.playBeep(600, 'sawtooth', 0.08);
+          });
+        });
+
+        // Transmit SOS Beacon
+        document.getElementById('btn-send-sos-beacon').addEventListener('click', () => {
+          this.transmitSosBeacon();
+        });
+      }
+
+      startClock() {
+        const update = () => {
+          const now = new Date();
+          const timeStr = now.toTimeString().split(' ')[0];
+          document.getElementById('island-clock').textContent = timeStr;
+          document.getElementById('status-bar-clock').textContent = timeStr;
+        };
+        update();
+        setInterval(update, 1000);
+      }
+
+      triggerSafeCheckin() {
+        this.isSafeState = true;
+        audio.playSafeChime();
+        audio.stopSiren();
+        document.getElementById('btn-siren-toggle').classList.remove('active');
+
+        const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+        document.getElementById('cert-timestamp').textContent = nowStr;
+        document.getElementById('modal-safe').classList.add('active');
+
+        // Update banner to safe emerald
+        const banner = document.getElementById('strobe-banner');
+        banner.className = 'strobe-alert-banner state-safe';
+        document.getElementById('strobe-title').innerHTML = '<span>🛡️</span> <span>EVACUACIÓN EXITOSA // A SALVO</span>';
+        document.getElementById('hazard-badge').textContent = 'ESTADO: A SALVO';
+        document.getElementById('strobe-message').textContent = 'Tu registro ha sido transmitido con éxito al Puesto de Mando Unificado.';
+        document.getElementById('strobe-route-hint').innerHTML = '<span>📍 UBICACIÓN:</span> <strong>PUNTO DE ENCUENTRO EXTERIOR NORTE</strong>';
+
+        this.logTerminal(`[SEGURIDAD] ✅ Check-in "A SALVO" transmitido a Central de Bomberos. Payload: { ID: "OCC-7049", GPS: "-12.04637,-77.04279", Batt: "88%" }`, 'safe');
+        this.showToast('🟢 ¡Check-in confirmado! Permanezca en el Punto de Encuentro.', 'safe');
+      }
+
+      openSosModal() {
+        audio.playBeep(440, 'sawtooth', 0.1);
+        document.getElementById('modal-sos').classList.add('active');
+      }
+
+      transmitSosBeacon() {
+        document.getElementById('modal-sos').classList.remove('active');
+        this.isSosState = true;
+        audio.playSosAlert();
+
+        const notes = document.getElementById('sos-notes').value || 'Sin notas adicionales';
+        const triageMap = {
+          'FIRE': 'FUEGO DIRECTO EN RUTA',
+          'SMOKE': 'HUMO ASFIXIANTE / CERO VISIBILIDAD',
+          'INJURED': 'PERSONA ATRAPADA / HERIDO',
+          'BLOCKED': 'SALIDA DE ESCAPE COLAPSADA'
+        };
+
+        const banner = document.getElementById('strobe-banner');
+        banner.className = 'strobe-alert-banner state-sos';
+        document.getElementById('hazard-badge').textContent = 'PRIORIDAD 1: SOS ACTIVO';
+        document.getElementById('strobe-message').textContent = `ALERTA SOS EMITIDA: ${triageMap[this.selectedTriage]}. Brigada Alfa y Delta despachadas.`;
+
+        this.logTerminal(`[SOS PRIORITARIO] 🚨 Alerta ${this.selectedTriage} enviada a Brigadas. Notas: "${notes}"`, 'sos');
+        this.showToast(`🚨 Señal SOS transmitida con éxito a Brigadas de Rescate.`, 'danger');
+        voice.speakInstruction("Alerta SOS transmitida. Brigadistas de rescate han recibido sus coordenadas. Mantenga la calma y espere auxilio.");
+      }
+
+      updateEmergencyBanner(state, exitName) {
+        if (this.isSafeState || this.isSosState) return;
+
+        const banner = document.getElementById('strobe-banner');
+        const hintExit = document.getElementById('hint-exit-name');
+
+        if (state === 'TRAP_REFUGE') {
+          banner.className = 'strobe-alert-banner state-sos';
+          document.getElementById('hazard-badge').textContent = 'CRÍTICO: TRAMPA DE FUEGO';
+          document.getElementById('strobe-message').textContent = 'Salidas principales bloqueadas. Diríjase de inmediato a la Sala Presurizada 705.';
+          hintExit.textContent = exitName;
+        } else {
+          banner.className = 'strobe-alert-banner';
+          document.getElementById('hazard-badge').textContent = 'NIVEL 4: FUEGO ACTIVO';
+          document.getElementById('strobe-message').textContent = 'Evacuación en progreso. Siga la línea luminosa verde hacia la salida despejada.';
+          hintExit.textContent = exitName;
+        }
+      }
+
+      renderGuidanceSteps(pathResult) {
+        const stepList = document.getElementById('step-list');
+        const stepsCount = document.getElementById('path-steps-count');
+
+        if (!pathResult || pathResult.path.length <= 1) {
+          stepList.innerHTML = `
+            <div class="step-item step-warning">
+              <span class="step-num">!</span>
+              <div>No hay ruta de escape viable hacia salidas normales. Diríjase a zona de refugio.</div>
+            </div>
+          `;
+          stepsCount.textContent = 'Alerta';
+          return;
+        }
+
+        const path = pathResult.path;
+        const steps = [];
+        const isRefuge = pathResult.isRefuge;
+
+        // Simplify path into directional vectors
+        steps.push({
+          num: 1,
+          text: `Inicie desplazamiento desde su ubicación actual en Piso 7.`,
+          type: 'active'
+        });
+
+        if (path.length > 5) {
+          steps.push({
+            num: 2,
+            text: `Avance por el pasillo principal manteniendo el cuerpo agachado bajo el humo.`,
+            type: 'active'
+          });
+        }
+
+        if (isRefuge) {
+          steps.push({
+            num: steps.length + 1,
+            text: `Ingrese a la <strong>Sala Presurizada 705</strong>, cierre la compuerta y active el suministro de O2.`,
+            type: 'warning'
+          });
+        } else {
+          steps.push({
+            num: steps.length + 1,
+            text: `Acceda a la <strong>${pathResult.targetExit.name}</strong> y descienda con precaución.`,
+            type: 'active'
+          });
+          steps.push({
+            num: steps.length + 1,
+            text: `Camine al <strong>Punto de Encuentro Exterior</strong> y confirme su llegada con "Estoy a Salvo".`,
+            type: 'normal'
+          });
+        }
+
+        stepsCount.textContent = `${steps.length} Pasos`;
+
+        stepList.innerHTML = steps.map(s => `
+          <div class="step-item ${s.type === 'active' ? 'step-active' : (s.type === 'warning' ? 'step-warning' : '')}">
+            <span class="step-num">${s.num}</span>
+            <div>${s.text}</div>
+          </div>
+        `).join('');
+      }
+
+      updateRouteMetrics(pathResult) {
+        if (!pathResult) {
+          document.getElementById('tel-destination').textContent = 'BLOQUEADO';
+          document.getElementById('tel-dist-time').textContent = 'N/A';
+          document.getElementById('tel-hazard-status').textContent = 'Crítico (Atrapado)';
+          document.getElementById('tel-hazard-status').className = 'tel-value hazard-val';
+          return;
+        }
+
+        const meters = (pathResult.path.length * 1.2).toFixed(1);
+        const seconds = Math.round(meters / 1.4);
+
+        document.getElementById('tel-destination').textContent = pathResult.targetExit.name.split(' ')[0] + ' ' + (pathResult.targetExit.name.split(' ')[1] || '');
+        document.getElementById('tel-dist-time').textContent = `${meters}m (~${seconds}s)`;
+        
+        if (pathResult.isRefuge) {
+          document.getElementById('tel-hazard-status').textContent = 'Refugio de Emergencia';
+          document.getElementById('tel-hazard-status').className = 'tel-value hazard-val';
+        } else {
+          document.getElementById('tel-hazard-status').textContent = 'Vía Segura (A*)';
+          document.getElementById('tel-hazard-status').className = 'tel-value';
+        }
+
+        // Nearest assets distance calculation
+        const u = floorEngine.occupant;
+        const dExt = (Math.hypot(u.x - 3, u.y - 5) * 1.2).toFixed(1);
+        const dAid = (Math.hypot(u.x - 6, u.y - 2) * 1.2).toFixed(1);
+        document.getElementById('dist-extinguisher').textContent = `Distancia: ${dExt}m`;
+        document.getElementById('dist-firstaid').textContent = `Distancia: ${dAid}m`;
+      }
+
+      logTerminal(msg, tag = 'route') {
+        const term = document.getElementById('terminal-logs');
+        if (!term) return;
+
+        const now = new Date();
+        const time = now.toTimeString().split(' ')[0];
+
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+
+        let tagClass = 'log-tag-route';
+        if (tag === 'safe') tagClass = 'log-tag-safe';
+        if (tag === 'sos') tagClass = 'log-tag-sos';
+        if (tag === 'mesh') tagClass = 'log-tag-mesh';
+
+        div.innerHTML = `<span class="log-time">[${time}]</span> <span class="${tagClass}">${msg}</span>`;
+        term.appendChild(div);
+
+        // Keep maximum 35 entries
+        while (term.children.length > 35) {
+          term.removeChild(term.firstChild);
+        }
+
+        const container = document.getElementById('telemetry-terminal');
+        if (container) container.scrollTop = container.scrollHeight;
+      }
+
+      showToast(text, type = 'normal') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast-msg ${type === 'danger' ? 'toast-danger' : (type === 'safe' ? 'toast-safe' : '')}`;
+        toast.textContent = text;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 3500);
+      }
+    }
+
+    // --- INSTANTIATION & BOOTSTRAP ---
+    let audio, voice, floorEngine, meshSim, HUD;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      audio = new TacticalAudioEngine();
+      voice = new TacticalVoiceAlert();
+      floorEngine = new FloorplanEngine('floorplan-canvas');
+      meshSim = new MeshNetworkSimulator('mesh-svg');
+      HUD = new HUDAppController();
+
+      HUD.init();
+      floorEngine.recalculateRoute(false);
+      floorEngine.startRenderLoop();
+
+      // Initial user interaction unlock for Web Audio
+      const unlockAudio = () => {
+        audio.init();
+        document.removeEventListener('click', unlockAudio);
+        document.removeEventListener('touchstart', unlockAudio);
+      };
+      document.addEventListener('click', unlockAudio, { once: true });
+      document.addEventListener('touchstart', unlockAudio, { once: true });
+    });
+  </script>
+</body>
+</html>

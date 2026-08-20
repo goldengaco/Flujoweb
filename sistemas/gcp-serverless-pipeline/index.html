@@ -1,0 +1,2481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GCP Serverless Microservice Pipeline & Zero-Downtime Deployer</title>
+  <!-- Google Fonts Preconnect & Stylesheet -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==========================================================================
+       CYBERPUNK MISSION CONTROL DESIGN TOKENS & RESET
+       ========================================================================== */
+    :root {
+      --bg-base: #030812;
+      --bg-surface: #060d1b;
+      --bg-card: #091428;
+      --bg-card-hover: #0e1f3d;
+      --bg-card-active: #13274c;
+      --bg-input: #040914;
+      
+      --cyan-cyber: #00e5ff;
+      --cyan-glow: rgba(0, 229, 255, 0.4);
+      --cyan-subtle: rgba(0, 229, 255, 0.12);
+      --cyan-dim: #008ba3;
+
+      --emerald-live: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.4);
+      --emerald-subtle: rgba(16, 185, 129, 0.12);
+
+      --amber-solar: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.4);
+      --amber-subtle: rgba(245, 158, 11, 0.12);
+
+      --crimson-crit: #ef4444;
+      --crimson-glow: rgba(239, 68, 68, 0.4);
+      --crimson-subtle: rgba(239, 68, 68, 0.12);
+
+      --purple-pulse: #8b5cf6;
+      --purple-glow: rgba(139, 92, 246, 0.4);
+      --purple-subtle: rgba(139, 92, 246, 0.12);
+
+      --blue-canary: #38bdf8;
+      --blue-glow: rgba(56, 189, 248, 0.4);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --text-dim: #475569;
+
+      --border-subtle: rgba(0, 229, 255, 0.12);
+      --border-accent: rgba(0, 229, 255, 0.35);
+      --border-strong: rgba(0, 229, 255, 0.65);
+
+      --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'SF Mono', Consolas, monospace;
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+
+      --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.25);
+      --shadow-glow-emerald: 0 0 20px rgba(16, 185, 129, 0.25);
+      --shadow-glow-crimson: 0 0 20px rgba(239, 68, 68, 0.25);
+      --shadow-glow-amber: 0 0 20px rgba(245, 158, 11, 0.25);
+      --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.45);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Cyber Hex Grid Background */
+    body {
+      background-color: var(--bg-base);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.08) 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+        linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+      background-position: 0 0, 0 0, -1px -1px, -1px -1px;
+      background-attachment: fixed;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 229, 255, 0.2);
+      border-radius: var(--radius-full);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--cyan-cyber);
+    }
+
+    /* Typography & Utilities */
+    .mono {
+      font-family: var(--font-mono);
+    }
+    .text-cyan { color: var(--cyan-cyber); }
+    .text-emerald { color: var(--emerald-live); }
+    .text-amber { color: var(--amber-solar); }
+    .text-crimson { color: var(--crimson-crit); }
+    .text-purple { color: var(--purple-pulse); }
+    .text-secondary { color: var(--text-secondary); }
+    .text-muted { color: var(--text-muted); }
+
+    /* Layout Containers */
+    .app-container {
+      max-width: 1720px;
+      margin: 0 auto;
+      padding: 16px 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Top Navigation / Mission Control Header */
+    .header {
+      background: linear-gradient(180deg, rgba(9, 20, 40, 0.85) 0%, rgba(6, 13, 27, 0.85) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 20px;
+      right: 20px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan-cyber), transparent);
+      opacity: 0.6;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(139, 92, 246, 0.2));
+      border: 1px solid var(--cyan-cyber);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+    .brand-title {
+      font-size: clamp(15px, 2.5vw, 20px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-subtitle {
+      font-size: clamp(10px, 1.4vw, 12.5px);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--emerald-live);
+      box-shadow: 0 0 8px var(--emerald-live);
+      display: inline-block;
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Buttons */
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .btn-cyan {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: var(--cyan-cyber);
+      color: var(--cyan-cyber);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+    }
+    .btn-cyan:hover:not(:disabled) {
+      background: var(--cyan-cyber);
+      color: #030812;
+      box-shadow: 0 0 20px var(--cyan-glow);
+    }
+    .btn-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--emerald-live);
+      color: var(--emerald-live);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+    }
+    .btn-emerald:hover:not(:disabled) {
+      background: var(--emerald-live);
+      color: #030812;
+      box-shadow: 0 0 20px var(--emerald-glow);
+    }
+    .btn-amber {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--amber-solar);
+      color: var(--amber-solar);
+    }
+    .btn-amber:hover:not(:disabled) {
+      background: var(--amber-solar);
+      color: #030812;
+      box-shadow: 0 0 20px var(--amber-glow);
+    }
+    .btn-crimson {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--crimson-crit);
+      color: var(--crimson-crit);
+    }
+    .btn-crimson:hover:not(:disabled) {
+      background: var(--crimson-crit);
+      color: #ffffff;
+      box-shadow: 0 0 20px var(--crimson-glow);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-subtle);
+      color: var(--text-secondary);
+    }
+    .btn-ghost:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border-color: var(--border-accent);
+    }
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* QUICK STATS BAR */
+    .quick-stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .stat-chip {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.2s ease;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .stat-chip:hover {
+      border-color: var(--border-accent);
+    }
+    .stat-label {
+      font-size: clamp(9.5px, 1.2vw, 11px);
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stat-value {
+      font-family: var(--font-mono);
+      font-size: clamp(12px, 1.8vw, 16px);
+      font-weight: 700;
+      word-break: break-all;
+      overflow-wrap: anywhere;
+    }
+
+    /* 5-STAGE PIPELINE STEPPER */
+    .pipeline-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+    .section-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .section-title {
+      font-size: clamp(12px, 1.8vw, 15px);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 14px;
+      background: var(--cyan-cyber);
+      border-radius: 2px;
+      box-shadow: 0 0 8px var(--cyan-cyber);
+    }
+
+    .stepper-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      position: relative;
+    }
+
+    .step-node {
+      background: var(--bg-card);
+      border: 1px solid rgba(0, 229, 255, 0.15);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+    .step-node:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--cyan-cyber);
+    }
+
+    /* Node States */
+    .step-node.state-pending {
+      opacity: 0.65;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+    .step-node.state-running {
+      opacity: 1;
+      border-color: var(--cyan-cyber);
+      box-shadow: 0 0 20px var(--cyan-glow);
+      animation: pulse-border 1.5s infinite alternate;
+    }
+    @keyframes pulse-border {
+      0% { border-color: var(--cyan-cyber); box-shadow: 0 0 10px var(--cyan-glow); }
+      100% { border-color: #80f2ff; box-shadow: 0 0 25px var(--cyan-glow); }
+    }
+    .step-node.state-success {
+      opacity: 1;
+      border-color: var(--emerald-live);
+      box-shadow: 0 0 14px var(--emerald-subtle);
+    }
+    .step-node.state-failed {
+      opacity: 1;
+      border-color: var(--crimson-crit);
+      box-shadow: 0 0 20px var(--crimson-glow);
+    }
+    .step-node.state-warning {
+      opacity: 1;
+      border-color: var(--amber-solar);
+      box-shadow: 0 0 14px var(--amber-subtle);
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .step-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid var(--border-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      /* Permanent luminous emoji icon visibility */
+      filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.5));
+      transition: all 0.3s ease;
+    }
+    .step-node.state-success .step-badge {
+      border-color: var(--emerald-live);
+      filter: drop-shadow(0 0 8px var(--emerald-live));
+      background: rgba(16, 185, 129, 0.15);
+    }
+    .step-node.state-running .step-badge {
+      border-color: var(--cyan-cyber);
+      filter: drop-shadow(0 0 12px var(--cyan-cyber));
+      background: rgba(0, 229, 255, 0.25);
+      animation: spin-pulse 2s infinite linear;
+    }
+    .step-node.state-failed .step-badge {
+      border-color: var(--crimson-crit);
+      filter: drop-shadow(0 0 10px var(--crimson-crit));
+      background: rgba(239, 68, 68, 0.2);
+    }
+    .step-node.state-warning .step-badge {
+      border-color: var(--amber-solar);
+      filter: drop-shadow(0 0 8px var(--amber-solar));
+      background: rgba(245, 158, 11, 0.15);
+    }
+
+    .step-status-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tag-pending { background: rgba(100, 116, 139, 0.2); color: var(--text-muted); }
+    .tag-running { background: var(--cyan-subtle); color: var(--cyan-cyber); border: 1px solid var(--cyan-cyber); }
+    .tag-success { background: var(--emerald-subtle); color: var(--emerald-live); border: 1px solid var(--emerald-live); }
+    .tag-failed { background: var(--crimson-subtle); color: var(--crimson-crit); border: 1px solid var(--crimson-crit); }
+    .tag-warning { background: var(--amber-subtle); color: var(--amber-solar); border: 1px solid var(--amber-solar); }
+
+    .step-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .step-name {
+      font-size: clamp(11.5px, 1.5vw, 13.5px);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .step-api {
+      font-family: var(--font-mono);
+      font-size: clamp(9.5px, 1.2vw, 11px);
+      color: var(--cyan-cyber);
+      opacity: 0.85;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .step-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .step-meta span {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* MAIN 2-COLUMN DASHBOARD GRID */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* CARD COMPONENTS */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    /* TRAFFIC SPLITTER & PARTICLE CANVAS */
+    .traffic-control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .split-slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+    }
+    .slider-labels-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .revision-label-green {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--emerald-live);
+      font-weight: 700;
+    }
+    .revision-label-blue {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--blue-canary);
+      font-weight: 700;
+    }
+
+    /* Styled Range Slider */
+    .range-slider-wrap {
+      position: relative;
+      width: 100%;
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+    }
+    .styled-range {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, var(--emerald-live) 0%, var(--blue-canary) 100%);
+      border-radius: var(--radius-full);
+      outline: none;
+      cursor: pointer;
+    }
+    .styled-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--cyan-cyber);
+      box-shadow: 0 0 12px var(--cyan-glow);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    .styled-range::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+    .styled-range::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--cyan-cyber);
+      box-shadow: 0 0 12px var(--cyan-glow);
+      cursor: pointer;
+    }
+
+    /* Preset Split Buttons */
+    .preset-buttons-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Particle Canvas Canvas Box */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      min-height: 180px;
+      height: clamp(180px, 22vw, 240px);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    #traffic-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .canvas-overlay-stats {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      pointer-events: none;
+      background: rgba(3, 8, 18, 0.7);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* COLD-START LATENCY GAUGE & BREAKDOWN */
+    .cold-start-layout {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 16px;
+      align-items: center;
+    }
+    @media (max-width: 600px) {
+      .cold-start-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .gauge-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .svg-gauge {
+      width: 160px;
+      height: 140px;
+    }
+    .gauge-bg-arc {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 12;
+      stroke-linecap: round;
+    }
+    .gauge-val-arc {
+      fill: none;
+      stroke: var(--cyan-cyber);
+      stroke-width: 12;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.4s ease;
+      filter: drop-shadow(0 0 6px var(--cyan-glow));
+    }
+    .gauge-center-text {
+      position: absolute;
+      top: 48%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .gauge-number {
+      font-family: var(--font-mono);
+      font-size: clamp(18px, 3vw, 26px);
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .gauge-unit {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Multi-Phase Breakdown Bars */
+    .phase-breakdown-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .phase-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .phase-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .phase-bar-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .phase-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.6s ease;
+    }
+
+    /* ACTIVE INSTANCES MATRIX & AUTOSCALING */
+    .instances-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .instances-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+    }
+    .instance-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .instance-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+    .instance-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .instance-id {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .instance-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .badge-warm { background: var(--emerald-subtle); color: var(--emerald-live); border: 1px solid var(--emerald-live); }
+    .badge-busy { background: var(--cyan-subtle); color: var(--cyan-cyber); border: 1px solid var(--cyan-cyber); }
+    .badge-spin { background: var(--amber-subtle); color: var(--amber-solar); border: 1px solid var(--amber-solar); }
+    .badge-idle { background: rgba(100, 116, 139, 0.2); color: var(--text-muted); }
+    .badge-draining { background: var(--crimson-subtle); color: var(--crimson-crit); }
+
+    .instance-metrics {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .instance-metric-line {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+
+    /* STREAMING CLOUD LOGGING CONSOLE */
+    .logging-card {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .logging-controls-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+    }
+    .log-filter-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .filter-chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-chip:hover {
+      border-color: var(--cyan-cyber);
+      color: var(--text-primary);
+    }
+    .filter-chip.active {
+      background: var(--cyan-subtle);
+      border-color: var(--cyan-cyber);
+      color: var(--cyan-cyber);
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
+    }
+    .filter-chip.active.chip-error {
+      background: var(--crimson-subtle);
+      border-color: var(--crimson-crit);
+      color: var(--crimson-crit);
+    }
+    .filter-chip.active.chip-warn {
+      background: var(--amber-subtle);
+      border-color: var(--amber-solar);
+      color: var(--amber-solar);
+    }
+
+    .log-search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .log-search-input {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      padding: 5px 28px 5px 10px;
+      width: min(100%, 220px);
+      outline: none;
+      transition: border-color 0.2s ease, width 0.2s ease;
+    }
+    .log-search-input:focus {
+      border-color: var(--cyan-cyber);
+      width: min(100%, 280px);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    }
+
+    .log-terminal-window {
+      background: #02050b;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      min-height: 200px;
+      max-height: 340px;
+      height: auto;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      display: flex;
+      flex-direction: column;
+      padding: 8px 0;
+      position: relative;
+    }
+    .log-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 4px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      cursor: pointer;
+      transition: background 0.15s ease;
+      user-select: text;
+    }
+    .log-row:hover {
+      background: rgba(0, 229, 255, 0.04);
+    }
+    .log-row.expanded {
+      background: rgba(0, 229, 255, 0.08);
+      border-left: 2px solid var(--cyan-cyber);
+    }
+    .log-timestamp {
+      color: var(--text-dim);
+      white-space: nowrap;
+      min-width: 80px;
+    }
+    .log-severity {
+      font-weight: 700;
+      padding: 0 4px;
+      border-radius: 2px;
+      min-width: 58px;
+      text-align: center;
+      font-size: 10px;
+    }
+    .sev-INFO { background: rgba(0, 229, 255, 0.12); color: var(--cyan-cyber); }
+    .sev-NOTICE { background: rgba(56, 189, 248, 0.12); color: #38bdf8; }
+    .sev-WARN { background: rgba(245, 158, 11, 0.12); color: var(--amber-solar); }
+    .sev-ERROR { background: rgba(239, 68, 68, 0.15); color: var(--crimson-crit); }
+    .sev-CRITICAL { background: var(--crimson-crit); color: #ffffff; }
+
+    .log-service {
+      color: var(--purple-pulse);
+      min-width: 110px;
+      white-space: nowrap;
+    }
+    .log-msg {
+      color: var(--text-primary);
+      flex: 1;
+      word-break: break-all;
+    }
+
+    .log-json-drawer {
+      background: #040914;
+      border-top: 1px solid rgba(0, 229, 255, 0.2);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      padding: 10px 14px;
+      margin: 4px 0;
+      color: #93c5fd;
+      font-size: 11px;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    /* Interactive Drawer Modal for Stage Detail */
+    .drawer-modal {
+      position: fixed;
+      top: 0;
+      right: -520px;
+      width: 500px;
+      height: 100vh;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-strong);
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.8);
+      z-index: 100;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto;
+    }
+    .drawer-modal.open {
+      right: 0;
+    }
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 18, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 99;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+
+    /* Chaos & Simulation Bar */
+    .chaos-panel {
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, rgba(9, 20, 40, 0.6) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* FOOTER */
+    .footer {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .app-container {
+        padding: 12px 10px 30px;
+      }
+      .header {
+        padding: 12px 14px;
+      }
+      .card, .pipeline-card {
+        padding: 14px 12px;
+      }
+      .quick-stats-bar {
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 8px;
+      }
+      .drawer-modal {
+        width: 100%;
+        right: -100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app-container {
+        padding: 10px 8px 24px;
+      }
+      .header {
+        padding: 10px 10px;
+      }
+      .card, .pipeline-card {
+        padding: 12px 8px;
+      }
+      .stat-chip {
+        padding: 8px 8px;
+      }
+      .quick-stats-bar {
+        grid-template-columns: 1fr;
+      }
+      .split-slider-container {
+        padding: 10px 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container" data-testid="gcp-serverless-pipeline-app">
+    
+    <!-- HEADER / MISSION CONTROL -->
+    <header class="header">
+      <div class="brand-section">
+        <div class="brand-badge" data-testid="brand-badge">⚡</div>
+        <div>
+          <h1 class="brand-title">
+            GCP Serverless Microservice Pipeline
+            <span class="status-dot"></span>
+          </h1>
+          <div class="brand-subtitle">
+            <span>PROJECT: <strong class="text-cyan">acme-gcp-prod</strong></span>
+            <span>•</span>
+            <span>REGION: <strong class="text-primary">us-central1</strong></span>
+            <span>•</span>
+            <span>RUNTIME: <strong class="text-emerald">gVisor Sandbox</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-deploy-pipeline" class="btn btn-cyan" data-testid="btn-deploy-pipeline">
+          <span>🚀</span> Run Full Deployment
+        </button>
+        <button id="btn-step-pipeline" class="btn btn-outline" data-testid="btn-step-pipeline">
+          <span>▶️</span> Step Next
+        </button>
+        <button id="btn-reset-pipeline" class="btn btn-outline" data-testid="btn-reset-pipeline">
+          <span>🔄</span> Reset State
+        </button>
+        <button id="btn-instant-rollback" class="btn btn-crimson" data-testid="btn-instant-rollback">
+          <span>🚨</span> Instant Rollback (100% Green)
+        </button>
+      </div>
+    </header>
+
+    <!-- QUICK TELEMETRY STATS BAR -->
+    <section class="quick-stats-bar" data-testid="quick-stats-bar">
+      <div class="stat-chip">
+        <div>
+          <div class="stat-label">Active Stable Revision</div>
+          <div class="stat-value text-emerald" id="stat-active-stable" data-testid="stat-active-stable">order-service-00042-xyz</div>
+        </div>
+        <span style="font-size: 20px;">🟢</span>
+      </div>
+
+      <div class="stat-chip">
+        <div>
+          <div class="stat-label">Canary Target Revision</div>
+          <div class="stat-value text-cyan" id="stat-canary-target" data-testid="stat-canary-target">order-service-00043-k9p</div>
+        </div>
+        <span style="font-size: 20px;">🔷</span>
+      </div>
+
+      <div class="stat-chip">
+        <div>
+          <div class="stat-label">Traffic Distribution</div>
+          <div class="stat-value mono text-primary" id="stat-traffic-ratio" data-testid="stat-traffic-ratio">80% / 20%</div>
+        </div>
+        <span style="font-size: 20px;">🔀</span>
+      </div>
+
+      <div class="stat-chip">
+        <div>
+          <div class="stat-label">Cold-Start Latency</div>
+          <div class="stat-value mono text-cyan" id="stat-cold-start-top" data-testid="stat-cold-start-top">360 ms</div>
+        </div>
+        <span style="font-size: 20px;">⏱️</span>
+      </div>
+
+      <div class="stat-chip">
+        <div>
+          <div class="stat-label">Active MicroVM Instances</div>
+          <div class="stat-value mono text-emerald" id="stat-active-instances-top" data-testid="stat-active-instances-top">4 / 10</div>
+        </div>
+        <span style="font-size: 20px;">🖥️</span>
+      </div>
+    </section>
+
+    <!-- 5-STAGE PIPELINE STEPPER -->
+    <section class="pipeline-card" data-testid="pipeline-stepper-card">
+      <div class="section-title-row">
+        <div class="section-title">5-Stage Serverless Deployment Lifecycle</div>
+        <div class="mono text-secondary" style="font-size: 12px;" id="pipeline-overall-status">
+          Status: <strong class="text-emerald" id="pipeline-status-text">STABLE (v42: 80% / v43: 20%)</strong>
+        </div>
+      </div>
+
+      <div class="stepper-container" id="stepper-container">
+        <!-- Stage 1: Commit & Cloud Build -->
+        <div class="step-node state-success" id="step-node-1" data-stage="1" data-testid="step-node-1">
+          <div class="step-header">
+            <!-- EMOJI BADGE PERMANENTLY VISIBLE -->
+            <div class="step-badge" data-testid="step-badge-1">📦</div>
+            <span class="step-status-tag tag-success" id="step-tag-1">SUCCESS</span>
+          </div>
+          <div class="step-body">
+            <div class="step-name">1. Commit & Cloud Build</div>
+            <div class="step-api">cloudbuild.googleapis.com</div>
+            <div class="step-meta">
+              <span><span>Cache Hit:</span> <strong class="text-amber">91.4% (Kaniko)</strong></span>
+              <span><span>Duration:</span> <strong id="meta-build-duration">31.8s</strong></span>
+              <span><span>Digest:</span> <strong id="meta-build-digest">sha256:7f9a8b...</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 2: Artifact Registry & KMS Signing -->
+        <div class="step-node state-success" id="step-node-2" data-stage="2" data-testid="step-node-2">
+          <div class="step-header">
+            <div class="step-badge" data-testid="step-badge-2">🛡️</div>
+            <span class="step-status-tag tag-success" id="step-tag-2">SUCCESS</span>
+          </div>
+          <div class="step-body">
+            <div class="step-name">2. Vuln Scan & KMS Signing</div>
+            <div class="step-api">artifactregistry / cloudkms</div>
+            <div class="step-meta">
+              <span><span>CVE Vulns:</span> <strong class="text-emerald" id="meta-cve-count">0 Crit / 1 Med</strong></span>
+              <span><span>Binary Auth:</span> <strong class="text-purple">Signed (KMS RSA)</strong></span>
+              <span><span>KeyRing:</span> <strong>pipeline-ring</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 3: Secret Manager Injection -->
+        <div class="step-node state-success" id="step-node-3" data-stage="3" data-testid="step-node-3">
+          <div class="step-header">
+            <div class="step-badge" data-testid="step-badge-3">🔑</div>
+            <span class="step-status-tag tag-success" id="step-tag-3">SUCCESS</span>
+          </div>
+          <div class="step-body">
+            <div class="step-name">3. Secret Manager Auth</div>
+            <div class="step-api">secretmanager.googleapis.com</div>
+            <div class="step-meta">
+              <span><span>IAM SA:</span> <strong>order-svc-sa</strong></span>
+              <span><span>KMS Envelope:</span> <strong class="text-cyan">vault-ring/env-key</strong></span>
+              <span><span>Plaintext Env:</span> <strong class="text-emerald">0 (In-Memory)</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 4: Cloud Run Spin-Up & Cold-Start -->
+        <div class="step-node state-success" id="step-node-4" data-stage="4" data-testid="step-node-4">
+          <div class="step-header">
+            <div class="step-badge" data-testid="step-badge-4">🚀</div>
+            <span class="step-status-tag tag-success" id="step-tag-4">SUCCESS</span>
+          </div>
+          <div class="step-body">
+            <div class="step-name">4. Cloud Run Revision Deploy</div>
+            <div class="step-api">run.googleapis.com</div>
+            <div class="step-meta">
+              <span><span>Revision:</span> <strong class="text-cyan">v43 (k9p)</strong></span>
+              <span><span>Cold Start:</span> <strong class="text-cyan" id="meta-step-coldstart">360 ms</strong></span>
+              <span><span>gVisor MicroVM:</span> <strong class="text-emerald">Ready</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 5: Canary Traffic Splitting -->
+        <div class="step-node state-success" id="step-node-5" data-stage="5" data-testid="step-node-5">
+          <div class="step-header">
+            <div class="step-badge" data-testid="step-badge-5">🔀</div>
+            <span class="step-status-tag tag-success" id="step-tag-5">ACTIVE</span>
+          </div>
+          <div class="step-body">
+            <div class="step-name">5. Traffic Splitting</div>
+            <div class="step-api">run.googleapis.com/traffic</div>
+            <div class="step-meta">
+              <span><span>Stable (v42):</span> <strong class="text-emerald" id="meta-split-green">80%</strong></span>
+              <span><span>Canary (v43):</span> <strong class="text-blue-canary text-cyan" id="meta-split-blue">20%</strong></span>
+              <span><span>Zero Downtime:</span> <strong class="text-emerald">100% Guaranteed</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD 2-COLUMN MAIN VIEW -->
+    <div class="dashboard-grid">
+      
+      <!-- LEFT COLUMN: TRAFFIC SPLITTER & PARTICLE BEAM -->
+      <section class="card" data-testid="traffic-splitter-card">
+        <div class="section-title-row">
+          <div class="section-title">Canary & Blue/Green Traffic Splitting</div>
+          <span class="mono text-cyan" style="font-size: 12px;" id="traffic-split-text">v42: 80% | v43: 20%</span>
+        </div>
+
+        <div class="traffic-control-panel">
+          <!-- Range Slider -->
+          <div class="split-slider-container">
+            <div class="slider-labels-row">
+              <span class="revision-label-green">
+                <span>🟢</span> Stable v42: <span id="label-green-pct">80%</span>
+              </span>
+              <span class="revision-label-blue">
+                Canary v43: <span id="label-blue-pct">20%</span> <span>🔷</span>
+              </span>
+            </div>
+            
+            <div class="range-slider-wrap">
+              <input type="range" min="0" max="100" value="20" class="styled-range" id="traffic-slider" data-testid="traffic-slider">
+            </div>
+
+            <!-- Preset Quick Action Buttons -->
+            <div class="preset-buttons-row">
+              <button class="btn btn-outline" id="preset-100-green" data-testid="preset-100-green">100% Green (v42)</button>
+              <button class="btn btn-outline" id="preset-90-10" data-testid="preset-90-10">90 / 10 Canary</button>
+              <button class="btn btn-outline" id="preset-50-50" data-testid="preset-50-50">50 / 50 Split</button>
+              <button class="btn btn-cyan" id="preset-100-blue" data-testid="preset-100-blue">Promote 100% Blue (v43)</button>
+            </div>
+          </div>
+
+          <!-- 60fps Bézier Particle Beam Routing Canvas -->
+          <div class="canvas-container" data-testid="canvas-container">
+            <canvas id="traffic-canvas"></canvas>
+            <div class="canvas-overlay-stats">
+              <div>INBOUND: <strong class="text-primary" id="canvas-rps-stat">120 RPS</strong></div>
+              <div>GREEN ERR: <strong class="text-emerald" id="canvas-green-err">0.01%</strong></div>
+              <div>BLUE ERR: <strong class="text-cyan" id="canvas-blue-err">0.02%</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: COLD-START LATENCY GAUGE & BREAKDOWN -->
+      <section class="card" data-testid="cold-start-card">
+        <div class="section-title-row">
+          <div class="section-title">Cold-Start Telemetry & Latency Decomposition</div>
+          <span class="mono text-emerald" style="font-size: 11.5px;">Warm Request: <strong>11.4 ms</strong></span>
+        </div>
+
+        <div class="cold-start-layout">
+          <!-- Circular Arc SVG Gauge -->
+          <div class="gauge-wrapper">
+            <svg class="svg-gauge" viewBox="0 0 180 160">
+              <!-- Background Track Arc (240 deg span) -->
+              <path class="gauge-bg-arc" d="M 30 135 A 70 70 0 1 1 150 135" />
+              <!-- Animated Value Arc -->
+              <path class="gauge-val-arc" id="gauge-val-arc" d="M 30 135 A 70 70 0 1 1 150 135" 
+                    stroke-dasharray="293.215" stroke-dashoffset="187.6" />
+            </svg>
+            <div class="gauge-center-text">
+              <div class="gauge-number" id="gauge-number" data-testid="gauge-number">360</div>
+              <div class="gauge-unit">MILLISECONDS</div>
+            </div>
+          </div>
+
+          <!-- Multi-Phase Breakdown Bars -->
+          <div class="phase-breakdown-list" data-testid="phase-breakdown-list">
+            <div class="phase-item">
+              <div class="phase-meta">
+                <span>1. gVisor MicroVM Sandbox</span>
+                <strong class="text-cyan" id="val-phase-gvisor">48 ms</strong>
+              </div>
+              <div class="phase-bar-track">
+                <div class="phase-bar-fill" id="bar-phase-gvisor" style="width: 13%; background: #00e5ff;"></div>
+              </div>
+            </div>
+
+            <div class="phase-item">
+              <div class="phase-meta">
+                <span>2. Image Pull (Artifact Reg CRFS)</span>
+                <strong class="text-amber" id="val-phase-image">115 ms</strong>
+              </div>
+              <div class="phase-bar-track">
+                <div class="phase-bar-fill" id="bar-phase-image" style="width: 32%; background: #f59e0b;"></div>
+              </div>
+            </div>
+
+            <div class="phase-item">
+              <div class="phase-meta">
+                <span>3. KMS Decrypt & Secret Mount</span>
+                <strong class="text-purple" id="val-phase-secrets">32 ms</strong>
+              </div>
+              <div class="phase-bar-track">
+                <div class="phase-bar-fill" id="bar-phase-secrets" style="width: 9%; background: #8b5cf6;"></div>
+              </div>
+            </div>
+
+            <div class="phase-item">
+              <div class="phase-meta">
+                <span>4. Go Runtime & DB Conn Pool Init</span>
+                <strong class="text-emerald" id="val-phase-runtime">153 ms</strong>
+              </div>
+              <div class="phase-bar-track">
+                <div class="phase-bar-fill" id="bar-phase-runtime" style="width: 42%; background: #10b981;"></div>
+              </div>
+            </div>
+
+            <div class="phase-item">
+              <div class="phase-meta">
+                <span>5. Healthcheck HTTP Probe (/healthz)</span>
+                <strong class="text-primary" id="val-phase-probe">12 ms</strong>
+              </div>
+              <div class="phase-bar-track">
+                <div class="phase-bar-fill" id="bar-phase-probe" style="width: 4%; background: #94a3b8;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LEFT COLUMN 2: ACTIVE INSTANCE SCALING GRID -->
+      <section class="card" data-testid="instances-card">
+        <div class="instances-header-row">
+          <div class="section-title">Cloud Run MicroVM Instance Pool (Autoscaler)</div>
+          <div class="mono text-secondary" style="font-size: 12px;">
+            Target Concurrency: <strong class="text-primary">80 req/inst</strong> • Max: <strong class="text-primary">10</strong>
+          </div>
+        </div>
+
+        <div class="instances-grid" id="instances-grid" data-testid="instances-grid">
+          <!-- Dynamically Rendered Instance Cards -->
+        </div>
+
+        <!-- Inbound Traffic Rate Simulator Slider -->
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; background: var(--bg-card); padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-top: 4px;">
+          <div class="mono" style="font-size: 11px;">
+            Inbound Request Load: <strong class="text-cyan" id="traffic-load-text">120 RPS</strong>
+          </div>
+          <input type="range" min="0" max="500" value="120" class="styled-range" id="traffic-load-slider" style="max-width: 260px;" data-testid="traffic-load-slider">
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN 2: SECURITY & SIGNING AUDIT SUMMARY -->
+      <section class="card" data-testid="security-card">
+        <div class="section-title-row">
+          <div class="section-title">Binary Authorization & KMS Attestation</div>
+          <span class="step-status-tag tag-success">COMPLIANT</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; font-family: var(--font-mono); font-size: 11px;">
+          <div style="background: var(--bg-card); padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span class="text-secondary">Attestor URI:</span>
+              <span class="text-primary">projects/acme-gcp-prod/attestors/build-attestor</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span class="text-secondary">KMS Key Version:</span>
+              <span class="text-purple">keyRings/pipeline-ring/cryptoKeys/binary-signer/v1</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span class="text-secondary">Signature Algorithm:</span>
+              <span class="text-emerald">RSA_SIGN_PKCS1_2048_SHA256</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span class="text-secondary">Signature Fingerprint:</span>
+              <span class="text-cyan">d8:3e:7b:91:a4:20:cc:94:0f:19:e4:52</span>
+            </div>
+          </div>
+
+          <!-- Quick Chaos Injection Actions -->
+          <div class="chaos-panel">
+            <div style="font-size: 11.5px; font-weight: 600; color: var(--crimson-crit); display: flex; align-items: center; gap: 6px;">
+              <span>☣️</span> Chaos Injections:
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-crimson" id="btn-chaos-build-fail" data-testid="btn-chaos-build-fail" style="font-size: 11px; padding: 4px 8px;">
+                Fail Build
+              </button>
+              <button class="btn btn-crimson" id="btn-chaos-cve-alert" data-testid="btn-chaos-cve-alert" style="font-size: 11px; padding: 4px 8px;">
+                Inject CVE High
+              </button>
+              <button class="btn btn-crimson" id="btn-chaos-secret-denied" data-testid="btn-chaos-secret-denied" style="font-size: 11px; padding: 4px 8px;">
+                IAM SA Denied
+              </button>
+              <button class="btn btn-crimson" id="btn-chaos-cold-spike" data-testid="btn-chaos-cold-spike" style="font-size: 11px; padding: 4px 8px;">
+                Spike Cold Start (850ms)
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FULL WIDTH BOTTOM: STREAMING CLOUD LOGGING CONSOLE -->
+      <section class="card logging-card" data-testid="logging-console-card">
+        <div class="section-title-row">
+          <div class="section-title">Streaming Cloud Logging Live Console</div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="mono text-secondary" style="font-size: 11px;" id="log-counter">Showing 24 / 24 entries</span>
+            <button class="btn btn-outline" id="btn-clear-logs" style="font-size: 11px; padding: 4px 8px;">Clear</button>
+            <button class="btn btn-outline" id="btn-pause-logs" style="font-size: 11px; padding: 4px 8px;">Pause Stream</button>
+          </div>
+        </div>
+
+        <div class="logging-controls-bar">
+          <!-- Severity Filter Chips -->
+          <div class="log-filter-chips" id="log-filter-chips">
+            <button class="filter-chip active" data-level="ALL">ALL</button>
+            <button class="filter-chip" data-level="INFO">INFO</button>
+            <button class="filter-chip" data-level="NOTICE">NOTICE</button>
+            <button class="filter-chip chip-warn" data-level="WARN">WARN</button>
+            <button class="filter-chip chip-error" data-level="ERROR">ERROR</button>
+            <button class="filter-chip chip-error" data-level="CRITICAL">CRITICAL</button>
+          </div>
+
+          <!-- Search Filter Box -->
+          <div class="log-search-box">
+            <input type="text" id="log-search-input" class="log-search-input" placeholder="Search logs or trace ID..." data-testid="log-search-input">
+          </div>
+        </div>
+
+        <!-- Terminal Log Window -->
+        <div class="log-terminal-window" id="log-terminal-window" data-testid="log-terminal-window">
+          <!-- Log rows dynamically rendered -->
+        </div>
+      </section>
+
+    </div>
+
+    <!-- STAGE DETAIL DRAWER MODAL -->
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
+    <div class="drawer-modal" id="drawer-modal" data-testid="drawer-modal">
+      <div class="drawer-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="step-badge" id="drawer-icon">📦</div>
+          <div class="section-title" id="drawer-title">Stage Details</div>
+        </div>
+        <button class="btn btn-outline" id="btn-close-drawer" style="padding: 4px 8px;">✕</button>
+      </div>
+      <div id="drawer-body" class="mono" style="font-size: 12px; display: flex; flex-direction: column; gap: 12px;">
+        <!-- Drawer content inserted via JS -->
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div>
+        <span>GCP Cloud Observability Suite</span> • 
+        <span>API Target: <strong class="text-cyan">run.googleapis.com/v2</strong></span>
+      </div>
+      <div>
+        <span>Zero-Downtime Deployment Engine • 60 FPS Canvas Particle Physics</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT APPLICATION CORE & SIMULATION ENGINE
+       ========================================================================== -->
+  <script>
+    (function() {
+      'use strict';
+
+      /* --------------------------------------------------------------------------
+         STATE & CONFIGURATION
+         -------------------------------------------------------------------------- */
+      const state = {
+        currentStage: 5, // All 5 stages completed initially (steady state)
+        stageStatus: ['success', 'success', 'success', 'success', 'success'], // 'pending' | 'running' | 'success' | 'failed' | 'warning'
+        trafficSplit: 20, // 20% traffic to Canary v43, 80% to Green v42
+        trafficRps: 120, // Inbound simulated RPS
+        isStreamingLogs: true,
+        logFilter: 'ALL',
+        logSearchQuery: '',
+        coldStartBreakdown: {
+          gvisor: 48,
+          image: 115,
+          secrets: 32,
+          runtime: 153,
+          probe: 12,
+          total: 360
+        },
+        instances: [
+          { id: 'inst-8f2a1', rev: 'v42', state: 'WARM', cpu: '24%', mem: '142MB', reqs: 38 },
+          { id: 'inst-3c9b4', rev: 'v42', state: 'BUSY', cpu: '68%', mem: '210MB', reqs: 74 },
+          { id: 'inst-1a7d8', rev: 'v42', state: 'IDLE', cpu: '5%', mem: '98MB', reqs: 0 },
+          { id: 'inst-9e4k2', rev: 'v43', state: 'WARM', cpu: '31%', mem: '155MB', reqs: 24 }
+        ],
+        logs: [],
+        particleList: [],
+        lastCanvasFrame: 0,
+        pipelineRunning: false
+      };
+
+      const STAGES_METADATA = [
+        {
+          index: 1,
+          icon: '📦',
+          name: 'Commit & Cloud Build',
+          api: 'cloudbuild.googleapis.com',
+          duration: 3200,
+          description: 'Automated container compilation, Kaniko intermediate layer caching, and Go binary packaging.',
+          details: {
+            buildId: 'b92a14e8-4c12-4217-a021-998fc1a1170d',
+            commitSha: '8a4f29c017ef3d19',
+            branch: 'refs/heads/main',
+            builder: 'gcr.io/cloud-builders/go',
+            cacheHitRate: '91.4%',
+            distrolessImage: 'gcr.io/distroless/static-debian12:nonroot'
+          }
+        },
+        {
+          index: 2,
+          icon: '🛡️',
+          name: 'Vuln Scan & KMS Signing',
+          api: 'artifactregistry.googleapis.com / cloudkms.googleapis.com',
+          duration: 2800,
+          description: 'Container SBOM vulnerability triage and Binary Authorization cryptographic signing via Cloud KMS.',
+          details: {
+            attestor: 'projects/acme-gcp-prod/attestors/build-attestor',
+            kmsKey: 'projects/acme-gcp-prod/locations/global/keyRings/pipeline-ring/cryptoKeys/binary-signer',
+            cveSummary: { critical: 0, high: 0, medium: 1, low: 3 },
+            mitigation: 'Medium CVE-2024-21626 mitigated via gVisor sandbox kernel virtualization'
+          }
+        },
+        {
+          index: 3,
+          icon: '🔑',
+          name: 'Secret Manager Injection',
+          api: 'secretmanager.googleapis.com',
+          duration: 2000,
+          description: 'IAM authentication and runtime secret envelope decryption without storing credentials in plaintext.',
+          details: {
+            serviceAccount: 'order-svc-sa@acme-gcp-prod.iam.gserviceaccount.com',
+            iamRole: 'roles/secretmanager.secretAccessor',
+            secretsMounted: ['DB_CONNECTION_STRING', 'PAYMENT_GATEWAY_KEY', 'JWT_HMAC_SECRET'],
+            envelopeKey: 'projects/acme-gcp-prod/locations/us-central1/keyRings/vault-ring/cryptoKeys/env-key'
+          }
+        },
+        {
+          index: 4,
+          icon: '🚀',
+          name: 'Cloud Run Revision Deploy',
+          api: 'run.googleapis.com',
+          duration: 3500,
+          description: 'Knative container spin-up with gVisor microVM sandbox creation and startup healthcheck probing.',
+          details: {
+            revision: 'order-service-00043-k9p',
+            imageUri: 'us-central1-docker.pkg.dev/acme-gcp-prod/order-repo/order-service:v2.4.0',
+            concurrency: 80,
+            cpu: '2.0 vCPU',
+            memory: '1024 MiB',
+            coldStart: '360 ms'
+          }
+        },
+        {
+          index: 5,
+          icon: '🔀',
+          name: 'Traffic Splitting',
+          api: 'run.googleapis.com/v2/services/traffic',
+          duration: 1500,
+          description: 'Zero-downtime Blue/Green and Canary dynamic traffic routing between stable v42 and canary v43.',
+          details: {
+            stableRevision: 'order-service-00042-xyz',
+            canaryRevision: 'order-service-00043-k9p',
+            trafficRule: 'Dynamic Percentage Allocation with Instant Rollback'
+          }
+        }
+      ];
+
+      /* --------------------------------------------------------------------------
+         INITIAL LOG DATA GENERATOR
+         -------------------------------------------------------------------------- */
+      function generateInitialLogs() {
+        const now = Date.now();
+        const baseLogs = [
+          {
+            timestamp: new Date(now - 120000).toISOString().split('T')[1].slice(0, 8),
+            severity: 'INFO',
+            service: 'cloudbuild',
+            msg: 'Starting Build b92a14e8 for commit 8a4f29c0 on branch main',
+            payload: { buildId: 'b92a14e8-4c12-4217', commit: '8a4f29c0', status: 'WORKING', repo: 'github.com/acme/order-service' }
+          },
+          {
+            timestamp: new Date(now - 110000).toISOString().split('T')[1].slice(0, 8),
+            severity: 'INFO',
+            service: 'cloudbuild',
+            msg: 'Step 0 (kaniko-cache): Restored 7/8 intermediate layers from cache (91.4% hit rate)',
+            payload: { step: 0, cacheLayerHits: 7, cachedBytes: '412MB', durationMs: 1420 }
+          },
+          {
+            timestamp: new Date(now - 98000).toISOString().split('T')[1].slice(0, 8),
+            severity: 'INFO',
+            service: 'cloudbuild',
+            msg: 'Step 1 (compile): go build -ldflags="-s -w" completed successfully (exit code 0)',
+            payload: { step: 1, compiler: 'go1.22.4', binarySize: '18.4MB', durationMs: 6800 }
+          },
+          {
+            timestamp: new Date(now - 86000).toISOString().split('T')[1].slice(0, 8),
+            severity: 'INFO',
+            service: 'artifactregistry',
+            msg: 'Pushed image us-central1-docker.pkg.dev/acme-gcp-prod/order-repo/order-service:v2.4.0 (sha256:7f9a8b1c4e)',
+            payload: { digest: 'sha256:7f9a8b1c4e92850f83', tag: 'v2.4.0', sizeBytes: 24891024 }
+          },
+          {
+            timestamp: new Date(now - 78000).toISOString().split('T')[1].slice(0, 8),
+            severity: 'NOTICE',
+            service: 'artifactregistry',
+            msg: 'Vulnerability scan complete: 0 CRITICAL, 0 HIGH, 1 MEDIUM (CVE-2024-21626 mitigated)',
+            payload: { scanStatus: 'FINISHED', cveCount: { critical: 0, high: 0, medium: 1, low: 3 }, compliance: 'PASSED' }
+          },
+          {
+            timestamp: new Date(now - 70000).toISOString().split('T')[1].slice(0, 8),
+            severity: 'INFO',
+            service: 'cloudkms',
+            msg: 'Generated Binary Authorization attestation using key pipeline-ring/binary-signer/v1',
+            payload: { keyVersion: 'v1', algorithm: 'RSA_SIGN_PKCS1_2048_SHA256', signatureVerified: true }
+          },
+          {
+            timestamp: new Date(now - 60000).toISOString().split('T')[1].slice(0, 8),
+            severity: 'INFO',
+            service: 'secretmanager',
+            msg: 'IAM SA order-svc-sa accessed 3 secrets via KMS envelope decryption (/secrets/db-config.json)',
+            payload: { sa: 'order-svc-sa@acme-gcp-prod.iam', accessedSecrets: ['DB_CONN', 'PAYMENT_KEY', 'JWT_SECRET'] }
+          },
+          {
+            timestamp: new Date(now - 50000).toISOString().split('T')[1].slice(0, 8),
+            severity: 'INFO',
+            service: 'run.googleapis',
+            msg: 'Deploying revision order-service-00043-k9p (gVisor microVM sandbox initialized)',
+            payload: { revision: 'order-service-00043-k9p', cpu: 2, memory: '1Gi', maxInstances: 10 }
+          },
+          {
+            timestamp: new Date(now - 42000).toISOString().split('T')[1].slice(0, 8),
+            severity: 'NOTICE',
+            service: 'run.googleapis',
+            msg: 'Cold-start startup completed in 360ms (gVisor: 48ms, Image: 115ms, Secrets: 32ms, App: 153ms, Probe: 12ms)',
+            payload: { coldStartMs: 360, healthProbeStatus: 200, warmLatencyMs: 11.4 }
+          },
+          {
+            timestamp: new Date(now - 30000).toISOString().split('T')[1].slice(0, 8),
+            severity: 'INFO',
+            service: 'run.googleapis',
+            msg: 'Traffic split updated: order-service-00042-xyz (80%), order-service-00043-k9p (20%)',
+            payload: { traffic: [{ rev: 'order-service-00042-xyz', pct: 80 }, { rev: 'order-service-00043-k9p', pct: 20 }] }
+          },
+          {
+            timestamp: new Date(now - 15000).toISOString().split('T')[1].slice(0, 8),
+            severity: 'INFO',
+            service: 'run.googleapis',
+            msg: 'Canary healthcheck verification OK: Error rate 0.02%, P99 latency 14.8ms',
+            payload: { sampleWindow: '60s', requestsSampled: 7200, errorRatio: 0.0002, p99LatencyMs: 14.8 }
+          }
+        ];
+        state.logs = baseLogs;
+      }
+
+      /* --------------------------------------------------------------------------
+         DOM ELEMENTS REFERENCE CACHE
+         -------------------------------------------------------------------------- */
+      const DOM = {
+        btnDeploy: document.getElementById('btn-deploy-pipeline'),
+        btnStep: document.getElementById('btn-step-pipeline'),
+        btnReset: document.getElementById('btn-reset-pipeline'),
+        btnRollback: document.getElementById('btn-instant-rollback'),
+        trafficSlider: document.getElementById('traffic-slider'),
+        trafficLoadSlider: document.getElementById('traffic-load-slider'),
+        trafficLoadText: document.getElementById('traffic-load-text'),
+        labelGreenPct: document.getElementById('label-green-pct'),
+        labelBluePct: document.getElementById('label-blue-pct'),
+        trafficSplitText: document.getElementById('traffic-split-text'),
+        statTrafficRatio: document.getElementById('stat-traffic-ratio'),
+        statActiveStable: document.getElementById('stat-active-stable'),
+        statCanaryTarget: document.getElementById('stat-canary-target'),
+        statColdStartTop: document.getElementById('stat-cold-start-top'),
+        statActiveInstancesTop: document.getElementById('stat-active-instances-top'),
+        pipelineStatusText: document.getElementById('pipeline-status-text'),
+        preset100Green: document.getElementById('preset-100-green'),
+        preset9010: document.getElementById('preset-90-10'),
+        preset5050: document.getElementById('preset-50-50'),
+        preset100Blue: document.getElementById('preset-100-blue'),
+        trafficCanvas: document.getElementById('traffic-canvas'),
+        canvasRpsStat: document.getElementById('canvas-rps-stat'),
+        canvasGreenErr: document.getElementById('canvas-green-err'),
+        canvasBlueErr: document.getElementById('canvas-blue-err'),
+        gaugeValArc: document.getElementById('gauge-val-arc'),
+        gaugeNumber: document.getElementById('gauge-number'),
+        valPhaseGvisor: document.getElementById('val-phase-gvisor'),
+        valPhaseImage: document.getElementById('val-phase-image'),
+        valPhaseSecrets: document.getElementById('val-phase-secrets'),
+        valPhaseRuntime: document.getElementById('val-phase-runtime'),
+        valPhaseProbe: document.getElementById('val-phase-probe'),
+        barPhaseGvisor: document.getElementById('bar-phase-gvisor'),
+        barPhaseImage: document.getElementById('bar-phase-image'),
+        barPhaseSecrets: document.getElementById('bar-phase-secrets'),
+        barPhaseRuntime: document.getElementById('bar-phase-runtime'),
+        barPhaseProbe: document.getElementById('bar-phase-probe'),
+        instancesGrid: document.getElementById('instances-grid'),
+        logTerminal: document.getElementById('log-terminal-window'),
+        logCounter: document.getElementById('log-counter'),
+        logSearchInput: document.getElementById('log-search-input'),
+        logFilterChips: document.getElementById('log-filter-chips'),
+        btnClearLogs: document.getElementById('btn-clear-logs'),
+        btnPauseLogs: document.getElementById('btn-pause-logs'),
+        drawerModal: document.getElementById('drawer-modal'),
+        drawerBackdrop: document.getElementById('drawer-backdrop'),
+        btnCloseDrawer: document.getElementById('btn-close-drawer'),
+        drawerIcon: document.getElementById('drawer-icon'),
+        drawerTitle: document.getElementById('drawer-title'),
+        drawerBody: document.getElementById('drawer-body'),
+        btnChaosBuildFail: document.getElementById('btn-chaos-build-fail'),
+        btnChaosCveAlert: document.getElementById('btn-chaos-cve-alert'),
+        btnChaosSecretDenied: document.getElementById('btn-chaos-secret-denied'),
+        btnChaosColdSpike: document.getElementById('btn-chaos-cold-spike'),
+        metaSplitGreen: document.getElementById('meta-split-green'),
+        metaSplitBlue: document.getElementById('meta-split-blue'),
+        metaStepColdstart: document.getElementById('meta-step-coldstart')
+      };
+
+      /* --------------------------------------------------------------------------
+         STEPPER UI RENDERING
+         -------------------------------------------------------------------------- */
+      function renderStepper() {
+        for (let i = 1; i <= 5; i++) {
+          const node = document.getElementById(`step-node-${i}`);
+          const tag = document.getElementById(`step-tag-${i}`);
+          const status = state.stageStatus[i - 1];
+
+          // Reset status classes
+          node.className = `step-node state-${status}`;
+          
+          tag.className = `step-status-tag tag-${status}`;
+          tag.textContent = status.toUpperCase();
+
+          // Ensure emojis remain permanent!
+          const badge = node.querySelector('.step-badge');
+          badge.textContent = STAGES_METADATA[i - 1].icon;
+        }
+
+        // Meta tags
+        if (DOM.metaSplitGreen) DOM.metaSplitGreen.textContent = `${100 - state.trafficSplit}%`;
+        if (DOM.metaSplitBlue) DOM.metaSplitBlue.textContent = `${state.trafficSplit}%`;
+        if (DOM.metaStepColdstart) DOM.metaStepColdstart.textContent = `${state.coldStartBreakdown.total} ms`;
+
+        // Update overall banner text
+        if (state.stageStatus.includes('failed')) {
+          DOM.pipelineStatusText.className = 'text-crimson';
+          DOM.pipelineStatusText.textContent = 'DEPLOYMENT FAILED — PIPELINE HALTED';
+        } else if (state.stageStatus.some(s => s === 'running')) {
+          DOM.pipelineStatusText.className = 'text-cyan';
+          DOM.pipelineStatusText.textContent = 'DEPLOYMENT IN PROGRESS...';
+        } else {
+          DOM.pipelineStatusText.className = 'text-emerald';
+          DOM.pipelineStatusText.textContent = `STABLE (v42: ${100 - state.trafficSplit}% / v43: ${state.trafficSplit}%)`;
+        }
+      }
+
+      /* --------------------------------------------------------------------------
+         TRAFFIC SPLIT & PARTICLE CANVAS RENDERING (60 FPS)
+         -------------------------------------------------------------------------- */
+      let canvasCtx = null;
+      let canvasWidth = 0;
+      let canvasHeight = 0;
+
+      function initCanvas() {
+        const canvas = DOM.trafficCanvas;
+        if (!canvas) return;
+        canvasCtx = canvas.getContext('2d');
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        requestAnimationFrame(renderCanvasLoop);
+      }
+
+      function resizeCanvas() {
+        const container = DOM.trafficCanvas.parentElement;
+        const dpr = window.devicePixelRatio || 1;
+        canvasWidth = container.clientWidth;
+        canvasHeight = container.clientHeight;
+        DOM.trafficCanvas.width = canvasWidth * dpr;
+        DOM.trafficCanvas.height = canvasHeight * dpr;
+        if (canvasCtx) {
+          canvasCtx.scale(dpr, dpr);
+        }
+      }
+
+      class Particle {
+        constructor(isCanary) {
+          this.isCanary = isCanary;
+          this.t = 0;
+          this.speed = (0.006 + Math.random() * 0.008) * (state.trafficRps / 100);
+          this.size = 2.5 + Math.random() * 2;
+          this.color = isCanary ? '#38bdf8' : '#10b981';
+          this.glow = isCanary ? 'rgba(56, 189, 248, 0.6)' : 'rgba(16, 185, 129, 0.6)';
+        }
+
+        update() {
+          this.t += this.speed;
+        }
+
+        draw(ctx, w, h) {
+          const p0 = { x: 30, y: h / 2 };
+          const p1 = { x: w * 0.45, y: h / 2 };
+          const pTarget = this.isCanary ? { x: w - 40, y: h * 0.78 } : { x: w - 40, y: h * 0.22 };
+          const c2 = this.isCanary ? { x: w * 0.7, y: h * 0.78 } : { x: w * 0.7, y: h * 0.22 };
+
+          // Cubic Bezier interpolation
+          const t = this.t;
+          const u = 1 - t;
+          const tt = t * t;
+          const uu = u * u;
+          const uuu = uu * u;
+          const ttt = tt * t;
+
+          const x = uuu * p0.x + 3 * uu * t * p1.x + 3 * u * tt * c2.x + ttt * pTarget.x;
+          const y = uuu * p0.y + 3 * uu * t * p1.y + 3 * u * tt * c2.y + ttt * pTarget.y;
+
+          const alpha = Math.sin(t * Math.PI);
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+          ctx.shadowColor = this.glow;
+          ctx.shadowBlur = 8;
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function renderCanvasLoop(timestamp) {
+        if (!canvasCtx) return;
+        const ctx = canvasCtx;
+        const w = canvasWidth;
+        const h = canvasHeight;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Draw Inbound Origin Node
+        const p0 = { x: 30, y: h / 2 };
+        const p1 = { x: w * 0.45, y: h / 2 };
+        const pGreen = { x: w - 40, y: h * 0.22 };
+        const pBlue = { x: w - 40, y: h * 0.78 };
+
+        // Draw Background Tracks
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+
+        // Green track
+        ctx.beginPath();
+        ctx.moveTo(p0.x, p0.y);
+        ctx.bezierCurveTo(p1.x, p1.y, w * 0.7, pGreen.y, pGreen.x, pGreen.y);
+        ctx.stroke();
+
+        // Blue track
+        ctx.beginPath();
+        ctx.moveTo(p0.x, p0.y);
+        ctx.bezierCurveTo(p1.x, p1.y, w * 0.7, pBlue.y, pBlue.x, pBlue.y);
+        ctx.stroke();
+
+        // Spawn new particles according to traffic rate and split
+        const spawnRate = Math.max(1, Math.floor(state.trafficRps / 40));
+        for (let i = 0; i < spawnRate; i++) {
+          if (Math.random() < 0.4) {
+            const isCanary = (Math.random() * 100) < state.trafficSplit;
+            state.particleList.push(new Particle(isCanary));
+          }
+        }
+
+        // Update & Render Particles
+        for (let i = state.particleList.length - 1; i >= 0; i--) {
+          const p = state.particleList[i];
+          p.update();
+          if (p.t >= 1) {
+            state.particleList.splice(i, 1);
+          } else {
+            p.draw(ctx, w, h);
+          }
+        }
+
+        // Draw Gateway Node (Inbound)
+        ctx.beginPath();
+        ctx.arc(p0.x, p0.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#f8fafc';
+        ctx.shadowColor = '#00e5ff';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.font = '10px JetBrains Mono, monospace';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('Ingress LB', p0.x - 24, p0.y - 12);
+
+        // Draw Green Destination Node (Rev 42)
+        ctx.beginPath();
+        ctx.arc(pGreen.x, pGreen.y, 9, 0, Math.PI * 2);
+        ctx.fillStyle = '#10b981';
+        ctx.shadowColor = 'rgba(16, 185, 129, 0.8)';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#10b981';
+        ctx.font = 'bold 10.5px JetBrains Mono, monospace';
+        ctx.fillText(`Rev 42 (${100 - state.trafficSplit}%)`, pGreen.x - 90, pGreen.y + 4);
+
+        // Draw Blue Destination Node (Rev 43)
+        ctx.beginPath();
+        ctx.arc(pBlue.x, pBlue.y, 9, 0, Math.PI * 2);
+        ctx.fillStyle = '#38bdf8';
+        ctx.shadowColor = 'rgba(56, 189, 248, 0.8)';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 10.5px JetBrains Mono, monospace';
+        ctx.fillText(`Rev 43 (${state.trafficSplit}%)`, pBlue.x - 90, pBlue.y + 4);
+
+        requestAnimationFrame(renderCanvasLoop);
+      }
+
+      /* --------------------------------------------------------------------------
+         COLD-START LATENCY GAUGE CALCULATION & UI
+         -------------------------------------------------------------------------- */
+      function updateColdStartGauge(ms) {
+        state.coldStartBreakdown.total = ms;
+        const maxMs = 1000;
+        const totalArc = 293.215; // 240 deg arc on r=70
+        const clamped = Math.max(0, Math.min(ms, maxMs));
+        const offset = totalArc * (1 - clamped / maxMs);
+
+        DOM.gaugeValArc.style.strokeDashoffset = offset;
+        DOM.gaugeNumber.textContent = ms;
+        DOM.statColdStartTop.textContent = `${ms} ms`;
+
+        // Color interpolation based on latency severity
+        if (ms <= 250) {
+          DOM.gaugeValArc.style.stroke = 'var(--emerald-live)';
+        } else if (ms <= 500) {
+          DOM.gaugeValArc.style.stroke = 'var(--cyan-cyber)';
+        } else if (ms <= 750) {
+          DOM.gaugeValArc.style.stroke = 'var(--amber-solar)';
+        } else {
+          DOM.gaugeValArc.style.stroke = 'var(--crimson-crit)';
+        }
+
+        // Update breakdown bars
+        const b = state.coldStartBreakdown;
+        DOM.valPhaseGvisor.textContent = `${b.gvisor} ms`;
+        DOM.valPhaseImage.textContent = `${b.image} ms`;
+        DOM.valPhaseSecrets.textContent = `${b.secrets} ms`;
+        DOM.valPhaseRuntime.textContent = `${b.runtime} ms`;
+        DOM.valPhaseProbe.textContent = `${b.probe} ms`;
+
+        DOM.barPhaseGvisor.style.width = `${Math.min(100, (b.gvisor / ms) * 100)}%`;
+        DOM.barPhaseImage.style.width = `${Math.min(100, (b.image / ms) * 100)}%`;
+        DOM.barPhaseSecrets.style.width = `${Math.min(100, (b.secrets / ms) * 100)}%`;
+        DOM.barPhaseRuntime.style.width = `${Math.min(100, (b.runtime / ms) * 100)}%`;
+        DOM.barPhaseProbe.style.width = `${Math.min(100, (b.probe / ms) * 100)}%`;
+      }
+
+      /* --------------------------------------------------------------------------
+         AUTOSCALER & ACTIVE INSTANCES RENDERER
+         -------------------------------------------------------------------------- */
+      function updateInstances() {
+        const rps = state.trafficRps;
+        const targetInstances = Math.max(1, Math.min(10, Math.ceil(rps / 35)));
+        
+        // Adjust instance count dynamically
+        while (state.instances.length < targetInstances) {
+          const randHex = Math.random().toString(16).substring(2, 7);
+          const rev = Math.random() * 100 < state.trafficSplit ? 'v43' : 'v42';
+          state.instances.push({
+            id: `inst-${randHex}`,
+            rev: rev,
+            state: 'WARM',
+            cpu: `${Math.floor(20 + Math.random() * 50)}%`,
+            mem: `${Math.floor(120 + Math.random() * 80)}MB`,
+            reqs: Math.floor(rps / targetInstances)
+          });
+        }
+        while (state.instances.length > targetInstances) {
+          state.instances.pop();
+        }
+
+        // Render instances grid
+        DOM.instancesGrid.innerHTML = '';
+        state.instances.forEach((inst, idx) => {
+          const card = document.createElement('div');
+          card.className = 'instance-card';
+          card.setAttribute('data-testid', `instance-item-${idx}`);
+
+          const badgeClass = inst.state === 'WARM' ? 'badge-warm' : (inst.state === 'BUSY' ? 'badge-busy' : 'badge-idle');
+
+          card.innerHTML = `
+            <div class="instance-top">
+              <span class="instance-id">${inst.id} (${inst.rev})</span>
+              <span class="instance-badge ${badgeClass}">${inst.state}</span>
+            </div>
+            <div class="instance-metrics">
+              <div class="instance-metric-line"><span>CPU Load</span><strong class="text-primary">${inst.cpu}</strong></div>
+              <div class="instance-metric-line"><span>Memory</span><strong class="text-cyan">${inst.mem}</strong></div>
+              <div class="instance-metric-line"><span>Load</span><strong class="text-emerald">${inst.reqs} req/s</strong></div>
+            </div>
+          `;
+          DOM.instancesGrid.appendChild(card);
+        });
+
+        DOM.statActiveInstancesTop.textContent = `${state.instances.length} / 10`;
+      }
+
+      /* --------------------------------------------------------------------------
+         STREAMING CLOUD LOGGING CONSOLE
+         -------------------------------------------------------------------------- */
+      function addLog(severity, service, msg, payload = {}) {
+        const now = new Date();
+        const timeStr = now.toTimeString().split(' ')[0];
+        const logEntry = {
+          timestamp: timeStr,
+          severity: severity,
+          service: service,
+          msg: msg,
+          payload: {
+            insertId: `log-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            timestamp: now.toISOString(),
+            severity: severity,
+            resource: {
+              type: 'cloud_run_revision',
+              labels: {
+                service_name: 'order-service',
+                revision_name: state.trafficSplit > 0 ? 'order-service-00043-k9p' : 'order-service-00042-xyz',
+                location: 'us-central1',
+                project_id: 'acme-gcp-prod'
+              }
+            },
+            trace: `projects/acme-gcp-prod/traces/4bf92f3577b34da6a3ce929d0e0e4736`,
+            ...payload
+          }
+        };
+
+        state.logs.unshift(logEntry);
+        if (state.logs.length > 200) state.logs.pop();
+        renderLogs();
+      }
+
+      function renderLogs() {
+        if (!DOM.logTerminal) return;
+        const filter = state.logFilter;
+        const query = state.logSearchQuery.toLowerCase();
+
+        const filtered = state.logs.filter(l => {
+          const matchLevel = filter === 'ALL' || l.severity === filter;
+          const matchQuery = !query || l.msg.toLowerCase().includes(query) || l.service.toLowerCase().includes(query) || (l.payload.trace && l.payload.trace.toLowerCase().includes(query));
+          return matchLevel && matchQuery;
+        });
+
+        DOM.logCounter.textContent = `Showing ${filtered.length} / ${state.logs.length} entries`;
+
+        DOM.logTerminal.innerHTML = '';
+        filtered.forEach((log, idx) => {
+          const row = document.createElement('div');
+          row.className = 'log-row';
+          row.setAttribute('data-testid', `log-row-${idx}`);
+
+          row.innerHTML = `
+            <span class="log-timestamp">${log.timestamp}</span>
+            <span class="log-severity sev-${log.severity}">${log.severity}</span>
+            <span class="log-service">${log.service}</span>
+            <span class="log-msg">${escapeHtml(log.msg)}</span>
+          `;
+
+          row.addEventListener('click', () => {
+            const isExpanded = row.classList.contains('expanded');
+            document.querySelectorAll('.log-row.expanded').forEach(r => r.classList.remove('expanded'));
+            document.querySelectorAll('.log-json-drawer').forEach(d => d.remove());
+
+            if (!isExpanded) {
+              row.classList.add('expanded');
+              const drawer = document.createElement('div');
+              drawer.className = 'log-json-drawer';
+              drawer.textContent = JSON.stringify(log.payload, null, 2);
+              row.after(drawer);
+            }
+          });
+
+          DOM.logTerminal.appendChild(row);
+        });
+      }
+
+      function escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      /* --------------------------------------------------------------------------
+         TRAFFIC SPLIT CONTROLS & EVENT LISTENERS
+         -------------------------------------------------------------------------- */
+      function setTrafficSplit(pct) {
+        const val = Math.max(0, Math.min(100, parseInt(pct, 10)));
+        state.trafficSplit = val;
+        DOM.trafficSlider.value = val;
+        DOM.labelGreenPct.textContent = `${100 - val}%`;
+        DOM.labelBluePct.textContent = `${val}%`;
+        DOM.trafficSplitText.textContent = `v42: ${100 - val}% | v43: ${val}%`;
+        DOM.statTrafficRatio.textContent = `${100 - val}% / ${val}%`;
+        
+        renderStepper();
+
+        // Emit Cloud Run traffic patch log
+        addLog('INFO', 'run.googleapis', `PATCH /v2/services/order-service: Traffic rebalanced to [v42: ${100 - val}%, v43: ${val}%]`, {
+          trafficConfig: [
+            { revisionName: 'order-service-00042-xyz', percent: 100 - val },
+            { revisionName: 'order-service-00043-k9p', percent: val }
+          ]
+        });
+      }
+
+      /* --------------------------------------------------------------------------
+         DRAWER MODAL FOR STAGE INSPECTION
+         -------------------------------------------------------------------------- */
+      function openStageDrawer(stageIndex) {
+        const meta = STAGES_METADATA[stageIndex - 1];
+        DOM.drawerIcon.textContent = meta.icon;
+        DOM.drawerTitle.textContent = `Stage ${meta.index}: ${meta.name}`;
+        
+        let detailsHtml = `
+          <div style="color: var(--text-secondary); line-height: 1.4;">${meta.description}</div>
+          <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 8px;">
+            <div style="color: var(--cyan-cyber); font-weight: 700; font-size: 11px;">GCP API SPECIFICATION:</div>
+            <div style="color: var(--text-primary); font-size: 11px;">${meta.api}</div>
+          </div>
+          <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 6px;">
+            <div style="color: var(--emerald-live); font-weight: 700; font-size: 11px;">STAGE RUNTIME STATE:</div>
+            <pre style="color: #93c5fd; font-size: 11px; white-space: pre-wrap;">${JSON.stringify(meta.details, null, 2)}</pre>
+          </div>
+        `;
+
+        DOM.drawerBody.innerHTML = detailsHtml;
+        DOM.drawerModal.classList.add('open');
+        DOM.drawerBackdrop.classList.add('open');
+      }
+
+      function closeDrawer() {
+        DOM.drawerModal.classList.remove('open');
+        DOM.drawerBackdrop.classList.remove('open');
+      }
+
+      /* --------------------------------------------------------------------------
+         STEPPER PIPELINE EXECUTION SIMULATOR
+         -------------------------------------------------------------------------- */
+      async function runPipeline() {
+        if (state.pipelineRunning) return;
+        state.pipelineRunning = true;
+        DOM.btnDeploy.disabled = true;
+        DOM.btnStep.disabled = true;
+
+        // Reset all stages to pending
+        state.stageStatus = ['pending', 'pending', 'pending', 'pending', 'pending'];
+        renderStepper();
+
+        addLog('INFO', 'cloudbuild', '=== INITIATING 5-STAGE ZERO-DOWNTIME SERVERLESS DEPLOYMENT PIPELINE ===');
+
+        for (let i = 0; i < 5; i++) {
+          state.stageStatus[i] = 'running';
+          renderStepper();
+          addLog('INFO', STAGES_METADATA[i].api.split('/')[0], `Stage ${i + 1} (${STAGES_METADATA[i].name}) started...`);
+          
+          await new Promise(r => setTimeout(r, 1200));
+
+          state.stageStatus[i] = 'success';
+          renderStepper();
+          addLog('NOTICE', STAGES_METADATA[i].api.split('/')[0], `Stage ${i + 1} (${STAGES_METADATA[i].name}) completed with SUCCESS`);
+        }
+
+        // On complete, automatically set Canary to 20%
+        setTrafficSplit(20);
+        addLog('NOTICE', 'run.googleapis', 'Deployment completed! Canary revision v43 serving 20% traffic.');
+
+        state.pipelineRunning = false;
+        DOM.btnDeploy.disabled = false;
+        DOM.btnStep.disabled = false;
+      }
+
+      async function stepNextPipeline() {
+        const nextPending = state.stageStatus.findIndex(s => s === 'pending');
+        if (nextPending === -1) {
+          // All done, restart from 0
+          state.stageStatus = ['running', 'pending', 'pending', 'pending', 'pending'];
+          renderStepper();
+          addLog('INFO', 'cloudbuild', 'Pipeline reset: Executing Stage 1');
+          await new Promise(r => setTimeout(r, 600));
+          state.stageStatus[0] = 'success';
+          renderStepper();
+          return;
+        }
+
+        state.stageStatus[nextPending] = 'running';
+        renderStepper();
+        addLog('INFO', STAGES_METADATA[nextPending].api.split('/')[0], `Stage ${nextPending + 1} (${STAGES_METADATA[nextPending].name}) running...`);
+        
+        await new Promise(r => setTimeout(r, 800));
+        state.stageStatus[nextPending] = 'success';
+        renderStepper();
+        addLog('NOTICE', STAGES_METADATA[nextPending].api.split('/')[0], `Stage ${nextPending + 1} completed successfully.`);
+      }
+
+      function resetPipeline() {
+        state.stageStatus = ['pending', 'pending', 'pending', 'pending', 'pending'];
+        state.trafficSplit = 0;
+        DOM.trafficSlider.value = 0;
+        setTrafficSplit(0);
+        updateColdStartGauge(360);
+        renderStepper();
+        addLog('INFO', 'run.googleapis', 'Pipeline state reset to initial cold baseline.');
+      }
+
+      function instantRollback() {
+        setTrafficSplit(0);
+        state.stageStatus[4] = 'warning';
+        renderStepper();
+        addLog('CRITICAL', 'run.googleapis', 'EMERGENCY ROLLBACK INITIATED: 100% traffic shifted to Revision 42 (Green). Revision 43 canary drained.');
+      }
+
+      /* --------------------------------------------------------------------------
+         CHAOS ENGINEERING INJECTIONS
+         -------------------------------------------------------------------------- */
+      function injectChaos(type) {
+        if (type === 'build') {
+          state.stageStatus[0] = 'failed';
+          renderStepper();
+          addLog('ERROR', 'cloudbuild', 'COMPILATION FAILURE: syntax error in main.go:42: unexpected semicolon, expecting comma or }');
+          addLog('CRITICAL', 'cloudbuild', 'Cloud Build exit code 1. Pipeline halted.');
+        } else if (type === 'cve') {
+          state.stageStatus[1] = 'failed';
+          renderStepper();
+          addLog('CRITICAL', 'artifactregistry', 'SECURITY VETO: High severity CVE-2024-99999 detected in base image. Binary Authorization attestation REJECTED.');
+        } else if (type === 'secret') {
+          state.stageStatus[2] = 'failed';
+          renderStepper();
+          addLog('ERROR', 'secretmanager', 'IAM PERMISSION DENIED: SA order-svc-sa lacks roles/secretmanager.secretAccessor on secret DB_CONNECTION_STRING');
+        } else if (type === 'coldstart') {
+          state.coldStartBreakdown = {
+            gvisor: 120,
+            image: 380,
+            secrets: 90,
+            runtime: 240,
+            probe: 20,
+            total: 850
+          };
+          updateColdStartGauge(850);
+          addLog('WARN', 'run.googleapis', 'Cold-start spike detected: 850ms latency during CRFS image layer decompression.');
+        }
+      }
+
+      /* --------------------------------------------------------------------------
+         ATTACH EVENT LISTENERS
+         -------------------------------------------------------------------------- */
+      function bindEvents() {
+        DOM.btnDeploy.addEventListener('click', runPipeline);
+        DOM.btnStep.addEventListener('click', stepNextPipeline);
+        DOM.btnReset.addEventListener('click', resetPipeline);
+        DOM.btnRollback.addEventListener('click', instantRollback);
+
+        DOM.trafficSlider.addEventListener('input', (e) => setTrafficSplit(e.target.value));
+        DOM.trafficLoadSlider.addEventListener('input', (e) => {
+          state.trafficRps = parseInt(e.target.value, 10);
+          DOM.trafficLoadText.textContent = `${state.trafficRps} RPS`;
+          DOM.canvasRpsStat.textContent = `${state.trafficRps} RPS`;
+          updateInstances();
+        });
+
+        DOM.preset100Green.addEventListener('click', () => setTrafficSplit(0));
+        DOM.preset9010.addEventListener('click', () => setTrafficSplit(10));
+        DOM.preset5050.addEventListener('click', () => setTrafficSplit(50));
+        DOM.preset100Blue.addEventListener('click', () => setTrafficSplit(100));
+
+        // Stepper node click to open details
+        for (let i = 1; i <= 5; i++) {
+          const node = document.getElementById(`step-node-${i}`);
+          if (node) {
+            node.addEventListener('click', () => openStageDrawer(i));
+          }
+        }
+
+        DOM.btnCloseDrawer.addEventListener('click', closeDrawer);
+        DOM.drawerBackdrop.addEventListener('click', closeDrawer);
+
+        // Logging filters
+        DOM.logFilterChips.addEventListener('click', (e) => {
+          if (e.target.classList.contains('filter-chip')) {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            e.target.classList.add('active');
+            state.logFilter = e.target.getAttribute('data-level');
+            renderLogs();
+          }
+        });
+
+        DOM.logSearchInput.addEventListener('input', (e) => {
+          state.logSearchQuery = e.target.value;
+          renderLogs();
+        });
+
+        DOM.btnClearLogs.addEventListener('click', () => {
+          state.logs = [];
+          renderLogs();
+        });
+
+        DOM.btnPauseLogs.addEventListener('click', () => {
+          state.isStreamingLogs = !state.isStreamingLogs;
+          DOM.btnPauseLogs.textContent = state.isStreamingLogs ? 'Pause Stream' : 'Resume Stream';
+          DOM.btnPauseLogs.style.borderColor = state.isStreamingLogs ? 'rgba(255,255,255,0.15)' : 'var(--amber-solar)';
+        });
+
+        // Chaos buttons
+        DOM.btnChaosBuildFail.addEventListener('click', () => injectChaos('build'));
+        DOM.btnChaosCveAlert.addEventListener('click', () => injectChaos('cve'));
+        DOM.btnChaosSecretDenied.addEventListener('click', () => injectChaos('secret'));
+        DOM.btnChaosColdSpike.addEventListener('click', () => injectChaos('coldstart'));
+      }
+
+      /* --------------------------------------------------------------------------
+         PERIODIC TELEMETRY GENERATOR
+         -------------------------------------------------------------------------- */
+      function startTelemetryStream() {
+        setInterval(() => {
+          if (!state.isStreamingLogs) return;
+
+          // Jitter instances metrics slightly
+          state.instances.forEach(inst => {
+            const cpu = Math.floor(15 + Math.random() * 60);
+            inst.cpu = `${cpu}%`;
+            inst.state = cpu > 60 ? 'BUSY' : (cpu < 20 ? 'IDLE' : 'WARM');
+          });
+          updateInstances();
+
+          // Occasionally push health check or request log
+          if (Math.random() < 0.35) {
+            const isCanary = Math.random() * 100 < state.trafficSplit;
+            const revName = isCanary ? 'order-service-00043-k9p' : 'order-service-00042-xyz';
+            const latency = isCanary ? (12 + Math.random() * 5).toFixed(1) : (10 + Math.random() * 4).toFixed(1);
+            addLog('INFO', 'run.googleapis', `GET /v1/orders 200 OK (${latency}ms) -> ${revName}`, {
+              httpRequest: {
+                requestMethod: 'GET',
+                requestUrl: 'https://order-service-k9p-uc.a.run.app/v1/orders',
+                status: 200,
+                latency: `${latency}ms`
+              }
+            });
+          }
+        }, 4000);
+      }
+
+      /* --------------------------------------------------------------------------
+         EXPOSED PROGRAMMATIC TEST INTERFACE
+         -------------------------------------------------------------------------- */
+      window.__GCP_SERVERLESS_PIPELINE__ = {
+        getState: () => ({ ...state }),
+        setTrafficSplit: (pct) => setTrafficSplit(pct),
+        runPipeline: () => runPipeline(),
+        stepNextPipeline: () => stepNextPipeline(),
+        resetPipeline: () => resetPipeline(),
+        rollback: () => instantRollback(),
+        simulateFailure: (type) => injectChaos(type),
+        simulateColdStart: (ms) => {
+          state.coldStartBreakdown = {
+            gvisor: Math.round(ms * 0.13),
+            image: Math.round(ms * 0.32),
+            secrets: Math.round(ms * 0.09),
+            runtime: Math.round(ms * 0.42),
+            probe: Math.round(ms * 0.04),
+            total: ms
+          };
+          updateColdStartGauge(ms);
+        },
+        setTrafficRps: (rps) => {
+          state.trafficRps = rps;
+          DOM.trafficLoadSlider.value = rps;
+          DOM.trafficLoadText.textContent = `${rps} RPS`;
+          updateInstances();
+        },
+        filterLogs: (level, query = '') => {
+          state.logFilter = level;
+          state.logSearchQuery = query;
+          renderLogs();
+        },
+        getLogs: () => [...state.logs],
+        openStageDrawer: (idx) => openStageDrawer(idx),
+        closeDrawer: () => closeDrawer()
+      };
+
+      /* --------------------------------------------------------------------------
+         INITIALIZATION
+         -------------------------------------------------------------------------- */
+      function init() {
+        generateInitialLogs();
+        renderStepper();
+        updateColdStartGauge(360);
+        updateInstances();
+        renderLogs();
+        bindEvents();
+        initCanvas();
+        startTelemetryStream();
+      }
+
+      // Boot application when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+    })();
+  </script>
+</body>
+</html>

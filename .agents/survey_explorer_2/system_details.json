@@ -1,0 +1,837 @@
+{
+  "gcp-sql-networking": {
+    "title": "Cloud SQL HA & Private VPC Peering Hub | Mission Control Observability",
+    "size_bytes": 100403,
+    "lines": 2781,
+    "fixed_heights": [
+      [
+        ".ambient-glow",
+        "380px"
+      ],
+      [
+        ".brand-icon-box",
+        "48px"
+      ],
+      [
+        ".kpi-card::before",
+        "2px"
+      ],
+      [
+        ".topology-container",
+        "380px"
+      ],
+      [
+        ".legend-dot",
+        "8px"
+      ],
+      [
+        ".gauge-wrapper",
+        "170px"
+      ],
+      [
+        ".pool-bar-track",
+        "7px"
+      ],
+      [
+        ".terminal-container",
+        "220px"
+      ],
+      [
+        ".topology-container",
+        "300px"
+      ]
+    ],
+    "z_indexes": [
+      [
+        ".ambient-glow",
+        "0"
+      ],
+      [
+        ".app-container",
+        "1"
+      ],
+      [
+        ".sql-table th",
+        "2"
+      ],
+      [
+        ".modal-backdrop",
+        "999"
+      ],
+      [
+        ".toast-container",
+        "1000"
+      ]
+    ],
+    "clamps": [],
+    "audio_ctx": true,
+    "speech_synth": false,
+    "mute_buttons": [
+      "<button class=\"btn btn-sm\" id=\"btnSoundToggle\" data-testid=\"btn-sound-toggle\" title=\"Toggle Synthesized Audio Feedback\">\n          <span class=\"luminous-icon glow-blue\" id=\"soundIcon\">\ud83d\udd0a</span>\n          <span id=\"soundLabel\">Audio ON</span>\n        </button>"
+    ],
+    "mute_handlers": [
+      "toggleSound: () => window.sqlApp.dom.btnSoundToggle.click()"
+    ],
+    "log_panel_match": [
+      "panel-terminal",
+      "topology-overlay-legend",
+      "log-msg",
+      "topology-container",
+      "terminal-header",
+      "terminal-logs",
+      "terminal-log-feed",
+      "btn-clear-logs",
+      "topology-stats-overlay",
+      "topologyCanvas"
+    ],
+    "log_search": [
+      "<input type=\"text\" class=\"search-input\" id=\"querySearchInput\" placeholder=\"Filter SQL queries, PID, user...\" data-testid=\"input-query-search\">"
+    ],
+    "log_export": [],
+    "canvases": [
+      "topologyCanvas"
+    ],
+    "svgs": [
+      "poolGaugeSvg"
+    ],
+    "fonts": [
+      "var(--font-mono)",
+      "var(--font-ui)"
+    ],
+    "media_queries_count": 3,
+    "media_queries": [
+      "@media (max-width: 1200px)",
+      "@media (max-width: 600px)",
+      "@media (max-width: 768px)"
+    ]
+  },
+  "gcp-iam-security": {
+    "title": "GCP IAM Security & Secret Vault Auditor // Cloud Sec-Ops Command Cockpit",
+    "size_bytes": 134253,
+    "lines": 3494,
+    "fixed_heights": [
+      [
+        "::-webkit-scrollbar",
+        "6px"
+      ],
+      [
+        ".brand-logo",
+        "46px"
+      ],
+      [
+        ".dial-svg-wrapper",
+        "36px"
+      ],
+      [
+        ".dial-svg-wrapper svg",
+        "36px"
+      ],
+      [
+        ".risk-bar-bg",
+        "6px"
+      ],
+      [
+        ".timeline-track::before",
+        "2px"
+      ],
+      [
+        ".node-dot",
+        "32px"
+      ],
+      [
+        ".kms-circle-wrapper",
+        "140px"
+      ],
+      [
+        ".kms-circle-svg",
+        "140px"
+      ],
+      [
+        ".chart-container",
+        "220px"
+      ],
+      [
+        ".terminal-body",
+        "320px"
+      ],
+      [
+        ".step-circle",
+        "26px"
+      ],
+      [
+        ".scanner-progress-bar",
+        "4px"
+      ]
+    ],
+    "z_indexes": [
+      [
+        "body::before",
+        "0"
+      ],
+      [
+        "body::after",
+        "0"
+      ],
+      [
+        ".app-container",
+        "1"
+      ],
+      [
+        ".timeline-track::before",
+        "0"
+      ],
+      [
+        ".timeline-node",
+        "1"
+      ],
+      [
+        ".modal-overlay",
+        "999"
+      ],
+      [
+        ".toast-container",
+        "10000"
+      ]
+    ],
+    "clamps": [],
+    "audio_ctx": true,
+    "speech_synth": false,
+    "mute_buttons": [
+      "<button class=\"cyber-btn cyber-btn-subtle\" id=\"audioToggleBtn\" data-testid=\"audio-toggle-btn\" title=\"Toggle Sound FX\">\n        <span class=\"lum-icon lum-icon-ruby\" id=\"audioIcon\">\ud83d\udd0a</span>\n      </button>"
+    ],
+    "mute_handlers": [],
+    "log_panel_match": [
+      "terminal-body",
+      "log-line",
+      "brand-logo",
+      "pane-audit-logs",
+      "audit-console",
+      "terminal-header",
+      "pauseLogBtn",
+      "terminalBody",
+      "tab-audit-logs",
+      "tab-btn-audit-logs"
+    ],
+    "log_search": [
+      "<input type=\"text\" id=\"matrixSearchInput\" class=\"search-input\" placeholder=\"Filter principal, role or project...\" data-testid=\"matrix-search-input\">"
+    ],
+    "log_export": [],
+    "canvases": [
+      "postureRadarCanvas",
+      "quotaChartCanvas"
+    ],
+    "svgs": [],
+    "fonts": [
+      "var(--font-mono)",
+      "var(--font-ui)"
+    ],
+    "media_queries_count": 3,
+    "media_queries": [
+      "@media (min-width: 1024px)",
+      "@media (max-width: 768px)",
+      "@media (max-width: 480px)"
+    ]
+  },
+  "gcp-cloudops-cockpit": {
+    "title": "GCP CloudOps SRE Command Cockpit",
+    "size_bytes": 132108,
+    "lines": 3578,
+    "fixed_heights": [
+      [
+        ":root",
+        "64px"
+      ],
+      [
+        ".scanline-pulse",
+        "2px"
+      ],
+      [
+        ".brand-icon-frame",
+        "44px"
+      ],
+      [
+        ".live-dot",
+        "8px"
+      ],
+      [
+        ".signal-card::before",
+        "3px"
+      ],
+      [
+        ".signal-icon-badge",
+        "28px"
+      ],
+      [
+        ".sparkline-container",
+        "48px"
+      ],
+      [
+        ".sat-bar-track",
+        "6px"
+      ],
+      [
+        ".panel-icon-badge",
+        "32px"
+      ],
+      [
+        ".topology-radar-deck",
+        "340px"
+      ],
+      [
+        ".legend-dot",
+        "6px"
+      ],
+      [
+        ".slo-dial-svg-wrap",
+        "120px"
+      ],
+      [
+        ".logs-table-container",
+        "280px"
+      ],
+      [
+        ".dot",
+        "10px"
+      ],
+      [
+        ".terminal-body",
+        "320px"
+      ],
+      [
+        ".terminal-cursor",
+        "14px"
+      ],
+      [
+        ".topology-radar-deck",
+        "300px"
+      ],
+      [
+        ".canvas-card",
+        "280px"
+      ],
+      [
+        ".topology-radar-deck",
+        "440px"
+      ],
+      [
+        ".logs-table-container",
+        "400px"
+      ]
+    ],
+    "z_indexes": [
+      [
+        "body::before",
+        "0"
+      ],
+      [
+        "body::after",
+        "0"
+      ],
+      [
+        ".scanline-pulse",
+        "1000"
+      ],
+      [
+        ".cockpit-container",
+        "1"
+      ],
+      [
+        ".paused-scroll-badge",
+        "10"
+      ],
+      [
+        ".drawer-overlay",
+        "1100"
+      ],
+      [
+        ".hud-drawer",
+        "1200"
+      ],
+      [
+        ".modal-overlay",
+        "1500"
+      ]
+    ],
+    "clamps": [],
+    "audio_ctx": false,
+    "speech_synth": false,
+    "mute_buttons": [],
+    "mute_handlers": [],
+    "log_panel_match": [
+      "topology-mesh-canvas",
+      "terminal-body",
+      "topology-canvas-container",
+      "topology-legend",
+      "logs-resource-select",
+      "logs-toolbar",
+      "runbook-terminal-output",
+      "logs-filter-crit",
+      "logs-left-controls",
+      "log-entry-row"
+    ],
+    "log_search": [
+      "<input \n              type=\"text\" \n              class=\"logs-search-input\" \n              id=\"logs-search-input\" \n              data-testid=\"logs-search-input\" \n              placeholder=\"Regex Search (/5\\d\\d|timeout|connection/i)...\" \n              oninput=\"window.CockpitEngine.onLogSearchInput(this.value)\"\n            />"
+    ],
+    "log_export": [],
+    "canvases": [
+      "canvas-sparkline-latency",
+      "canvas-sparkline-traffic",
+      "canvas-sparkline-errors",
+      "topology-canvas",
+      "radar-canvas"
+    ],
+    "svgs": [],
+    "fonts": [
+      "var(--font-mono)",
+      "var(--font-ui)"
+    ],
+    "media_queries_count": 4,
+    "media_queries": [
+      "@media (max-width: 1300px)",
+      "@media (max-width: 850px)",
+      "@media (max-width: 550px)",
+      "@media (min-width: 2500px)"
+    ]
+  },
+  "mulesoft-observability": {
+    "title": "MuleSoft Anypoint \u2014 API-Led Connectivity & Traceability Hub",
+    "size_bytes": 19182,
+    "lines": 413,
+    "fixed_heights": [
+      [
+        ".hdr__badge .dot",
+        "7px"
+      ],
+      [
+        ".api-node__status",
+        "6px"
+      ]
+    ],
+    "z_indexes": [
+      [
+        "body::before",
+        "0"
+      ],
+      [
+        "body::after",
+        "0"
+      ],
+      [
+        ".app",
+        "1"
+      ]
+    ],
+    "clamps": [
+      ".hdr h1"
+    ],
+    "audio_ctx": false,
+    "speech_synth": false,
+    "mute_buttons": [],
+    "mute_handlers": [],
+    "log_panel_match": [
+      "log-row info",
+      "log-head",
+      "log-card",
+      "logList",
+      "log-body"
+    ],
+    "log_search": [],
+    "log_export": [],
+    "canvases": [],
+    "svgs": [],
+    "fonts": [
+      "var(--mono)",
+      "var(--font)"
+    ],
+    "media_queries_count": 1,
+    "media_queries": [
+      "@media(max-width:960px)"
+    ]
+  },
+  "apigee-mulesoft-hybrid": {
+    "title": "Apigee + MuleSoft Hybrid Observability Cockpit \u2014 SRE & Cloud Operations",
+    "size_bytes": 76684,
+    "lines": 2354,
+    "fixed_heights": [
+      [
+        ".hdr__icon-badge",
+        "48px"
+      ],
+      [
+        ".hdr__icon-badge svg",
+        "28px"
+      ],
+      [
+        ".pulse-dot",
+        "8px"
+      ],
+      [
+        ".legend-color",
+        "8px"
+      ],
+      [
+        ".canvas-container",
+        "280px"
+      ],
+      [
+        ".waterfall-bar-track",
+        "24px"
+      ],
+      [
+        ".dial-svg-wrap",
+        "110px"
+      ],
+      [
+        ".code-viewer",
+        "240px"
+      ],
+      [
+        ".log-terminal",
+        "240px"
+      ],
+      [
+        "::-webkit-scrollbar",
+        "6px"
+      ]
+    ],
+    "z_indexes": [
+      [
+        "body::before",
+        "0"
+      ],
+      [
+        "body::after",
+        "0"
+      ],
+      [
+        ".cockpit-app",
+        "1"
+      ]
+    ],
+    "clamps": [
+      ".hdr__title-box h1"
+    ],
+    "audio_ctx": true,
+    "speech_synth": false,
+    "mute_buttons": [
+      "<button id=\"btnMuteAudio\" class=\"btn-icon-toggle\" title=\"Alternar Sonido Procedural\">\n        <span id=\"muteIcon\">\ud83d\udd0a</span>\n        <span id=\"muteText\">AUDIO: ON</span>\n      </button>"
+    ],
+    "mute_handlers": [
+      "isMuted) return",
+      "isMuted ? '\ud83d\udd07' : '\ud83d\udd0a'",
+      "toggleMute()",
+      "isMuted = !this.isMuted",
+      "isMuted)",
+      "isMuted = audioSynth.toggleMute()",
+      "isMuted",
+      "isMuted = false"
+    ],
+    "log_panel_match": [
+      "log-filters",
+      "log-row__time",
+      "log-row",
+      "log-row__corr",
+      "log-row__msg",
+      "log-row__tier ${tierClass}",
+      "log-card",
+      "log-card__hdr",
+      "log-terminal",
+      "log-filter-btn log-filter-btn--err"
+    ],
+    "log_search": [],
+    "log_export": [],
+    "canvases": [
+      "packetCanvas"
+    ],
+    "svgs": [],
+    "fonts": [
+      "var(--font-sans)",
+      "var(--font-mono)"
+    ],
+    "media_queries_count": 4,
+    "media_queries": [
+      "@media (max-width: 1080px)",
+      "@media (max-width: 900px)",
+      "@media (max-width: 480px)",
+      "@media (max-width: 960px)"
+    ]
+  },
+  "emergency-evacuation-v1": {
+    "title": "SALVAR VIDAS // Centro de Comando y Control de Evacuaci\u00f3n",
+    "size_bytes": 84520,
+    "lines": 2514,
+    "fixed_heights": [
+      [
+        ".branding-icon",
+        "44px"
+      ],
+      [
+        ".floor-occupancy-bar",
+        "4px"
+      ],
+      [
+        ".master-broadcast-banner::before",
+        "2px"
+      ],
+      [
+        ".chart-container",
+        "220px"
+      ],
+      [
+        ".legend-color",
+        "10px"
+      ],
+      [
+        ".scba-bar",
+        "4px"
+      ],
+      [
+        ".schematic-box",
+        "180px"
+      ],
+      [
+        ".log-stream-box",
+        "140px"
+      ]
+    ],
+    "z_indexes": [
+      [
+        "body::before",
+        "0"
+      ],
+      [
+        "#strobe-overlay",
+        "999"
+      ],
+      [
+        "header.tactical-header",
+        "10"
+      ],
+      [
+        "main.tactical-main",
+        "1"
+      ],
+      [
+        ".modal-backdrop",
+        "1000"
+      ],
+      [
+        "footer.tactical-footer",
+        "10"
+      ]
+    ],
+    "clamps": [],
+    "audio_ctx": true,
+    "speech_synth": false,
+    "mute_buttons": [
+      "<button class=\"btn-hud\" id=\"btn-toggle-sound\" title=\"Alternar audio de sirena\">\n        \ud83d\udd0a Sonido\n      </button>"
+    ],
+    "mute_handlers": [
+      "isMuted) return",
+      "toggleMute()",
+      "isMuted = !this.isMuted",
+      "isMuted && this.isAlarmPlaying)",
+      "isMuted",
+      "isMuted = false"
+    ],
+    "log_panel_match": [
+      "log-tag ${category.toLowerCase()}",
+      "modal-dialog",
+      "audit-log-stream",
+      "log-stream-box",
+      "hud-panel tactical-log-panel",
+      "log-msg",
+      "log-time"
+    ],
+    "log_search": [],
+    "log_export": [],
+    "canvases": [
+      "evacuation-canvas",
+      "schematic-canvas"
+    ],
+    "svgs": [],
+    "fonts": [
+      "var(--font-sans)",
+      "var(--font-mono)"
+    ],
+    "media_queries_count": 4,
+    "media_queries": [
+      "@media (max-width: 1440px)",
+      "@media (max-width: 1100px)",
+      "@media (max-width: 768px)",
+      "@media (max-width: 680px)"
+    ]
+  },
+  "emergency-evacuation-v2": {
+    "title": "SALVAR VIDAS // Mobile Occupant HUD & Dynamic Escape Route",
+    "size_bytes": 93467,
+    "lines": 2773,
+    "fixed_heights": [
+      [
+        ".phone-notch-area",
+        "32px"
+      ],
+      [
+        ".dynamic-island",
+        "22px"
+      ],
+      [
+        ".island-dot",
+        "7px"
+      ],
+      [
+        ".mesh-svg-container",
+        "110px"
+      ],
+      [
+        ".asset-icon-box",
+        "28px"
+      ],
+      [
+        ".sos-textarea",
+        "55px"
+      ],
+      [
+        ".cert-seal",
+        "70px"
+      ]
+    ],
+    "z_indexes": [
+      [
+        "body::before",
+        "9999"
+      ],
+      [
+        ".ambient-grid",
+        "1"
+      ],
+      [
+        ".app-viewport",
+        "10"
+      ],
+      [
+        ".phone-notch-area",
+        "20"
+      ],
+      [
+        ".modal-overlay",
+        "100"
+      ],
+      [
+        ".toast-container",
+        "1000"
+      ]
+    ],
+    "clamps": [],
+    "audio_ctx": true,
+    "speech_synth": true,
+    "mute_buttons": [],
+    "mute_handlers": [
+      "isMuted = false",
+      "isMuted)"
+    ],
+    "log_panel_match": [
+      "telemetry-terminal",
+      "terminal-header",
+      "terminal-status",
+      "terminal-logs",
+      "terminal-drawer",
+      "log-time"
+    ],
+    "log_search": [],
+    "log_export": [],
+    "canvases": [
+      "floorplan-canvas"
+    ],
+    "svgs": [
+      "mesh-svg"
+    ],
+    "fonts": [
+      "var(--font-sans)",
+      "var(--font-mono)"
+    ],
+    "media_queries_count": 0,
+    "media_queries": []
+  },
+  "emergency-evacuation-v3": {
+    "title": "SALVAR VIDAS // MOTOR DE BROADCAST MULTI-CARRIER (TELEMETR\u00cdA FAN-OUT)",
+    "size_bytes": 96480,
+    "lines": 2733,
+    "fixed_heights": [
+      [
+        "::-webkit-scrollbar",
+        "6px"
+      ],
+      [
+        ".carrier-progress-bar",
+        "4px"
+      ],
+      [
+        ".legend-dot",
+        "8px"
+      ],
+      [
+        ".histogram-container",
+        "230px"
+      ]
+    ],
+    "z_indexes": [
+      [
+        ".tactical-header",
+        "100"
+      ],
+      [
+        ".canvas-overlay-legend",
+        "10"
+      ],
+      [
+        ".canvas-node-inspector",
+        "20"
+      ]
+    ],
+    "clamps": [],
+    "audio_ctx": true,
+    "speech_synth": false,
+    "mute_buttons": [
+      "<button class=\"audio-btn\" id=\"btn-audio-toggle\" aria-label=\"Silenciar / Activar Audio\">\ud83d\udd0a</button>"
+    ],
+    "mute_handlers": [
+      "isMuted) return",
+      "toggleMute()",
+      "isMuted = !this.isMuted",
+      "isMuted ? 0 : this.volume, this.ctx.currentTime)",
+      "isMuted)",
+      "isMuted",
+      "isMuted = false"
+    ],
+    "log_panel_match": [
+      "log-filter-select",
+      "terminal-body",
+      "log-line",
+      "log-ts",
+      "btn-clear-logs",
+      "log-tag ${tagClass}",
+      "event-log-container",
+      "log-filter",
+      "log-msg",
+      "log-tag info"
+    ],
+    "log_search": [],
+    "log_export": [],
+    "canvases": [
+      "particle-canvas",
+      "histogram-canvas"
+    ],
+    "svgs": [],
+    "fonts": [
+      "var(--font-sans)",
+      "var(--font-mono)",
+      "var(--font-display)"
+    ],
+    "media_queries_count": 2,
+    "media_queries": [
+      "@media (max-width: 1400px)",
+      "@media (max-width: 992px)"
+    ]
+  }
+}

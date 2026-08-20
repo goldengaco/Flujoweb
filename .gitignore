@@ -1,0 +1,11 @@
+# Dependencies & System caches
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.tempmediaStorage/
+
+# Build and scratch artifacts
+__pycache__/
+*.pyc
+scratch/

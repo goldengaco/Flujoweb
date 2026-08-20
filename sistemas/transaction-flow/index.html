@@ -1,0 +1,3394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>High-Frequency Transaction & Settlement Pipeline | Observability Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,300..700;1,300..700&family=Fira+Code:wght@300..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==========================================================================
+       FINTECH LUXURY CYBERPUNK DESIGN TOKENS
+       ========================================================================== */
+    :root {
+      --bg-base: #030812;
+      --bg-surface: #060d1b;
+      --bg-card: rgba(8, 17, 34, 0.78);
+      --bg-card-hover: rgba(14, 27, 54, 0.90);
+      --bg-glass: rgba(10, 22, 44, 0.65);
+
+      /* Primary Fintech Accents */
+      --gold-primary: #f59e0b;
+      --gold-light: #fbbf24;
+      --gold-dark: #b45309;
+      --gold-glow: rgba(245, 158, 11, 0.45);
+      --gold-dim: rgba(245, 158, 11, 0.12);
+
+      /* Emerald Settlement Accents */
+      --emerald-primary: #10b981;
+      --emerald-light: #34d399;
+      --emerald-dark: #047857;
+      --emerald-glow: rgba(16, 185, 129, 0.45);
+      --emerald-dim: rgba(16, 185, 129, 0.12);
+
+      /* Cyber Crimson (Fraud / Threat) */
+      --crimson-primary: #ef4444;
+      --crimson-light: #f87171;
+      --crimson-dark: #b91c1c;
+      --crimson-glow: rgba(239, 68, 68, 0.50);
+      --crimson-dim: rgba(239, 68, 68, 0.14);
+
+      /* Amber Warning / Decline */
+      --amber-primary: #f59e0b;
+      --amber-light: #fcd34d;
+      --amber-glow: rgba(245, 158, 11, 0.40);
+      --amber-dim: rgba(245, 158, 11, 0.14);
+
+      /* Cyan Network & Token */
+      --cyan-primary: #06b6d4;
+      --cyan-light: #67e8f9;
+      --cyan-glow: rgba(6, 182, 212, 0.40);
+      --cyan-dim: rgba(6, 182, 212, 0.12);
+
+      /* Reversal Amethyst / Violet */
+      --violet-primary: #8b5cf6;
+      --violet-light: #c4b5fd;
+      --violet-glow: rgba(139, 92, 246, 0.50);
+      --violet-dim: rgba(139, 92, 246, 0.15);
+
+      /* Neutrals & Borders */
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-faint: rgba(148, 163, 184, 0.45);
+      --border-subtle: rgba(245, 158, 11, 0.18);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --border-active: rgba(245, 158, 11, 0.65);
+
+      /* Typography */
+      --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'Cascadia Code', 'Fira Code', monospace;
+
+      /* Radius & Shadows */
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      --shadow-lux: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 20px -2px var(--gold-glow);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 65%),
+        radial-gradient(circle at 10% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 90% 60%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+        linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+      background-attachment: fixed;
+    }
+
+    /* Ambient Hex Grid Overlay */
+    .ambient-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 400px;
+      background: radial-gradient(ellipse at 50% -20%, rgba(245, 158, 11, 0.15), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* App Container */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1720px;
+      margin: 0 auto;
+      padding: 20px 24px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ==========================================================================
+       HEADER & SYSTEM SLA HUD
+       ========================================================================== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(16, 185, 129, 0.2));
+      border: 1px solid var(--gold-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 0 20px var(--gold-glow);
+      animation: pulse-border 3s infinite;
+    }
+
+    @keyframes pulse-border {
+      0%, 100% { box-shadow: 0 0 15px var(--gold-glow); }
+      50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.6); }
+    }
+
+    .brand-title h1 {
+      font-size: clamp(1.1rem, 2.8vw, 1.5rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #ffffff 20%, var(--gold-light) 60%, var(--emerald-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+    }
+
+    .brand-title p {
+      font-size: clamp(0.7rem, 1.4vw, 0.82rem);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+    }
+
+    .header-hud {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* Live Pipeline Status Pill */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: clamp(0.68rem, 1.3vw, 0.78rem);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid var(--emerald-primary);
+      color: var(--emerald-light);
+      box-shadow: 0 0 14px var(--emerald-glow);
+      transition: all 0.3s ease;
+    }
+
+    .status-pill.status-idle {
+      background: rgba(148, 163, 184, 0.1);
+      border-color: rgba(148, 163, 184, 0.3);
+      color: var(--text-muted);
+      box-shadow: none;
+    }
+
+    .status-pill.status-processing {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--gold-primary);
+      color: var(--gold-light);
+      box-shadow: 0 0 16px var(--gold-glow);
+    }
+
+    .status-pill.status-fraud {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--crimson-primary);
+      color: var(--crimson-light);
+      box-shadow: 0 0 18px var(--crimson-glow);
+    }
+
+    .status-pill.status-declined {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--amber-primary);
+      color: var(--amber-light);
+      box-shadow: 0 0 18px var(--amber-glow);
+    }
+
+    .status-pill.status-reversed {
+      background: rgba(139, 92, 246, 0.15);
+      border-color: var(--violet-primary);
+      color: var(--violet-light);
+      box-shadow: 0 0 18px var(--violet-glow);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: blink-dot 1.5s infinite ease-in-out;
+    }
+
+    @keyframes blink-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* 30-Second TTL Microsecond Precision Clock */
+    .ttl-clock-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 18px;
+      background: rgba(3, 8, 18, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
+    }
+
+    .ttl-clock-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+    }
+
+    .ttl-timer-display {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--emerald-light);
+      letter-spacing: 0.05em;
+      text-shadow: 0 0 12px var(--emerald-glow);
+      min-width: 100px;
+      text-align: right;
+    }
+
+    .ttl-timer-display.ttl-warning {
+      color: var(--amber-light);
+      text-shadow: 0 0 12px var(--amber-glow);
+    }
+
+    .ttl-timer-display.ttl-danger {
+      color: var(--crimson-light);
+      text-shadow: 0 0 14px var(--crimson-glow);
+      animation: flash-red 0.5s infinite alternate;
+    }
+
+    @keyframes flash-red {
+      from { opacity: 1; text-shadow: 0 0 14px var(--crimson-glow); }
+      to { opacity: 0.6; text-shadow: 0 0 4px var(--crimson-glow); }
+    }
+
+    /* ==========================================================================
+       CONTROL PANEL & SCENARIOS BAR
+       ========================================================================== */
+    .control-deck {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px 20px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+    }
+
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .scenario-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .scenario-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      margin-right: 4px;
+    }
+
+    .scenario-btn {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-card);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      font-family: var(--font-ui);
+    }
+
+    .scenario-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .scenario-btn.active-scenario {
+      background: var(--gold-dim);
+      border-color: var(--gold-primary);
+      color: var(--gold-light);
+      box-shadow: 0 0 14px var(--gold-glow);
+    }
+
+    .scenario-btn[data-scenario="fraud"].active-scenario {
+      background: var(--crimson-dim);
+      border-color: var(--crimson-primary);
+      color: var(--crimson-light);
+      box-shadow: 0 0 14px var(--crimson-glow);
+    }
+
+    .scenario-btn[data-scenario="declined"].active-scenario {
+      background: var(--amber-dim);
+      border-color: var(--amber-primary);
+      color: var(--amber-light);
+      box-shadow: 0 0 14px var(--amber-glow);
+    }
+
+    .scenario-btn[data-scenario="timeout"].active-scenario {
+      background: var(--cyan-dim);
+      border-color: var(--cyan-primary);
+      color: var(--cyan-light);
+      box-shadow: 0 0 14px var(--cyan-glow);
+    }
+
+    .actions-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Primary Action Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: var(--radius-md);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: var(--font-ui);
+      border: 1px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-primary), var(--emerald-primary));
+      color: #030812;
+      box-shadow: 0 4px 18px var(--gold-glow);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(245, 158, 11, 0.6);
+      filter: brightness(1.1);
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: var(--border-card);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(51, 65, 85, 0.8);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-reversal {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(124, 58, 237, 0.4));
+      border: 1px solid var(--violet-primary);
+      color: var(--violet-light);
+      box-shadow: 0 0 16px var(--violet-glow);
+    }
+
+    .btn-reversal:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(124, 58, 237, 0.6));
+      box-shadow: 0 0 24px rgba(139, 92, 246, 0.7);
+      transform: translateY(-1px);
+    }
+
+    .btn-reversal.reversal-active {
+      animation: pulse-violet 1s infinite alternate;
+    }
+
+    @keyframes pulse-violet {
+      from { box-shadow: 0 0 15px var(--violet-glow); }
+      to { box-shadow: 0 0 30px rgba(139, 92, 246, 0.9); }
+    }
+
+    /* Speed & Mode Controls */
+    .controls-secondary {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+
+    .speed-pills {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(3, 8, 18, 0.6);
+      padding: 3px 6px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-card);
+    }
+
+    .speed-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .speed-btn.active-speed {
+      background: var(--gold-primary);
+      color: #030812;
+      font-weight: 800;
+    }
+
+    .toggle-stream-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 20px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(30, 41, 59, 0.8);
+      transition: .3s;
+      border-radius: 20px;
+      border: 1px solid var(--border-card);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--emerald-dark);
+      border-color: var(--emerald-primary);
+      box-shadow: 0 0 10px var(--emerald-glow);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(18px);
+      background-color: var(--emerald-light);
+    }
+
+    /* ==========================================================================
+       FINANCIAL TELEMETRY & LEDGER STATS CARDS
+       ========================================================================== */
+    .ledger-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .ledger-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, transform 0.2s;
+    }
+
+    .ledger-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--card-accent, var(--gold-primary)), transparent);
+      opacity: 0.6;
+    }
+
+    .ledger-card:hover {
+      border-color: var(--border-active);
+      transform: translateY(-2px);
+    }
+
+    .ledger-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .ledger-icon {
+      font-size: 1.1rem;
+    }
+
+    .ledger-value {
+      font-family: var(--font-mono);
+      font-size: clamp(1.15rem, 2.5vw, 1.5rem);
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--text-main);
+    }
+
+    .ledger-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .delta-tag {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+    }
+
+    .delta-pos {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald-light);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .delta-neg {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--crimson-light);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .delta-neutral {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--gold-light);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    /* ==========================================================================
+       6-NODE PRIMARY PIPELINE & BIFURCATION STEPPER
+       ========================================================================== */
+    .pipeline-section {
+      background: var(--bg-card);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px 36px;
+      box-shadow: var(--shadow-lux);
+      position: relative;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .pipeline-section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .pipeline-section-title h2 {
+      font-size: clamp(0.85rem, 1.8vw, 0.98rem);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-family: var(--font-mono);
+      color: var(--gold-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pipeline-meta {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    /* Stepper Container & SVG Canvas */
+    .stepper-container {
+      position: relative;
+      min-width: 1080px;
+      padding: 20px 10px 40px;
+    }
+
+    .stepper-tracks-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Track Lines */
+    .track-base {
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 3;
+      stroke-linecap: round;
+      fill: none;
+      transition: stroke 0.4s ease, opacity 0.4s ease;
+    }
+
+    .track-active {
+      stroke: var(--gold-primary);
+      stroke-width: 4;
+      stroke-linecap: round;
+      fill: none;
+      stroke-dasharray: 8 6;
+      animation: track-flow 1s linear infinite;
+      filter: drop-shadow(0 0 8px var(--gold-glow));
+    }
+
+    .track-complete {
+      stroke: var(--emerald-primary);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      fill: none;
+      filter: drop-shadow(0 0 6px var(--emerald-glow));
+    }
+
+    .track-reverse {
+      stroke: var(--violet-primary);
+      stroke-width: 4;
+      stroke-linecap: round;
+      fill: none;
+      stroke-dasharray: 8 6;
+      animation: track-flow-reverse 1s linear infinite;
+      filter: drop-shadow(0 0 10px var(--violet-glow));
+    }
+
+    .track-branch-fraud {
+      stroke: var(--crimson-primary);
+      stroke-width: 3.5;
+      stroke-dasharray: 6 4;
+      animation: track-flow 0.8s linear infinite;
+      filter: drop-shadow(0 0 10px var(--crimson-glow));
+    }
+
+    .track-branch-decline {
+      stroke: var(--amber-primary);
+      stroke-width: 3.5;
+      stroke-dasharray: 6 4;
+      animation: track-flow 0.8s linear infinite;
+      filter: drop-shadow(0 0 10px var(--amber-glow));
+    }
+
+    @keyframes track-flow {
+      from { stroke-dashoffset: 28; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes track-flow-reverse {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: 28; }
+    }
+
+    /* Primary Pipeline Grid */
+    .nodes-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .node-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      cursor: pointer;
+    }
+
+    /* Node Circle Hub */
+    .node-circle {
+      width: clamp(58px, 12vw, 78px);
+      height: clamp(58px, 12vw, 78px);
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Permanent Glowing Emoji Icon */
+    .node-icon {
+      font-size: 1.95rem;
+      filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s;
+      z-index: 2;
+    }
+
+    .node-step-index {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #0d1a33;
+      border: 1px solid var(--border-card);
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+    }
+
+    /* Node States */
+    .node-wrapper.state-pending .node-circle {
+      border-color: rgba(255, 255, 255, 0.08);
+      background: rgba(6, 13, 27, 0.8);
+    }
+
+    .node-wrapper.state-active .node-circle {
+      border-color: var(--gold-primary);
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, #081122 80%);
+      box-shadow: 0 0 28px var(--gold-glow), inset 0 0 15px var(--gold-glow);
+      transform: scale(1.08);
+    }
+
+    .node-wrapper.state-active .node-icon {
+      filter: drop-shadow(0 0 12px var(--gold-light));
+      transform: scale(1.15);
+      animation: bob-icon 1.2s infinite ease-in-out;
+    }
+
+    @keyframes bob-icon {
+      0%, 100% { transform: translateY(0) scale(1.15); }
+      50% { transform: translateY(-3px) scale(1.2); }
+    }
+
+    .node-wrapper.state-completed .node-circle {
+      border-color: var(--emerald-primary);
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, #061521 80%);
+      box-shadow: 0 0 20px var(--emerald-glow);
+    }
+
+    .node-wrapper.state-completed .node-icon {
+      filter: drop-shadow(0 0 10px var(--emerald-light));
+    }
+
+    .node-wrapper.state-void .node-circle {
+      border-color: rgba(148, 163, 184, 0.15);
+      background: rgba(4, 8, 16, 0.6);
+      opacity: 0.35;
+      filter: grayscale(0.8);
+    }
+
+    .node-wrapper.state-reversing .node-circle {
+      border-color: var(--violet-primary);
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, #0c0822 80%);
+      box-shadow: 0 0 26px var(--violet-glow);
+      animation: pulse-violet 0.8s infinite alternate;
+    }
+
+    .node-wrapper.state-reversing .node-icon {
+      filter: drop-shadow(0 0 12px var(--violet-light));
+    }
+
+    .node-wrapper.state-reversed .node-circle {
+      border-color: rgba(139, 92, 246, 0.6);
+      background: #0e0a26;
+      box-shadow: 0 0 12px var(--violet-glow);
+    }
+
+    .node-wrapper.state-reversed .node-icon {
+      filter: drop-shadow(0 0 6px var(--violet-light));
+    }
+
+    /* Retry Badge for Node 5 */
+    .node-retry-badge {
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--amber-dark);
+      border: 1px solid var(--amber-light);
+      color: #fff;
+      font-size: 0.62rem;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      z-index: 4;
+      white-space: nowrap;
+      box-shadow: 0 0 8px var(--amber-glow);
+      display: none;
+    }
+
+    /* Node Text & Telemetry Box */
+    .node-meta-box {
+      margin-top: 14px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      width: 100%;
+    }
+
+    .node-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .node-sub {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .node-badge {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      transition: all 0.25s;
+    }
+
+    .state-active .node-badge {
+      background: var(--gold-dim);
+      border-color: var(--gold-primary);
+      color: var(--gold-light);
+    }
+
+    .state-completed .node-badge {
+      background: var(--emerald-dim);
+      border-color: var(--emerald-primary);
+      color: var(--emerald-light);
+    }
+
+    .state-reversing .node-badge {
+      background: var(--violet-dim);
+      border-color: var(--violet-primary);
+      color: var(--violet-light);
+    }
+
+    /* ==========================================================================
+       BIFURCATION BRANCHES CONTAINER (Node 3B & Node 4B)
+       ========================================================================== */
+    .bifurcations-container {
+      margin-top: 36px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .bifurcation-branch {
+      grid-column-span: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0.25;
+      transform: translateY(6px);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+
+    .bifurcation-branch.branch-active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .bifurcation-branch.branch-fraud {
+      grid-column-start: 3;
+    }
+
+    .bifurcation-branch.branch-decline {
+      grid-column-start: 4;
+    }
+
+    .branch-card {
+      background: rgba(18, 5, 10, 0.9);
+      border: 1px solid var(--crimson-primary);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 20px var(--crimson-glow);
+      width: 100%;
+      text-align: center;
+    }
+
+    .branch-card.decline-card {
+      background: rgba(22, 14, 4, 0.9);
+      border-color: var(--amber-primary);
+      box-shadow: 0 0 20px var(--amber-glow);
+    }
+
+    .branch-icon {
+      font-size: 1.8rem;
+      filter: drop-shadow(0 0 8px currentColor);
+    }
+
+    .branch-title {
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      color: var(--crimson-light);
+    }
+
+    .branch-card.decline-card .branch-title {
+      color: var(--amber-light);
+    }
+
+    .branch-desc {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      line-height: 1.25;
+    }
+
+    .branch-tag {
+      font-size: 0.62rem;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--crimson-light);
+      border: 1px solid var(--crimson-primary);
+    }
+
+    .branch-card.decline-card .branch-tag {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--amber-light);
+      border-color: var(--amber-primary);
+    }
+
+    /* ==========================================================================
+       SPLIT WORKSPACE (LOWER GRID)
+       ========================================================================== */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 1280px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Column: Risk Radar + Payment Card */
+    .telemetry-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Risk Radar Card */
+    .radar-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .radar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .radar-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      color: var(--gold-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .radar-score-badge {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: var(--radius-md);
+      background: var(--emerald-dim);
+      border: 1px solid var(--emerald-primary);
+      color: var(--emerald-light);
+      box-shadow: 0 0 10px var(--emerald-glow);
+      transition: all 0.3s;
+    }
+
+    .radar-score-badge.radar-high-risk {
+      background: var(--crimson-dim);
+      border-color: var(--crimson-primary);
+      color: var(--crimson-light);
+      box-shadow: 0 0 14px var(--crimson-glow);
+    }
+
+    .radar-score-badge.radar-med-risk {
+      background: var(--amber-dim);
+      border-color: var(--amber-primary);
+      color: var(--amber-light);
+      box-shadow: 0 0 14px var(--amber-glow);
+    }
+
+    .radar-canvas-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      width: 100%;
+      height: 240px;
+    }
+
+    #riskRadarCanvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .risk-features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .risk-feature-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .risk-bar-wrap {
+      width: 130px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .risk-bar-fill {
+      height: 100%;
+      width: 10%;
+      background: var(--emerald-primary);
+      border-radius: 3px;
+      transition: width 0.4s ease, background 0.4s ease;
+    }
+
+    /* Luxury Payment Card Mockup */
+    .card-mockup-wrapper {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .payment-card {
+      width: 100%;
+      min-height: 180px;
+      height: auto;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #111c33 0%, #080f1e 50%, #03060c 100%);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(245, 158, 11, 0.08);
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .payment-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 20%, rgba(245, 158, 11, 0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .card-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 2;
+    }
+
+    .card-chip {
+      width: 40px;
+      height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      position: relative;
+      box-shadow: 0 0 8px var(--gold-glow);
+    }
+
+    .card-brand-tag {
+      font-size: 0.95rem;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: 0.08em;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    .card-pan-display {
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      color: #f8fafc;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+      z-index: 2;
+    }
+
+    .card-bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      z-index: 2;
+    }
+
+    .card-holder-name {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .card-holder-val {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: 0.05em;
+    }
+
+    .card-exp-val {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #f1f5f9;
+    }
+
+    .card-vault-pill {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid var(--cyan-primary);
+      color: var(--cyan-light);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* ==========================================================================
+       RIGHT COLUMN: PAYLOAD INSPECTOR & TERMINAL
+       ========================================================================== */
+    .inspector-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .inspector-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .inspector-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      background: rgba(3, 8, 18, 0.7);
+      border-bottom: 1px solid var(--border-card);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tab-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .inspector-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .inspector-tab:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .inspector-tab.active-tab {
+      background: var(--gold-dim);
+      border: 1px solid var(--gold-primary);
+      color: var(--gold-light);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    .copy-btn {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid var(--border-card);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: rgba(51, 65, 85, 0.7);
+      color: #fff;
+    }
+
+    .inspector-pane {
+      display: none;
+      padding: 16px 20px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    .inspector-pane.active-pane {
+      display: block;
+    }
+
+    /* JSON Syntax Viewer */
+    .json-code {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .json-key { color: #38bdf8; }
+    .json-string { color: #34d399; }
+    .json-number { color: #fbbf24; }
+    .json-boolean { color: #f472b6; }
+    .json-null { color: #94a3b8; }
+    .json-highlight {
+      background: rgba(245, 158, 11, 0.18);
+      border-left: 2px solid var(--gold-primary);
+      display: inline-block;
+      width: 100%;
+    }
+
+    /* ISO-8583 Table */
+    .iso-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+    }
+
+    .iso-table th {
+      text-align: left;
+      padding: 8px 10px;
+      background: rgba(3, 8, 18, 0.8);
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .iso-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    .iso-table tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .iso-table tr.row-mutated {
+      background: rgba(245, 158, 11, 0.12);
+      border-left: 3px solid var(--gold-primary);
+      animation: flash-row 1s ease;
+    }
+
+    @keyframes flash-row {
+      0% { background: rgba(245, 158, 11, 0.35); }
+      100% { background: rgba(245, 158, 11, 0.12); }
+    }
+
+    .iso-field-id {
+      color: var(--cyan-light);
+      font-weight: 700;
+    }
+
+    .iso-field-name {
+      color: var(--text-muted);
+    }
+
+    .iso-field-val {
+      color: var(--gold-light);
+      word-break: break-all;
+    }
+
+    /* Cryptographic Receipt Seal Pane */
+    .receipt-seal-card {
+      background: linear-gradient(145deg, #091224, #040914);
+      border: 1px solid var(--emerald-primary);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 0 25px var(--emerald-glow);
+    }
+
+    .receipt-seal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed rgba(16, 185, 129, 0.3);
+      padding-bottom: 10px;
+    }
+
+    .receipt-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--emerald-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+    }
+
+    .receipt-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+    }
+
+    .receipt-item-label {
+      color: var(--text-muted);
+      font-size: 0.68rem;
+    }
+
+    .receipt-item-val {
+      color: #fff;
+      font-weight: 700;
+      word-break: break-all;
+    }
+
+    /* Terminal Console */
+    .terminal-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #030812;
+      border-bottom: 1px solid var(--border-card);
+    }
+
+    .terminal-title {
+      font-size: 0.74rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .terminal-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .terminal-body {
+      background: #030712;
+      padding: 12px 16px;
+      min-height: 150px;
+      max-height: 250px;
+      height: auto;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 8px;
+      animation: fade-in-log 0.2s ease;
+    }
+
+    @keyframes fade-in-log {
+      from { opacity: 0; transform: translateY(2px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-time { color: #64748b; }
+    .log-tag { font-weight: 700; }
+    .tag-info { color: #38bdf8; }
+    .tag-success { color: var(--emerald-light); }
+    .tag-warn { color: var(--amber-light); }
+    .tag-error { color: var(--crimson-light); }
+    .tag-reverse { color: var(--violet-light); }
+    .log-msg { color: #e2e8f0; }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(3, 8, 18, 0.8);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(245, 158, 11, 0.25);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(245, 158, 11, 0.5);
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: #081122;
+      border: 1px solid var(--gold-primary);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 15px var(--gold-glow);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slide-toast 0.3s ease;
+    }
+
+    .toast-danger {
+      border-color: var(--crimson-primary);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 15px var(--crimson-glow);
+    }
+
+    .toast-violet {
+      border-color: var(--violet-primary);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 15px var(--violet-glow);
+    }
+
+    @keyframes slide-toast {
+      from { transform: translateX(50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 900px) {
+      .app-container {
+        padding: 12px;
+      }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .control-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .scenario-group, .actions-group {
+        justify-content: stretch;
+      }
+      .scenario-btn, .btn {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+  
+  <div class="app-container">
+    <!-- ====================================================================
+         HEADER: BRANDING & HIGH-PRECISION 30s TTL HUD
+         ==================================================================== -->
+    <header class="header">
+      <div class="brand-section">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-title">
+          <h1>High-Frequency Transaction & Settlement Pipeline</h1>
+          <p>EMV 3DS 2.2 · ISO-8583 DYNAMIC CLEARING · REAL-TIME ML FRAUD DEFENSE · DISTRIBUTED LEDGER</p>
+        </div>
+      </div>
+
+      <div class="header-hud">
+        <div id="globalStatusPill" class="status-pill status-idle">
+          <span class="status-dot"></span>
+          <span id="statusText">SISTEMA ONLINE · IDLE</span>
+        </div>
+
+        <div class="ttl-clock-badge">
+          <div class="ttl-clock-label">
+            <div>SLA COUNTDOWN</div>
+            <div style="font-size:0.58rem; color:#64748b;">30.000s HIGH-PRECISION</div>
+          </div>
+          <div id="ttlDisplay" class="ttl-timer-display">30.000s</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ====================================================================
+         CONTROL PANEL & SCENARIOS DECK
+         ==================================================================== -->
+    <section class="control-deck">
+      <div class="control-row">
+        <div class="scenario-group">
+          <span class="scenario-label">🎯 Escenario:</span>
+          <button class="scenario-btn active-scenario" data-scenario="success">
+            <span>✨</span> Éxito (Normal)
+          </button>
+          <button class="scenario-btn" data-scenario="fraud">
+            <span>🚨</span> Fraude (Bloqueo)
+          </button>
+          <button class="scenario-btn" data-scenario="declined">
+            <span>⚠️</span> Fondos Insuficientes
+          </button>
+          <button class="scenario-btn" data-scenario="timeout">
+            <span>🔄</span> Timeout de Red (Retry)
+          </button>
+        </div>
+
+        <div class="actions-group">
+          <button id="btnProcess" class="btn btn-primary">
+            <span>▶</span> Procesar Transacción
+          </button>
+          <button id="btnStep" class="btn btn-secondary">
+            <span>⏭</span> Paso a Paso
+          </button>
+          <button id="btnReversal" class="btn btn-reversal" disabled>
+            <span>🔄</span> Reversar Transacción
+          </button>
+          <button id="btnReset" class="btn btn-secondary">
+            <span>↺</span> Resetear
+          </button>
+        </div>
+      </div>
+
+      <div class="controls-secondary">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>Velocidad de Simulación:</span>
+          <div class="speed-pills">
+            <button class="speed-btn" data-speed="0.5">0.5x</button>
+            <button class="speed-btn active-speed" data-speed="1">1.0x</button>
+            <button class="speed-btn" data-speed="2">2.0x</button>
+            <button class="speed-btn" data-speed="5">5.0x</button>
+          </div>
+        </div>
+
+        <label class="toggle-stream-wrap">
+          <span class="switch">
+            <input type="checkbox" id="chkAutoStream">
+            <span class="slider"></span>
+          </span>
+          <span>⚡ Modo Auto-Stream Continuo</span>
+        </label>
+
+        <div style="margin-left: auto; font-family: var(--font-mono); font-size: 0.7rem; color: #64748b;">
+          STAN: <span id="hdrStanVal" style="color: var(--gold-light); font-weight:700;">#684920</span> | IDEMPOTENCY NONCE: <span id="hdrNonceVal" style="color: var(--cyan-light);">e3b0c442...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         FINANCIAL TELEMETRY & ANIMATED LEDGER STATS
+         ==================================================================== -->
+    <section class="ledger-grid">
+      <div class="ledger-card" style="--card-accent: var(--gold-primary);">
+        <div class="ledger-header">
+          <span>Merchant Available Balance</span>
+          <span class="ledger-icon">🏦</span>
+        </div>
+        <div id="statBalance" class="ledger-value">$2,849,150.00</div>
+        <div class="ledger-sub">
+          <span id="statBalanceDelta" class="delta-tag delta-neutral">+$0.00 (Delta)</span>
+          <span>Liquidación en T+0</span>
+        </div>
+      </div>
+
+      <div class="ledger-card" style="--card-accent: var(--cyan-primary);">
+        <div class="ledger-header">
+          <span>In-Flight Escrow Lock</span>
+          <span class="ledger-icon">🔒</span>
+        </div>
+        <div id="statEscrow" class="ledger-value">$0.00</div>
+        <div class="ledger-sub">
+          <span id="statEscrowTag" class="delta-tag delta-neutral">IDLE</span>
+          <span>Reserva temporal en tránsito</span>
+        </div>
+      </div>
+
+      <div class="ledger-card" style="--card-accent: var(--emerald-primary);">
+        <div class="ledger-header">
+          <span>Clearing Rail & Fee</span>
+          <span class="ledger-icon">⚙️</span>
+        </div>
+        <div id="statFee" class="ledger-value">$0.00</div>
+        <div class="ledger-sub">
+          <span id="statRailTag" class="delta-tag delta-pos">FEDNOW INSTANT</span>
+          <span>1.75% + $0.30</span>
+        </div>
+      </div>
+
+      <div class="ledger-card" style="--card-accent: var(--violet-primary);">
+        <div class="ledger-header">
+          <span>24h Cleared Volume</span>
+          <span class="ledger-icon">📊</span>
+        </div>
+        <div id="statVolume" class="ledger-value">$1,420,890.00</div>
+        <div class="ledger-sub">
+          <span class="delta-tag delta-pos">+12.4%</span>
+          <span>99.999% SLA Uptime</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         PRIMARY 6-NODE PIPELINE & BIFURCATIONS VISUALIZER
+         ==================================================================== -->
+    <section class="pipeline-section">
+      <div class="pipeline-section-title">
+        <h2><span>⚡</span> Pipeline de Liquidación y Enrutamiento Multicapa</h2>
+        <div class="pipeline-meta">
+          ESTADO DEL MOTOR: <span id="engineStateBadge" style="color: var(--emerald-light); font-weight: 700;">STANDBY READY</span>
+        </div>
+      </div>
+
+      <div class="stepper-container" id="stepperContainer">
+        <!-- SVG Dynamic Track Overlay -->
+        <svg class="stepper-tracks-svg" id="tracksSvg">
+          <!-- Main linear tracks between 6 nodes (computed dynamically via JS) -->
+          <path id="track-1-2" class="track-base" d="M 120 49 L 260 49" />
+          <path id="track-2-3" class="track-base" d="M 290 49 L 430 49" />
+          <path id="track-3-4" class="track-base" d="M 460 49 L 600 49" />
+          <path id="track-4-5" class="track-base" d="M 630 49 L 770 49" />
+          <path id="track-5-6" class="track-base" d="M 800 49 L 940 49" />
+
+          <!-- Bifurcation Branch Lines -->
+          <path id="branch-track-fraud" class="track-base" d="M 445 88 Q 445 130 445 155" />
+          <path id="branch-track-decline" class="track-base" d="M 615 88 Q 615 130 615 155" />
+        </svg>
+
+        <!-- 6 Main Pipeline Nodes Grid -->
+        <div class="nodes-grid" id="mainNodesGrid">
+          <!-- Node 1: Order Capture -->
+          <div class="node-wrapper state-pending" id="node-1" data-step="1">
+            <div class="node-circle">
+              <span class="node-step-index">01</span>
+              <span class="node-icon">📝</span>
+            </div>
+            <div class="node-meta-box">
+              <div class="node-title">Captura & Hash</div>
+              <div class="node-sub">SHA-256 Nonce</div>
+              <span class="node-badge" id="badge-1">STANDBY</span>
+            </div>
+          </div>
+
+          <!-- Node 2: Tokenization & Luhn -->
+          <div class="node-wrapper state-pending" id="node-2" data-step="2">
+            <div class="node-circle">
+              <span class="node-step-index">02</span>
+              <span class="node-icon">🔍</span>
+            </div>
+            <div class="node-meta-box">
+              <div class="node-title">Token PCI & Luhn</div>
+              <div class="node-sub">BIN Vault Lock</div>
+              <span class="node-badge" id="badge-2">STANDBY</span>
+            </div>
+          </div>
+
+          <!-- Node 3: ML Fraud Engine -->
+          <div class="node-wrapper state-pending" id="node-3" data-step="3">
+            <div class="node-circle">
+              <span class="node-step-index">03</span>
+              <span class="node-icon">🛡️</span>
+            </div>
+            <div class="node-meta-box">
+              <div class="node-title">ML Antifraude</div>
+              <div class="node-sub">Risk Vector</div>
+              <span class="node-badge" id="badge-3">STANDBY</span>
+            </div>
+          </div>
+
+          <!-- Node 4: Bank Issuer 3DS 2.2 -->
+          <div class="node-wrapper state-pending" id="node-4" data-step="4">
+            <div class="node-circle">
+              <span class="node-step-index">04</span>
+              <span class="node-icon">🏦</span>
+            </div>
+            <div class="node-meta-box">
+              <div class="node-title">Auth 3DS 2.2</div>
+              <div class="node-sub">Issuer Handshake</div>
+              <span class="node-badge" id="badge-4">STANDBY</span>
+            </div>
+          </div>
+
+          <!-- Node 5: Liquidity Clearing Rail -->
+          <div class="node-wrapper state-pending" id="node-5" data-step="5">
+            <div class="node-circle">
+              <span class="node-step-index">05</span>
+              <span class="node-icon">⚙️</span>
+              <span class="node-retry-badge" id="retryBadge">RETRY 1/3</span>
+            </div>
+            <div class="node-meta-box">
+              <div class="node-title">Liquidación Rail</div>
+              <div class="node-sub">FedNow / Interbank</div>
+              <span class="node-badge" id="badge-5">STANDBY</span>
+            </div>
+          </div>
+
+          <!-- Node 6: Ledger Settlement Seal -->
+          <div class="node-wrapper state-pending" id="node-6" data-step="6">
+            <div class="node-circle">
+              <span class="node-step-index">06</span>
+              <span class="node-icon">✅</span>
+            </div>
+            <div class="node-meta-box">
+              <div class="node-title">Ledger Sellado</div>
+              <div class="node-sub">HMAC Receipt</div>
+              <span class="node-badge" id="badge-6">STANDBY</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Bifurcation Nodes (Positioned Under Node 3 and Node 4) -->
+        <div class="bifurcations-container">
+          <!-- Bifurcation 3B: Fraud Quarantine -->
+          <div class="bifurcation-branch branch-fraud" id="bifurcation-fraud">
+            <div class="branch-card">
+              <span class="branch-icon">🚨</span>
+              <span class="branch-title">Cuarentena SAR</span>
+              <p class="branch-desc">Riesgo &gt; 85 detectado. Bloqueo preventivo de fondos y reporte FinCEN SAR.</p>
+              <span class="branch-tag">HTTP 403 FRAUD_ALERT</span>
+            </div>
+          </div>
+
+          <!-- Bifurcation 4B: Hard Issuer Decline -->
+          <div class="bifurcation-branch branch-decline" id="bifurcation-decline">
+            <div class="branch-card decline-card">
+              <span class="branch-icon">⚠️</span>
+              <span class="branch-title">Rechazo Emisor</span>
+              <p class="branch-desc">Respuesta 51 (Fondos Insuficientes / Límite Excedido). Transacción cancelada.</p>
+              <span class="branch-tag">HTTP 402 INSUFFICIENT_FUNDS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SPLIT WORKSPACE: TELEMETRY & LIVE PAYLOAD INSPECTOR
+         ==================================================================== -->
+    <section class="workspace-grid">
+      <!-- LEFT COLUMN: RISK RADAR & LUXURY CARD MOCKUP -->
+      <div class="telemetry-column">
+        <!-- Dynamic Risk Radar Card -->
+        <div class="radar-card">
+          <div class="radar-header">
+            <div class="radar-title">
+              <span>🛡️</span> Radar de Riesgo Multidimensional
+            </div>
+            <div id="radarScoreBadge" class="radar-score-badge">
+              SCORE: 8.2 / 100
+            </div>
+          </div>
+
+          <div class="radar-canvas-wrap">
+            <canvas id="riskRadarCanvas"></canvas>
+          </div>
+
+          <div class="risk-features-list">
+            <div class="risk-feature-row">
+              <span>Velocidad de Peticiones:</span>
+              <div class="risk-bar-wrap"><div id="barVelocity" class="risk-bar-fill" style="width: 10%;"></div></div>
+              <span id="valVelocity">10.0</span>
+            </div>
+            <div class="risk-feature-row">
+              <span>Distancia Geográfica IP:</span>
+              <div class="risk-bar-wrap"><div id="barGeo" class="risk-bar-fill" style="width: 5%;"></div></div>
+              <span id="valGeo">5.0</span>
+            </div>
+            <div class="risk-feature-row">
+              <span>Entropía Dispositivo / Tor:</span>
+              <div class="risk-bar-wrap"><div id="barDevice" class="risk-bar-fill" style="width: 12%;"></div></div>
+              <span id="valDevice">12.0</span>
+            </div>
+            <div class="risk-feature-row">
+              <span>Biometría Conductual:</span>
+              <div class="risk-bar-wrap"><div id="barBio" class="risk-bar-fill" style="width: 8%;"></div></div>
+              <span id="valBio">8.0</span>
+            </div>
+            <div class="risk-feature-row">
+              <span>Historial Contracargos:</span>
+              <div class="risk-bar-wrap"><div id="barChargeback" class="risk-bar-fill" style="width: 5%;"></div></div>
+              <span id="valChargeback">5.0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Luxury Card Mockup -->
+        <div class="card-mockup-wrapper">
+          <div class="payment-card">
+            <div class="card-top-row">
+              <div class="card-chip"></div>
+              <div id="cardBrandTag" class="card-brand-tag">VISA</div>
+            </div>
+            <div id="cardPanDisplay" class="card-pan-display">
+              4111 •••• •••• 7248
+            </div>
+            <div class="card-bottom-row">
+              <div>
+                <div class="card-holder-name">Titular de la Tarjeta</div>
+                <div id="cardHolderVal" class="card-holder-val">ALEJANDRO SILVA</div>
+              </div>
+              <div style="text-align: right;">
+                <div class="card-holder-name">Expira</div>
+                <div id="cardExpVal" class="card-exp-val">12/28</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-vault-pill">
+            <span>PCI VAULT TOKEN:</span>
+            <span id="vaultTokenDisplay" style="font-weight:700;">tkn_live_sec_994827103a8f</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: PAYLOAD INSPECTOR & TERMINAL CONSOLE -->
+      <div class="inspector-column">
+        <!-- Live Payload Inspector -->
+        <div class="inspector-card">
+          <div class="inspector-header">
+            <div class="tab-group">
+              <button class="inspector-tab active-tab" data-tab="json">
+                <span>{ }</span> JSON Payload
+              </button>
+              <button class="inspector-tab" data-tab="iso">
+                <span>📋</span> ISO-8583 Bitmap
+              </button>
+              <button class="inspector-tab" data-tab="receipt">
+                <span>🔏</span> Sello de Recibo
+              </button>
+            </div>
+            <button id="btnCopyInspector" class="copy-btn">
+              <span>📋</span> Copiar Contenido
+            </button>
+          </div>
+
+          <!-- Tab 1: JSON Payload -->
+          <div class="inspector-pane active-pane" id="pane-json">
+            <pre class="json-code" id="jsonViewer"></pre>
+          </div>
+
+          <!-- Tab 2: ISO-8583 Table -->
+          <div class="inspector-pane" id="pane-iso">
+            <table class="iso-table">
+              <thead>
+                <tr>
+                  <th style="width: 70px;">Campo</th>
+                  <th>Definición ISO-8583</th>
+                  <th>Valor Evaluado</th>
+                </tr>
+              </thead>
+              <tbody id="isoTableBody">
+                <!-- Injected via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Tab 3: Receipt Seal -->
+          <div class="inspector-pane" id="pane-receipt">
+            <div class="receipt-seal-card" id="receiptCard">
+              <div class="receipt-seal-header">
+                <div class="receipt-title">
+                  <span>🔏</span> Sello Criptográfico Inmutable
+                </div>
+                <span id="receiptBadgeStatus" class="delta-tag delta-pos">SETTLED & CONFIRMED</span>
+              </div>
+              <div class="receipt-grid">
+                <div>
+                  <div class="receipt-item-label">ID TRANSACCIÓN:</div>
+                  <div class="receipt-item-val" id="recTxId">TX-2026-98421</div>
+                </div>
+                <div>
+                  <div class="receipt-item-label">STAN (TRACE NUMBER):</div>
+                  <div class="receipt-item-val" id="recStan">684920</div>
+                </div>
+                <div>
+                  <div class="receipt-item-label">MONTO TOTAL:</div>
+                  <div class="receipt-item-val" id="recAmount" style="color: var(--emerald-light);">$525.50 USD</div>
+                </div>
+                <div>
+                  <div class="receipt-item-label">COMISIÓN RED (FEE):</div>
+                  <div class="receipt-item-val" id="recFee">-$9.50 USD</div>
+                </div>
+                <div>
+                  <div class="receipt-item-label">AUTORIZACIÓN EMISOR:</div>
+                  <div class="receipt-item-val" id="recAuth">AUTH_982341 (APPR)</div>
+                </div>
+                <div>
+                  <div class="receipt-item-label">TIMESTAMP UTC:</div>
+                  <div class="receipt-item-val" id="recTime">2026-08-19 23:30:15.892Z</div>
+                </div>
+                <div style="grid-column: span 2;">
+                  <div class="receipt-item-label">HMAC-SHA256 DIGITAL SEAL:</div>
+                  <div class="receipt-item-val" id="recHmac" style="color: var(--gold-light); font-size: 0.68rem;">HMAC_SHA256_SEAL_998124b89caef301982bfe</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ANSI Streaming Audit Log Terminal -->
+        <div class="terminal-card">
+          <div class="terminal-header">
+            <div class="terminal-title">
+              <span>🖥️</span> TERMINAL DE TELEMETRÍA FINANCIERA & AUDITORÍA EN TIEMPO REAL
+            </div>
+            <div class="terminal-actions">
+              <button id="btnClearLog" class="copy-btn" style="padding: 2px 8px; font-size: 0.65rem;">
+                Limpiar Terminal
+              </button>
+            </div>
+          </div>
+          <div class="terminal-body" id="terminalLog">
+            <!-- Streaming log lines injected here -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ==========================================================================
+       PURE JAVASCRIPT STATE MACHINE & SIMULATION ENGINE
+       ========================================================================== -->
+  <script>
+    /**
+     * HIGH-FREQUENCY TRANSACTION & SETTLEMENT PIPELINE ENGINE
+     * Implements EMV 3DS 2.2, ISO-8583, PCI-DSS Luhn tokenization,
+     * Dynamic ML Risk Radar, 30s TTL Microsecond SLA Clock, and Bi-directional Reversal.
+     */
+
+    // --- Scenario Definitions ---
+    const SCENARIOS = {
+      success: {
+        name: "Success (Normal Settlement)",
+        orderId: "ORD-2026-98421",
+        amount: 525.50,
+        currency: "USD",
+        merchantId: "MERCH-LUX-0091",
+        card: {
+          pan: "4111723526077248",
+          maskedPan: "4111 •••• •••• 7248",
+          holder: "ALEJANDRO SILVA",
+          exp: "12/28",
+          brand: "VISA INFINITE",
+          bin: "411172"
+        },
+        risk: {
+          velocity: 10.0,
+          geo: 5.0,
+          device: 12.0,
+          bio: 8.0,
+          chargeback: 5.0,
+          get score() {
+            return +(0.25 * this.velocity + 0.25 * this.geo + 0.20 * this.device + 0.15 * this.bio + 0.15 * this.chargeback).toFixed(1);
+          }
+        },
+        issuerResponse: { code: "00", desc: "Approved", authId: "AUTH_982341" },
+        clearing: { rail: "FEDNOW_INSTANT", fee: 9.50, retriesNeeded: 0 },
+        expectedOutcome: "SETTLED"
+      },
+      fraud: {
+        name: "Fraud Triggered (Blocked)",
+        orderId: "ORD-2026-99104",
+        amount: 9840.00,
+        currency: "USD",
+        merchantId: "MERCH-LUX-0091",
+        card: {
+          pan: "5500196518495684",
+          maskedPan: "5500 •••• •••• 5684",
+          holder: "VIKTOR KRAVCHENKO",
+          exp: "08/27",
+          brand: "MASTERCARD WORLD",
+          bin: "550019"
+        },
+        risk: {
+          velocity: 95.0,
+          geo: 98.0,
+          device: 92.0,
+          bio: 88.0,
+          chargeback: 90.0,
+          get score() {
+            return +(0.25 * this.velocity + 0.25 * this.geo + 0.20 * this.device + 0.15 * this.bio + 0.15 * this.chargeback).toFixed(1);
+          }
+        },
+        issuerResponse: { code: "00", desc: "Approved", authId: "AUTH_000000" },
+        clearing: { rail: "FEDNOW_INSTANT", fee: 172.50, retriesNeeded: 0 },
+        expectedOutcome: "FRAUD_BLOCKED"
+      },
+      declined: {
+        name: "Insufficient Funds (Declined)",
+        orderId: "ORD-2026-99342",
+        amount: 3450.00,
+        currency: "USD",
+        merchantId: "MERCH-LUX-0091",
+        card: {
+          pan: "378282873692337",
+          maskedPan: "3782 •••••• •2337",
+          holder: "CAMILA VERGARA",
+          exp: "05/29",
+          brand: "AMEX PLATINUM",
+          bin: "378282"
+        },
+        risk: {
+          velocity: 18.0,
+          geo: 12.0,
+          device: 15.0,
+          bio: 10.0,
+          chargeback: 8.0,
+          get score() {
+            return +(0.25 * this.velocity + 0.25 * this.geo + 0.20 * this.device + 0.15 * this.bio + 0.15 * this.chargeback).toFixed(1);
+          }
+        },
+        issuerResponse: { code: "51", desc: "Insufficient Funds / Credit Limit Exceeded", authId: "DECLINED_NSF" },
+        clearing: { rail: "FEDNOW_INSTANT", fee: 60.67, retriesNeeded: 0 },
+        expectedOutcome: "DECLINED"
+      },
+      timeout: {
+        name: "Network Timeout (Retry Flow)",
+        orderId: "ORD-2026-99551",
+        amount: 1200.00,
+        currency: "USD",
+        merchantId: "MERCH-LUX-0091",
+        card: {
+          pan: "4111821416425277",
+          maskedPan: "4111 •••• •••• 5277",
+          holder: "ESTEBAN MORALES",
+          exp: "10/30",
+          brand: "VISA SIGNATURE",
+          bin: "411182"
+        },
+        risk: {
+          velocity: 12.0,
+          geo: 8.0,
+          device: 10.0,
+          bio: 9.0,
+          chargeback: 6.0,
+          get score() {
+            return +(0.25 * this.velocity + 0.25 * this.geo + 0.20 * this.device + 0.15 * this.bio + 0.15 * this.chargeback).toFixed(1);
+          }
+        },
+        issuerResponse: { code: "00", desc: "Approved", authId: "AUTH_819204" },
+        clearing: { rail: "VISA_DIRECT_BACKUP", fee: 21.30, retriesNeeded: 2 },
+        expectedOutcome: "SETTLED_WITH_RETRY"
+      }
+    };
+
+    // --- State Machine Management ---
+    class PipelineEngine {
+      constructor() {
+        this.currentScenarioKey = "success";
+        this.scenario = SCENARIOS.success;
+        this.speedMultiplier = 1.0;
+        this.autoStream = false;
+        this.autoStreamTimer = null;
+
+        // Pipeline States: 'IDLE', 'RUNNING', 'PAUSED_STEP', 'SETTLED', 'FRAUD_QUARANTINE', 'DECLINED', 'REVERSING', 'REVERSED'
+        this.state = 'IDLE';
+        this.currentStep = 0; // 0..6
+        this.stepInProgress = false;
+
+        // Microsecond TTL SLA Clock (30s max)
+        this.ttlRemaining = 30000;
+        this.ttlStartTime = 0;
+        this.ttlTimerRaf = null;
+
+        // Financial Balances
+        this.baseBalance = 2849150.00;
+        this.currentBalance = 2849150.00;
+        this.inFlightEscrow = 0.00;
+        this.clearedVolume = 1420890.00;
+        this.lastSettledTx = null;
+
+        // Current Dynamic Payloads
+        this.stan = 684920;
+        this.nonce = this.generateNonce();
+        this.currentPayload = null;
+        this.isoFields = [];
+
+        // Setup DOM Hooks & Listeners
+        this.initDom();
+        this.initRadarCanvas();
+        this.updateSvgTrackPositions();
+        this.loadScenario("success");
+
+        window.addEventListener('resize', () => {
+          this.updateSvgTrackPositions();
+          this.renderRadar();
+        });
+      }
+
+      generateNonce() {
+        return Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+      }
+
+      initDom() {
+        // Elements
+        this.dom = {
+          globalStatusPill: document.getElementById('globalStatusPill'),
+          statusText: document.getElementById('statusText'),
+          ttlDisplay: document.getElementById('ttlDisplay'),
+          hdrStanVal: document.getElementById('hdrStanVal'),
+          hdrNonceVal: document.getElementById('hdrNonceVal'),
+          engineStateBadge: document.getElementById('engineStateBadge'),
+
+          statBalance: document.getElementById('statBalance'),
+          statBalanceDelta: document.getElementById('statBalanceDelta'),
+          statEscrow: document.getElementById('statEscrow'),
+          statEscrowTag: document.getElementById('statEscrowTag'),
+          statFee: document.getElementById('statFee'),
+          statRailTag: document.getElementById('statRailTag'),
+          statVolume: document.getElementById('statVolume'),
+
+          retryBadge: document.getElementById('retryBadge'),
+          bifurcationFraud: document.getElementById('bifurcation-fraud'),
+          bifurcationDecline: document.getElementById('bifurcation-decline'),
+
+          radarScoreBadge: document.getElementById('radarScoreBadge'),
+          valVelocity: document.getElementById('valVelocity'),
+          valGeo: document.getElementById('valGeo'),
+          valDevice: document.getElementById('valDevice'),
+          valBio: document.getElementById('valBio'),
+          valChargeback: document.getElementById('valChargeback'),
+          barVelocity: document.getElementById('barVelocity'),
+          barGeo: document.getElementById('barGeo'),
+          barDevice: document.getElementById('barDevice'),
+          barBio: document.getElementById('barBio'),
+          barChargeback: document.getElementById('barChargeback'),
+
+          cardPanDisplay: document.getElementById('cardPanDisplay'),
+          cardHolderVal: document.getElementById('cardHolderVal'),
+          cardExpVal: document.getElementById('cardExpVal'),
+          cardBrandTag: document.getElementById('cardBrandTag'),
+          vaultTokenDisplay: document.getElementById('vaultTokenDisplay'),
+
+          jsonViewer: document.getElementById('jsonViewer'),
+          isoTableBody: document.getElementById('isoTableBody'),
+          receiptCard: document.getElementById('receiptCard'),
+          recTxId: document.getElementById('recTxId'),
+          recStan: document.getElementById('recStan'),
+          recAmount: document.getElementById('recAmount'),
+          recFee: document.getElementById('recFee'),
+          recAuth: document.getElementById('recAuth'),
+          recTime: document.getElementById('recTime'),
+          recHmac: document.getElementById('recHmac'),
+          receiptBadgeStatus: document.getElementById('receiptBadgeStatus'),
+
+          terminalLog: document.getElementById('terminalLog'),
+          toastContainer: document.getElementById('toastContainer'),
+
+          btnProcess: document.getElementById('btnProcess'),
+          btnStep: document.getElementById('btnStep'),
+          btnReversal: document.getElementById('btnReversal'),
+          btnReset: document.getElementById('btnReset'),
+          btnCopyInspector: document.getElementById('btnCopyInspector'),
+          btnClearLog: document.getElementById('btnClearLog'),
+          chkAutoStream: document.getElementById('chkAutoStream')
+        };
+
+        // Scenarios Click Listeners
+        document.querySelectorAll('.scenario-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (this.state === 'RUNNING' || this.state === 'REVERSING') return;
+            document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active-scenario'));
+            btn.classList.add('active-scenario');
+            this.loadScenario(btn.dataset.scenario);
+          });
+        });
+
+        // Speed Click Listeners
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active-speed'));
+            btn.classList.add('active-speed');
+            this.speedMultiplier = parseFloat(btn.dataset.speed) || 1.0;
+            this.log('INFO', `Velocidad ajustada a ${this.speedMultiplier}x`);
+          });
+        });
+
+        // Inspector Tabs
+        document.querySelectorAll('.inspector-tab').forEach(tab => {
+          tab.addEventListener('click', () => {
+            document.querySelectorAll('.inspector-tab').forEach(t => t.classList.remove('active-tab'));
+            document.querySelectorAll('.inspector-pane').forEach(p => p.classList.remove('active-pane'));
+            tab.classList.add('active-tab');
+            document.getElementById(`pane-${tab.dataset.tab}`).classList.add('active-pane');
+          });
+        });
+
+        // Action Buttons
+        this.dom.btnProcess.addEventListener('click', () => this.startProcess());
+        this.dom.btnStep.addEventListener('click', () => this.stepNext());
+        this.dom.btnReversal.addEventListener('click', () => this.startReversal());
+        this.dom.btnReset.addEventListener('click', () => this.resetPipeline());
+        this.dom.btnClearLog.addEventListener('click', () => {
+          this.dom.terminalLog.innerHTML = '';
+          this.log('INFO', 'Consola de auditoría limpiada.');
+        });
+        this.dom.btnCopyInspector.addEventListener('click', () => this.copyActiveInspector());
+
+        this.dom.chkAutoStream.addEventListener('change', (e) => {
+          this.autoStream = e.target.checked;
+          if (this.autoStream) {
+            this.log('SUCCESS', '⚡ MODO AUTO-STREAM CONTINUO ACTIVADO');
+            this.runAutoStreamLoop();
+          } else {
+            this.log('INFO', 'Modo Auto-Stream pausado.');
+            clearTimeout(this.autoStreamTimer);
+          }
+        });
+
+        // Node click drilldown listener
+        document.querySelectorAll('.node-wrapper').forEach(nodeEl => {
+          nodeEl.addEventListener('click', () => {
+            const stepNum = parseInt(nodeEl.dataset.step);
+            this.log('INFO', `Inspección de nodo #${stepNum}: ${nodeEl.querySelector('.node-title').textContent}`);
+          });
+        });
+      }
+
+      loadScenario(key) {
+        this.currentScenarioKey = key;
+        this.scenario = SCENARIOS[key];
+        this.resetPipeline();
+
+        // Update Header & Card Preview
+        this.dom.cardPanDisplay.textContent = this.scenario.card.maskedPan;
+        this.dom.cardHolderVal.textContent = this.scenario.card.holder;
+        this.dom.cardExpVal.textContent = this.scenario.card.exp;
+        this.dom.cardBrandTag.textContent = this.scenario.card.brand.split(' ')[0];
+        this.dom.vaultTokenDisplay.textContent = `tkn_live_sec_${this.scenario.card.bin}${Math.floor(100000 + Math.random()*900000)}`;
+
+        // Update Risk values
+        this.renderRiskValues(this.scenario.risk);
+        this.renderRadar();
+
+        // Build Initial Payload Preview
+        this.stan++;
+        this.nonce = this.generateNonce();
+        this.dom.hdrStanVal.textContent = `#${this.stan}`;
+        this.dom.hdrNonceVal.textContent = `${this.nonce.slice(0, 8)}...`;
+
+        this.buildPayload(0);
+        this.renderInspector();
+
+        this.log('INFO', `Escenario cargado: [${this.scenario.name}] - Monto: $${this.scenario.amount.toFixed(2)} ${this.scenario.currency}`);
+      }
+
+      resetPipeline() {
+        this.stopTtlTimer();
+        this.ttlRemaining = 30000;
+        this.updateTtlDisplay(30000);
+
+        this.state = 'IDLE';
+        this.currentStep = 0;
+        this.stepInProgress = false;
+
+        // Reset Status
+        this.setStatus('IDLE', 'SISTEMA ONLINE · IDLE', 'status-idle');
+        this.dom.engineStateBadge.textContent = 'STANDBY READY';
+        this.dom.engineStateBadge.style.color = 'var(--emerald-light)';
+
+        // Reset Nodes
+        for (let i = 1; i <= 6; i++) {
+          const node = document.getElementById(`node-${i}`);
+          node.className = 'node-wrapper state-pending';
+          document.getElementById(`badge-${i}`).textContent = 'STANDBY';
+        }
+
+        // Hide Retry Badge & Bifurcations
+        this.dom.retryBadge.style.display = 'none';
+        this.dom.bifurcationFraud.classList.remove('branch-active');
+        this.dom.bifurcationDecline.classList.remove('branch-active');
+
+        // Reset SVG Tracks
+        document.querySelectorAll('.stepper-tracks-svg path').forEach(p => {
+          p.className.baseVal = 'track-base';
+        });
+
+        // Reset Escrow & Reversal Button
+        this.inFlightEscrow = 0.00;
+        this.animateCurrency(this.dom.statEscrow, 0.00);
+        this.dom.statEscrowTag.textContent = 'IDLE';
+        this.dom.statEscrowTag.className = 'delta-tag delta-neutral';
+        this.dom.statFee.textContent = '$0.00';
+        this.dom.btnReversal.disabled = true;
+        this.dom.btnReversal.classList.remove('reversal-active');
+        this.dom.btnProcess.disabled = false;
+        this.dom.btnStep.disabled = false;
+
+        this.buildPayload(0);
+        this.renderInspector();
+      }
+
+      setStatus(state, text, pillClass) {
+        this.state = state;
+        this.dom.statusText.textContent = text;
+        this.dom.globalStatusPill.className = `status-pill ${pillClass}`;
+      }
+
+      /* ====================================================================
+         HIGH PRECISION TTL SLA TIMER (Microseconds)
+         ==================================================================== */
+      startTtlTimer() {
+        this.stopTtlTimer();
+        this.ttlStartTime = performance.now();
+        const initialBudget = 30000;
+
+        const tick = () => {
+          const elapsed = performance.now() - this.ttlStartTime;
+          this.ttlRemaining = Math.max(0, initialBudget - elapsed);
+          this.updateTtlDisplay(this.ttlRemaining);
+
+          if (this.ttlRemaining > 0 && (this.state === 'RUNNING' || this.state === 'PAUSED_STEP')) {
+            this.ttlTimerRaf = requestAnimationFrame(tick);
+          } else if (this.ttlRemaining <= 0) {
+            this.handleTtlTimeout();
+          }
+        };
+
+        this.ttlTimerRaf = requestAnimationFrame(tick);
+      }
+
+      stopTtlTimer() {
+        if (this.ttlTimerRaf) {
+          cancelAnimationFrame(this.ttlTimerRaf);
+          this.ttlTimerRaf = null;
+        }
+      }
+
+      updateTtlDisplay(msRemaining) {
+        const secs = Math.floor(msRemaining / 1000);
+        const millis = Math.floor(msRemaining % 1000);
+        const text = `${String(secs).padStart(2, '0')}.${String(millis).padStart(3, '0')}s`;
+        this.dom.ttlDisplay.textContent = text;
+
+        if (msRemaining > 15000) {
+          this.dom.ttlDisplay.className = 'ttl-timer-display';
+        } else if (msRemaining > 5000) {
+          this.dom.ttlDisplay.className = 'ttl-timer-display ttl-warning';
+        } else {
+          this.dom.ttlDisplay.className = 'ttl-timer-display ttl-danger';
+        }
+      }
+
+      handleTtlTimeout() {
+        this.stopTtlTimer();
+        this.setStatus('TIMEOUT', 'SLA 30s VENCIDO · ABORTADO', 'status-fraud');
+        this.log('ERROR', '🚨 SLA TIMEOUT: La transacción excedió la ventana crítica de 30.000s');
+        this.showToast('SLA TIMEOUT: Transacción abortada por exceder 30s', true);
+        this.dom.btnProcess.disabled = true;
+        this.dom.btnStep.disabled = true;
+      }
+
+      /* ====================================================================
+         PIPELINE EXECUTION LOGIC
+         ==================================================================== */
+      startProcess() {
+        if (this.state === 'RUNNING') return;
+        if (this.currentStep === 0) {
+          this.resetPipeline();
+          this.startTtlTimer();
+          this.setStatus('RUNNING', 'PROCESANDO PIPELINE...', 'status-processing');
+          this.dom.engineStateBadge.textContent = 'EXECUTING AUTOMATIC';
+          this.dom.engineStateBadge.style.color = 'var(--gold-light)';
+          this.dom.btnProcess.disabled = true;
+        }
+        this.runNextStepAuto();
+      }
+
+      stepNext() {
+        if (this.stepInProgress) return;
+        if (this.state === 'IDLE') {
+          this.resetPipeline();
+          this.startTtlTimer();
+          this.setStatus('PAUSED_STEP', 'MODO PASO A PASO ACTIVO', 'status-processing');
+          this.dom.engineStateBadge.textContent = 'STEP-BY-STEP MANUAL';
+          this.dom.engineStateBadge.style.color = 'var(--cyan-light)';
+        }
+        this.executeStep(this.currentStep + 1, false);
+      }
+
+      runNextStepAuto() {
+        if (this.state !== 'RUNNING' && this.state !== 'IDLE') return;
+        if (this.currentStep >= 6) return;
+
+        const nextStep = this.currentStep + 1;
+        this.executeStep(nextStep, true);
+      }
+
+      async executeStep(stepIndex, isAuto) {
+        if (stepIndex > 6 || this.stepInProgress) return;
+        this.stepInProgress = true;
+        this.currentStep = stepIndex;
+
+        const node = document.getElementById(`node-${stepIndex}`);
+        const badge = document.getElementById(`badge-${stepIndex}`);
+        node.className = 'node-wrapper state-active';
+        badge.textContent = 'RUNNING';
+
+        // Animate incoming track
+        if (stepIndex > 1) {
+          const track = document.getElementById(`track-${stepIndex - 1}-${stepIndex}`);
+          if (track) track.className.baseVal = 'track-active';
+        }
+
+        // Calculate step base delay with speed multiplier
+        const baseDurations = [0, 700, 850, 1000, 1100, 950, 800];
+        const delay = (baseDurations[stepIndex] || 800) / this.speedMultiplier;
+
+        // Step Specific Operations
+        switch (stepIndex) {
+          case 1:
+            // Node 1: Order Capture & Nonce Hashing
+            this.log('INFO', `[NODO 1] Capturando Orden ${this.scenario.orderId} - Monto $${this.scenario.amount.toFixed(2)} USD`);
+            this.inFlightEscrow = this.scenario.amount;
+            this.animateCurrency(this.dom.statEscrow, this.inFlightEscrow);
+            this.dom.statEscrowTag.textContent = 'ESCROW LOCKED';
+            this.dom.statEscrowTag.className = 'delta-tag delta-neutral';
+            await this.sleep(delay);
+            this.log('SUCCESS', `[NODO 1] Nonce SHA-256 Verificado: ${this.nonce.slice(0, 16)}... STAN #${this.stan}`);
+            badge.textContent = 'HASH OK';
+            node.className = 'node-wrapper state-completed';
+            if (document.getElementById('track-1-2')) document.getElementById('track-1-2').className.baseVal = 'track-complete';
+            break;
+
+          case 2:
+            // Node 2: Luhn Validation & Card Tokenization
+            this.log('INFO', `[NODO 2] Modulo-10 Luhn Check en PAN ${this.scenario.card.maskedPan}`);
+            await this.sleep(delay * 0.4);
+            const isValidLuhn = this.checkLuhn(this.scenario.card.pan);
+            this.log('SUCCESS', `[NODO 2] Luhn Check: ${isValidLuhn ? 'VALIDO' : 'FALLIDO'} · Token emitido: ${this.dom.vaultTokenDisplay.textContent}`);
+            await this.sleep(delay * 0.6);
+            badge.textContent = 'PCI TOKEN OK';
+            node.className = 'node-wrapper state-completed';
+            if (document.getElementById('track-2-3')) document.getElementById('track-2-3').className.baseVal = 'track-complete';
+            break;
+
+          case 3:
+            // Node 3: Real-Time Fraud ML Scoring
+            this.log('INFO', `[NODO 3] Evaluando vector de riesgo ML (5 dimensiones)...`);
+            await this.sleep(delay);
+            const score = this.scenario.risk.score;
+            this.log('INFO', `[NODO 3] Score ML calculado: ${score}/100 (Umbral Rechazo: 85.0)`);
+
+            if (score > 85.0) {
+              // BIFURCATION B: FRAUD BLOCK
+              this.log('ERROR', `🚨 [BIFURCACIÓN] ALERTA DE FRAUDE CRÍTICO (${score} > 85). Desviando a Cuarentena SAR.`);
+              badge.textContent = 'CRITICAL FRAUD';
+              badge.style.color = 'var(--crimson-light)';
+              node.className = 'node-wrapper state-completed';
+              
+              // Light up branch track & quarantine card
+              const branchTrack = document.getElementById('branch-track-fraud');
+              if (branchTrack) branchTrack.className.baseVal = 'track-branch-fraud';
+              this.dom.bifurcationFraud.classList.add('branch-active');
+
+              // Void downstream nodes 4, 5, 6
+              for (let v = 4; v <= 6; v++) {
+                document.getElementById(`node-${v}`).className = 'node-wrapper state-void';
+                document.getElementById(`badge-${v}`).textContent = 'VOID';
+              }
+
+              this.setStatus('FRAUD_QUARANTINE', '🚨 FRAUDE DETECTADO · CUARENTENA SAR', 'status-fraud');
+              this.dom.engineStateBadge.textContent = 'TRANSACTION QUARANTINED';
+              this.dom.engineStateBadge.style.color = 'var(--crimson-light)';
+              this.stopTtlTimer();
+              this.inFlightEscrow = 0;
+              this.animateCurrency(this.dom.statEscrow, 0);
+              this.dom.statEscrowTag.textContent = 'RELEASED (VOID)';
+              this.showToast('ALERTA SAR: Transacción bloqueada por alto riesgo de fraude', true);
+              this.stepInProgress = false;
+              this.dom.btnProcess.disabled = true;
+              this.dom.btnStep.disabled = true;
+              this.buildPayload(3, true);
+              this.renderInspector();
+              if (this.autoStream) this.scheduleNextAutoStream();
+              return;
+            } else {
+              badge.textContent = `PASS (${score})`;
+              node.className = 'node-wrapper state-completed';
+              if (document.getElementById('track-3-4')) document.getElementById('track-3-4').className.baseVal = 'track-complete';
+            }
+            break;
+
+          case 4:
+            // Node 4: Bank Issuer 3D-Secure 2.2 Auth Handshake
+            this.log('INFO', `[NODO 4] EMV 3DS 2.2 Handshake con Emisor (${this.scenario.card.brand})...`);
+            await this.sleep(delay);
+
+            if (this.scenario.issuerResponse.code !== '00') {
+              // BIFURCATION C: ISSUER DECLINE
+              this.log('WARN', `⚠️ [BIFURCACIÓN] RECHAZO EMISOR: Código ${this.scenario.issuerResponse.code} - ${this.scenario.issuerResponse.desc}`);
+              badge.textContent = `DECLINED (${this.scenario.issuerResponse.code})`;
+              badge.style.color = 'var(--amber-light)';
+              node.className = 'node-wrapper state-completed';
+
+              const branchTrack = document.getElementById('branch-track-decline');
+              if (branchTrack) branchTrack.className.baseVal = 'track-branch-decline';
+              this.dom.bifurcationDecline.classList.add('branch-active');
+
+              // Void downstream nodes 5, 6
+              for (let v = 5; v <= 6; v++) {
+                document.getElementById(`node-${v}`).className = 'node-wrapper state-void';
+                document.getElementById(`badge-${v}`).textContent = 'ABORTED';
+              }
+
+              this.setStatus('DECLINED', '⚠️ FONDOS INSUFICIENTES · RECHAZO 51', 'status-declined');
+              this.dom.engineStateBadge.textContent = 'ISSUER DECLINED (402)';
+              this.dom.engineStateBadge.style.color = 'var(--amber-light)';
+              this.stopTtlTimer();
+              this.inFlightEscrow = 0;
+              this.animateCurrency(this.dom.statEscrow, 0);
+              this.dom.statEscrowTag.textContent = 'RELEASED (DECLINE)';
+              this.showToast('RECHAZO: Fondos insuficientes en la cuenta del emisor', false);
+              this.stepInProgress = false;
+              this.dom.btnProcess.disabled = true;
+              this.dom.btnStep.disabled = true;
+              this.buildPayload(4, false, true);
+              this.renderInspector();
+              if (this.autoStream) this.scheduleNextAutoStream();
+              return;
+            } else {
+              this.log('SUCCESS', `[NODO 4] Autorización Aprobada: ${this.scenario.issuerResponse.authId} (Código 00)`);
+              badge.textContent = '3DS AUTH OK';
+              node.className = 'node-wrapper state-completed';
+              if (document.getElementById('track-4-5')) document.getElementById('track-4-5').className.baseVal = 'track-complete';
+            }
+            break;
+
+          case 5:
+            // Node 5: Liquidity & Clearing Rail (with optional retry flow)
+            this.log('INFO', `[NODO 5] Enrutando por red de liquidación: ${this.scenario.clearing.rail}`);
+            
+            if (this.scenario.clearing.retriesNeeded > 0) {
+              // Simulate Retry loop
+              this.dom.retryBadge.style.display = 'block';
+              for (let r = 1; r <= this.scenario.clearing.retriesNeeded; r++) {
+                this.dom.retryBadge.textContent = `RETRY ${r}/3 (504 LAG)`;
+                this.log('WARN', `[NODO 5] ⚠️ Gateway 504 Timeout en intento #${r}. Reintentando con Backoff Exponencial...`);
+                await this.sleep((800 * r) / this.speedMultiplier);
+              }
+              this.log('SUCCESS', `[NODO 5] Failover activado -> Conectado exitosamente a riel secundario FedNow/VisaDirect`);
+              this.dom.retryBadge.textContent = 'FAILOVER OK';
+              this.dom.retryBadge.style.background = 'var(--emerald-dark)';
+            }
+
+            await this.sleep(delay);
+            this.dom.statFee.textContent = `-$${this.scenario.clearing.fee.toFixed(2)}`;
+            this.dom.statRailTag.textContent = this.scenario.clearing.rail;
+            this.log('SUCCESS', `[NODO 5] Liquidación ejecutada. Comisión deducida: -$${this.scenario.clearing.fee.toFixed(2)} USD`);
+            badge.textContent = 'CLEARED';
+            node.className = 'node-wrapper state-completed';
+            if (document.getElementById('track-5-6')) document.getElementById('track-5-6').className.baseVal = 'track-complete';
+            break;
+
+          case 6:
+            // Node 6: Ledger Settlement & Cryptographic Seal
+            this.log('INFO', `[NODO 6] Sellando bloque en Ledger Distribuido con HMAC-SHA256...`);
+            await this.sleep(delay);
+
+            const netCredit = this.scenario.amount - this.scenario.clearing.fee;
+            this.currentBalance += netCredit;
+            this.clearedVolume += this.scenario.amount;
+
+            this.animateCurrency(this.dom.statBalance, this.currentBalance);
+            this.animateCurrency(this.dom.statVolume, this.clearedVolume);
+            this.dom.statBalanceDelta.textContent = `+$${netCredit.toFixed(2)} (Settled)`;
+            this.dom.statBalanceDelta.className = 'delta-tag delta-pos';
+
+            this.inFlightEscrow = 0;
+            this.animateCurrency(this.dom.statEscrow, 0);
+            this.dom.statEscrowTag.textContent = 'SETTLED & DISPERSED';
+            this.dom.statEscrowTag.className = 'delta-tag delta-pos';
+
+            badge.textContent = 'LEDGER SEALED';
+            node.className = 'node-wrapper state-completed';
+
+            this.stopTtlTimer();
+            this.setStatus('SETTLED', '✅ TRANSACCIÓN LIQUIDADA CON ÉXITO', 'status-pill');
+            this.dom.engineStateBadge.textContent = 'TERMINAL SETTLED (200 OK)';
+            this.dom.engineStateBadge.style.color = 'var(--emerald-light)';
+
+            this.log('SUCCESS', `[NODO 6] 🎉 Transacción ${this.scenario.orderId} asentada. Sello HMAC_SEAL_${this.nonce.slice(0, 8)}`);
+            this.showToast(`ÉXITO: $${this.scenario.amount.toFixed(2)} liquidado en balance`, false);
+
+            // Enable Reversal Button
+            this.lastSettledTx = { ...this.scenario, netCredit, nonce: this.nonce, stan: this.stan };
+            this.dom.btnReversal.disabled = false;
+            this.dom.btnReversal.classList.add('reversal-active');
+
+            this.dom.btnProcess.disabled = true;
+            this.dom.btnStep.disabled = true;
+            break;
+        }
+
+        this.buildPayload(stepIndex);
+        this.renderInspector();
+        this.stepInProgress = false;
+
+        // Auto Advance if in RUNNING mode
+        if (isAuto && this.state === 'RUNNING' && this.currentStep < 6) {
+          setTimeout(() => this.runNextStepAuto(), 100);
+        } else if (this.currentStep === 6 && this.autoStream) {
+          this.scheduleNextAutoStream();
+        }
+      }
+
+      /* ====================================================================
+         REVERSAL & CHARGEBACK ENGINE (Rollback from 6 -> 1)
+         ==================================================================== */
+      async startReversal() {
+        if (!this.lastSettledTx || this.state === 'REVERSING') return;
+
+        this.state = 'REVERSING';
+        this.setStatus('REVERSING', '🔄 REVERSANDO TRANSACCIÓN...', 'status-reversed');
+        this.dom.engineStateBadge.textContent = 'ROLLBACK SEQUENCE ACTIVE';
+        this.dom.engineStateBadge.style.color = 'var(--violet-light)';
+        this.dom.btnReversal.disabled = true;
+        this.dom.btnProcess.disabled = true;
+        this.dom.btnStep.disabled = true;
+
+        this.log('REVERSE', `🔄 [REVERSAL] Iniciando secuencia de contracargo MTI 0420 para STAN #${this.lastSettledTx.stan}`);
+        this.showToast('REVERSAL: Ejecutando rollback criptográfico de fondos...', false, 'toast-violet');
+
+        const stepDelay = 600 / this.speedMultiplier;
+
+        // Reverse Step 6: Void Ledger & Debit Merchant
+        const node6 = document.getElementById('node-6');
+        node6.className = 'node-wrapper state-reversing';
+        document.getElementById('badge-6').textContent = 'REVERSING';
+        await this.sleep(stepDelay);
+
+        this.currentBalance -= this.lastSettledTx.netCredit;
+        this.animateCurrency(this.dom.statBalance, this.currentBalance);
+        this.dom.statBalanceDelta.textContent = `-$${this.lastSettledTx.netCredit.toFixed(2)} (Refunded)`;
+        this.dom.statBalanceDelta.className = 'delta-tag delta-neg';
+        node6.className = 'node-wrapper state-reversed';
+        document.getElementById('badge-6').textContent = 'VOID REFUND';
+        this.log('REVERSE', `[REVERSAL] Débito aplicado a cuenta de comercio (-$${this.lastSettledTx.netCredit.toFixed(2)} USD)`);
+
+        // Reverse Track 6->5
+        if (document.getElementById('track-5-6')) document.getElementById('track-5-6').className.baseVal = 'track-reverse';
+
+        // Reverse Step 5: Unwind Clearing Escrow
+        const node5 = document.getElementById('node-5');
+        node5.className = 'node-wrapper state-reversing';
+        document.getElementById('badge-5').textContent = 'UNWINDING';
+        await this.sleep(stepDelay);
+        node5.className = 'node-wrapper state-reversed';
+        document.getElementById('badge-5').textContent = 'RAIL CANCELLED';
+        if (document.getElementById('track-4-5')) document.getElementById('track-4-5').className.baseVal = 'track-reverse';
+        this.log('REVERSE', `[REVERSAL] Interbancario notificado de cancelación de liquidación`);
+
+        // Reverse Step 4: Void Issuer Auth
+        const node4 = document.getElementById('node-4');
+        node4.className = 'node-wrapper state-reversing';
+        document.getElementById('badge-4').textContent = 'VOID AUTH';
+        await this.sleep(stepDelay);
+        node4.className = 'node-wrapper state-reversed';
+        document.getElementById('badge-4').textContent = 'AUTH REVOKED';
+        if (document.getElementById('track-3-4')) document.getElementById('track-3-4').className.baseVal = 'track-reverse';
+        this.log('REVERSE', `[REVERSAL] Autorización bancaria ${this.lastSettledTx.issuerResponse.authId} revocada en emisor`);
+
+        // Reverse Step 3 & 2 & 1
+        for (let r = 3; r >= 1; r--) {
+          const nr = document.getElementById(`node-${r}`);
+          nr.className = 'node-wrapper state-reversed';
+          document.getElementById(`badge-${r}`).textContent = 'VOIDED';
+          if (r > 1 && document.getElementById(`track-${r-1}-${r}`)) {
+            document.getElementById(`track-${r-1}-${r}`).className.baseVal = 'track-reverse';
+          }
+        }
+        await this.sleep(stepDelay);
+
+        this.state = 'REVERSED';
+        this.setStatus('REVERSED', '🔄 TRANSACCIÓN REVERSADA Y REEMBOLSADA', 'status-reversed');
+        this.dom.engineStateBadge.textContent = 'REFUND COMPLETED (MTI 0420)';
+        this.dom.engineStateBadge.style.color = 'var(--violet-light)';
+
+        this.dom.receiptBadgeStatus.textContent = 'VOIDED & REVERSED';
+        this.dom.receiptBadgeStatus.className = 'delta-tag delta-neg';
+
+        this.log('SUCCESS', `🎉 [REVERSAL COMPLETO] Fondos reintegrados al tarjetahabiente. Recibo sellado como VOID.`);
+        this.showToast('REVERSAL COMPLETO: Transacción anulada exitosamente', false, 'toast-violet');
+
+        this.buildPayload(6, false, false, true);
+        this.renderInspector();
+
+        if (this.autoStream) this.scheduleNextAutoStream();
+      }
+
+      /* ====================================================================
+         AUTO-STREAM CONTINUOUS EXECUTION MODE
+         ==================================================================== */
+      runAutoStreamLoop() {
+        if (!this.autoStream) return;
+        const keys = ['success', 'success', 'fraud', 'declined', 'timeout'];
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        
+        document.querySelectorAll('.scenario-btn').forEach(b => {
+          b.classList.toggle('active-scenario', b.dataset.scenario === randomKey);
+        });
+
+        this.loadScenario(randomKey);
+        setTimeout(() => {
+          if (this.autoStream) this.startProcess();
+        }, 1200 / this.speedMultiplier);
+      }
+
+      scheduleNextAutoStream() {
+        if (!this.autoStream) return;
+        this.autoStreamTimer = setTimeout(() => {
+          this.runAutoStreamLoop();
+        }, 3000 / this.speedMultiplier);
+      }
+
+      /* ====================================================================
+         PAYLOAD & ISO-8583 BUILDER
+         ==================================================================== */
+      buildPayload(step, isFraud = false, isDecline = false, isReversed = false) {
+        const dateStr = new Date().toISOString();
+        let mti = "0100";
+        if (step >= 5) mti = "0200";
+        if (step >= 6) mti = "0210";
+        if (isReversed) mti = "0420";
+
+        this.currentPayload = {
+          protocol: "ISO-8583:2003 / JSON-REST-v3",
+          messageTypeIdentifier: mti,
+          stan: this.stan,
+          timestamp: dateStr,
+          order: {
+            orderId: this.scenario.orderId,
+            merchantId: this.scenario.merchantId,
+            amount: this.scenario.amount,
+            currency: this.scenario.currency,
+            idempotencyHash: `sha256_${this.nonce}`
+          },
+          cardTokenization: step >= 2 ? {
+            luhnValid: true,
+            maskedPan: this.scenario.card.maskedPan,
+            cardBrand: this.scenario.card.brand,
+            vaultToken: this.dom.vaultTokenDisplay.textContent,
+            expiry: this.scenario.card.exp
+          } : null,
+          fraudEvaluation: step >= 3 ? {
+            mlRiskScore: this.scenario.risk.score,
+            riskLevel: this.scenario.risk.score > 85 ? "CRITICAL_FRAUD" : (this.scenario.risk.score > 50 ? "MEDIUM" : "LOW"),
+            vector: this.scenario.risk,
+            decision: isFraud ? "QUARANTINE_BLOCKED" : "PASS"
+          } : null,
+          issuerAuth: step >= 4 ? {
+            threeDSecureVersion: "2.2.0",
+            responseCode: isDecline ? "51" : "00",
+            responseDesc: isDecline ? "Insufficient Funds" : "Approved",
+            authCode: isDecline ? "DECLINED" : this.scenario.issuerResponse.authId
+          } : null,
+          clearingAndSettlement: step >= 5 ? {
+            rail: this.scenario.clearing.rail,
+            interchangeFee: this.scenario.clearing.fee,
+            netSettled: +(this.scenario.amount - this.scenario.clearing.fee).toFixed(2),
+            settledTimestamp: dateStr
+          } : null,
+          receiptSeal: step >= 6 ? {
+            status: isReversed ? "REVERSED_REFUNDED" : "CONFIRMED_IMMUTABLE",
+            hmacSeal: `HMAC_SHA256_SEAL_${this.nonce.slice(0, 16)}`,
+            blockSignature: `0x${this.nonce}`
+          } : null
+        };
+
+        // ISO-8583 Bitmap Fields Matrix
+        this.isoFields = [
+          { field: "MTI", name: "Message Type Identifier", val: mti, mutated: true },
+          { field: "F000", name: "Primary Bitmap", val: "11100000 00100001 00000000 00000000", mutated: false },
+          { field: "F002", name: "Primary Account Number (PAN)", val: step >= 2 ? this.scenario.card.maskedPan : "••••••••••••••••", mutated: step === 2 },
+          { field: "F003", name: "Processing Code", val: isReversed ? "200000 (Reversal)" : "000000 (Purchase)", mutated: isReversed },
+          { field: "F004", name: "Amount, Transaction", val: `$${this.scenario.amount.toFixed(2)} ${this.scenario.currency}`, mutated: step === 1 },
+          { field: "F007", name: "Transmission Date & Time", val: dateStr.replace(/[-:T.Z]/g, '').slice(4, 14), mutated: false },
+          { field: "F011", name: "System Trace Audit No. (STAN)", val: String(this.stan), mutated: step === 1 },
+          { field: "F014", name: "Date, Expiration", val: step >= 2 ? this.scenario.card.exp.replace('/', '') : "----", mutated: step === 2 },
+          { field: "F022", name: "POS Entry Mode", val: "051 (EMV 3DS E-Commerce)", mutated: false },
+          { field: "F038", name: "Auth Identification Response", val: step >= 4 ? (isDecline ? "DECLINED_51" : this.scenario.issuerResponse.authId) : "PENDING", mutated: step === 4 },
+          { field: "F039", name: "Response Code", val: step >= 4 ? (isDecline ? "51 (NSF)" : (isFraud ? "43 (Stolen/Fraud)" : "00 (Approved)")) : "--", mutated: step >= 4 },
+          { field: "F041", name: "Card Acceptor Terminal ID", val: "TERM_LUX_001", mutated: false },
+          { field: "F042", name: "Card Acceptor ID Code", val: this.scenario.merchantId, mutated: false },
+          { field: "F048", name: "Private Data (ML Risk & Token)", val: step >= 2 ? `VaultToken=${this.dom.vaultTokenDisplay.textContent.slice(0, 15)}... | MLScore=${this.scenario.risk.score}` : "N/A", mutated: step >= 2 },
+          { field: "F049", name: "Currency Code", val: "840 (USD)", mutated: false },
+          { field: "F064", name: "Message Authentication Code (MAC)", val: step >= 6 ? `HMAC_${this.nonce.slice(0, 12)}` : "CALCULATING...", mutated: step === 6 }
+        ];
+
+        // Update Receipt Card Fields
+        this.dom.recTxId.textContent = this.scenario.orderId;
+        this.dom.recStan.textContent = this.stan;
+        this.dom.recAmount.textContent = `$${this.scenario.amount.toFixed(2)} USD`;
+        this.dom.recFee.textContent = `-$${this.scenario.clearing.fee.toFixed(2)} USD`;
+        this.dom.recAuth.textContent = isDecline ? "DECLINED (NSF)" : (isFraud ? "REJECTED (SAR)" : `${this.scenario.issuerResponse.authId} (APPR)`);
+        this.dom.recTime.textContent = dateStr;
+        this.dom.recHmac.textContent = `HMAC_SHA256_SEAL_${this.nonce}`;
+      }
+
+      renderInspector() {
+        // Render JSON with syntax highlighting
+        this.dom.jsonViewer.innerHTML = this.syntaxHighlightJson(JSON.stringify(this.currentPayload, null, 2));
+
+        // Render ISO-8583 Table
+        let html = '';
+        this.isoFields.forEach(f => {
+          html += `
+            <tr class="${f.mutated ? 'row-mutated' : ''}">
+              <td class="iso-field-id">${f.field}</td>
+              <td class="iso-field-name">${f.name}</td>
+              <td class="iso-field-val">${f.val}</td>
+            </tr>
+          `;
+        });
+        this.dom.isoTableBody.innerHTML = html;
+      }
+
+      syntaxHighlightJson(json) {
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+          let cls = 'json-number';
+          if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+              cls = 'json-key';
+            } else {
+              cls = 'json-string';
+            }
+          } else if (/true|false/.test(match)) {
+            cls = 'json-boolean';
+          } else if (/null/.test(match)) {
+            cls = 'json-null';
+          }
+          return `<span class="${cls}">${match}</span>`;
+        });
+      }
+
+      copyActiveInspector() {
+        const activePane = document.querySelector('.inspector-pane.active-pane');
+        let textToCopy = '';
+        if (activePane.id === 'pane-json') {
+          textToCopy = JSON.stringify(this.currentPayload, null, 2);
+        } else if (activePane.id === 'pane-iso') {
+          textToCopy = this.isoFields.map(f => `${f.field} | ${f.name} | ${f.val}`).join('\n');
+        } else {
+          textToCopy = document.getElementById('receiptCard').innerText;
+        }
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          this.showToast('Contenido copiado al portapapeles', false);
+        }).catch(() => {
+          this.showToast('Error al copiar contenido', true);
+        });
+      }
+
+      /* ====================================================================
+         5-AXIS DYNAMIC RISK RADAR (HTML5 Canvas)
+         ==================================================================== */
+      initRadarCanvas() {
+        this.radarCanvas = document.getElementById('riskRadarCanvas');
+        this.radarCtx = this.radarCanvas.getContext('2d');
+      }
+
+      renderRiskValues(risk) {
+        this.dom.valVelocity.textContent = risk.velocity.toFixed(1);
+        this.dom.valGeo.textContent = risk.geo.toFixed(1);
+        this.dom.valDevice.textContent = risk.device.toFixed(1);
+        this.dom.valBio.textContent = risk.bio.toFixed(1);
+        this.dom.valChargeback.textContent = risk.chargeback.toFixed(1);
+
+        this.dom.barVelocity.style.width = `${risk.velocity}%`;
+        this.dom.barGeo.style.width = `${risk.geo}%`;
+        this.dom.barDevice.style.width = `${risk.device}%`;
+        this.dom.barBio.style.width = `${risk.bio}%`;
+        this.dom.barChargeback.style.width = `${risk.chargeback}%`;
+
+        // Color bars based on threshold
+        const setBarColor = (bar, val) => {
+          if (val > 80) bar.style.background = 'var(--crimson-primary)';
+          else if (val > 40) bar.style.background = 'var(--amber-primary)';
+          else bar.style.background = 'var(--emerald-primary)';
+        };
+
+        setBarColor(this.dom.barVelocity, risk.velocity);
+        setBarColor(this.dom.barGeo, risk.geo);
+        setBarColor(this.dom.barDevice, risk.device);
+        setBarColor(this.dom.barBio, risk.bio);
+        setBarColor(this.dom.barChargeback, risk.chargeback);
+
+        const score = risk.score;
+        this.dom.radarScoreBadge.textContent = `SCORE: ${score} / 100`;
+        if (score > 85) {
+          this.dom.radarScoreBadge.className = 'radar-score-badge radar-high-risk';
+        } else if (score > 40) {
+          this.dom.radarScoreBadge.className = 'radar-score-badge radar-med-risk';
+        } else {
+          this.dom.radarScoreBadge.className = 'radar-score-badge';
+        }
+      }
+
+      renderRadar() {
+        const canvas = this.radarCanvas;
+        const ctx = this.radarCtx;
+        if (!canvas || !ctx) return;
+
+        const rect = canvas.parentElement.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+
+        const w = rect.width;
+        const h = rect.height;
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w, h) * 0.38;
+
+        ctx.clearRect(0, 0, w, h);
+
+        const axes = [
+          { name: "Velocity", val: this.scenario.risk.velocity / 100 },
+          { name: "Geo-Dist", val: this.scenario.risk.geo / 100 },
+          { name: "Device", val: this.scenario.risk.device / 100 },
+          { name: "Biometrics", val: this.scenario.risk.bio / 100 },
+          { name: "Chargeback", val: this.scenario.risk.chargeback / 100 }
+        ];
+
+        const totalAxes = axes.length;
+
+        // Draw Web Concentric Polygons (4 levels: 25%, 50%, 75%, 100%)
+        const levels = [0.25, 0.5, 0.75, 1.0];
+        levels.forEach(lvl => {
+          ctx.beginPath();
+          for (let i = 0; i < totalAxes; i++) {
+            const angle = (i * 2 * Math.PI / totalAxes) - Math.PI / 2;
+            const r = radius * lvl;
+            const x = cx + r * Math.cos(angle);
+            const y = cy + r * Math.sin(angle);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.strokeStyle = "rgba(245, 158, 11, 0.15)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+
+        // Draw Spokes & Axis Labels
+        ctx.font = "10px 'Cascadia Code', monospace";
+        ctx.fillStyle = "#94a3b8";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        for (let i = 0; i < totalAxes; i++) {
+          const angle = (i * 2 * Math.PI / totalAxes) - Math.PI / 2;
+          const x = cx + radius * Math.cos(angle);
+          const y = cy + radius * Math.sin(angle);
+
+          // Spoke line
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(x, y);
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+          ctx.stroke();
+
+          // Axis label
+          const labelDist = radius + 18;
+          const lx = cx + labelDist * Math.cos(angle);
+          const ly = cy + labelDist * Math.sin(angle);
+          ctx.fillText(axes[i].name, lx, ly);
+        }
+
+        // Draw Risk Data Polygon
+        const isHighRisk = this.scenario.risk.score > 85;
+        const fillColor = isHighRisk ? "rgba(239, 68, 68, 0.35)" : "rgba(16, 185, 129, 0.28)";
+        const strokeColor = isHighRisk ? "#ef4444" : "#10b981";
+
+        ctx.beginPath();
+        for (let i = 0; i < totalAxes; i++) {
+          const angle = (i * 2 * Math.PI / totalAxes) - Math.PI / 2;
+          const r = radius * Math.max(0.08, axes[i].val);
+          const x = cx + r * Math.cos(angle);
+          const y = cy + r * Math.sin(angle);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = strokeColor;
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Draw Vertex Points
+        for (let i = 0; i < totalAxes; i++) {
+          const angle = (i * 2 * Math.PI / totalAxes) - Math.PI / 2;
+          const r = radius * Math.max(0.08, axes[i].val);
+          const x = cx + r * Math.cos(angle);
+          const y = cy + r * Math.sin(angle);
+
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+          ctx.strokeStyle = strokeColor;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+
+      /* ====================================================================
+         DYNAMIC SVG TRACK ALIGNMENT
+         ==================================================================== */
+      updateSvgTrackPositions() {
+        const container = document.getElementById('stepperContainer');
+        if (!container) return;
+        const cRect = container.getBoundingClientRect();
+
+        const getCenter = (nodeId) => {
+          const el = document.getElementById(nodeId);
+          if (!el) return { x: 0, y: 0 };
+          const circle = el.querySelector('.node-circle');
+          const r = circle.getBoundingClientRect();
+          return {
+            x: r.left - cRect.left + r.width / 2,
+            y: r.top - cRect.top + r.height / 2
+          };
+        };
+
+        // Linear tracks between consecutive main nodes
+        for (let i = 1; i <= 5; i++) {
+          const c1 = getCenter(`node-${i}`);
+          const c2 = getCenter(`node-${i + 1}`);
+          const track = document.getElementById(`track-${i}-${i + 1}`);
+          if (track && c1.x && c2.x) {
+            track.setAttribute('d', `M ${c1.x + 38} ${c1.y} L ${c2.x - 38} ${c2.y}`);
+          }
+        }
+
+        // Bifurcation tracks
+        const c3 = getCenter('node-3');
+        const c4 = getCenter('node-4');
+        const fraudEl = document.getElementById('bifurcation-fraud');
+        const declineEl = document.getElementById('bifurcation-decline');
+
+        if (fraudEl && c3.x) {
+          const fRect = fraudEl.getBoundingClientRect();
+          const fx = fRect.left - cRect.left + fRect.width / 2;
+          const fy = fRect.top - cRect.top;
+          const track = document.getElementById('branch-track-fraud');
+          if (track) track.setAttribute('d', `M ${c3.x} ${c3.y + 38} Q ${c3.x} ${fy - 15} ${fx} ${fy}`);
+        }
+
+        if (declineEl && c4.x) {
+          const dRect = declineEl.getBoundingClientRect();
+          const dx = dRect.left - cRect.left + dRect.width / 2;
+          const dy = dRect.top - cRect.top;
+          const track = document.getElementById('branch-track-decline');
+          if (track) track.setAttribute('d', `M ${c4.x} ${c4.y + 38} Q ${c4.x} ${dy - 15} ${dx} ${dy}`);
+        }
+      }
+
+      /* ====================================================================
+         HELPERS & UTILITIES
+         ==================================================================== */
+      checkLuhn(panStr) {
+        const clean = panStr.replace(/\D/g, '');
+        let sum = 0;
+        let alt = false;
+        for (let i = clean.length - 1; i >= 0; i--) {
+          let digit = parseInt(clean.charAt(i), 10);
+          if (alt) {
+            digit *= 2;
+            if (digit > 9) digit -= 9;
+          }
+          sum += digit;
+          alt = !alt;
+        }
+        return sum % 10 === 0;
+      }
+
+      animateCurrency(element, targetVal) {
+        const rawText = element.textContent.replace(/[^0-9.-]+/g, "");
+        const startVal = parseFloat(rawText) || 0;
+        const duration = 600;
+        const startTime = performance.now();
+
+        const format = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
+
+        const frame = (now) => {
+          const progress = Math.min(1, (now - startTime) / duration);
+          // easeOutExpo
+          const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+          const current = startVal + (targetVal - startVal) * ease;
+          element.textContent = format(current);
+
+          if (progress < 1) requestAnimationFrame(frame);
+          else element.textContent = format(targetVal);
+        };
+
+        requestAnimationFrame(frame);
+      }
+
+      log(tag, msg) {
+        const time = new Date().toISOString().slice(11, 23);
+        const line = document.createElement('div');
+        line.className = 'log-line';
+
+        let tagClass = 'tag-info';
+        if (tag === 'SUCCESS') tagClass = 'tag-success';
+        else if (tag === 'WARN') tagClass = 'tag-warn';
+        else if (tag === 'ERROR') tagClass = 'tag-error';
+        else if (tag === 'REVERSE') tagClass = 'tag-reverse';
+
+        line.innerHTML = `
+          <span class="log-time">[${time}]</span>
+          <span class="log-tag ${tagClass}">[${tag}]</span>
+          <span class="log-msg">${msg}</span>
+        `;
+
+        this.dom.terminalLog.appendChild(line);
+        this.dom.terminalLog.scrollTop = this.dom.terminalLog.scrollHeight;
+      }
+
+      showToast(message, isDanger = false, customClass = '') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${isDanger ? 'toast-danger' : ''} ${customClass}`;
+        toast.innerHTML = `<span>${isDanger ? '🚨' : (customClass ? '🔄' : '✨')}</span> <span>${message}</span>`;
+        this.dom.toastContainer.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateX(50px)';
+          toast.style.transition = 'all 0.3s';
+          setTimeout(() => toast.remove(), 300);
+        }, 3500);
+      }
+
+      sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+    }
+
+    // --- Boot Engine On DOM Ready ---
+    document.addEventListener('DOMContentLoaded', () => {
+      window.pipelineEngine = new PipelineEngine();
+    });
+  </script>
+</body>
+</html>

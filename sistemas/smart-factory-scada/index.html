@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AeroTech SCADA — Industrial IoT & Robotics Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#090d16;--card-bg:#0f1523;--card-border:rgba(255,255,255,.07);
+  --text-main:#f1f5f9;--text-sub:#94a3b8;--text-dim:#64748b;
+  --accent:#38bdf8;--safe:#10b981;--warn:#f59e0b;--danger:#f43f5e;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg);color:var(--text-main);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:32px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1120px;display:flex;flex-direction:column;gap:22px}
+
+.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--card-border)}
+.header__title{font-size:clamp(1.2rem,2.5vw,1.6rem);font-weight:700;color:#fff}
+.header__tag{font-size:.72rem;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(16,185,129,.1);color:var(--safe);border:1px solid rgba(16,185,129,.3)}
+
+/* OEE Stats */
+.oee-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.oee-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:16px 20px}
+.oee-lbl{font-size:.68rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)}
+.oee-val{font-size:1.6rem;font-weight:700;font-family:var(--mono);margin:2px 0;color:#fff}
+.oee-sub{font-size:.7rem;color:var(--text-sub)}
+
+/* 5 Robotic Stations Pipeline */
+.stations-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:22px}
+.stations{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media(max-width:800px){.stations{grid-template-columns:1fr}}
+
+.st-node{
+  background:rgba(255,255,255,.02);border:1px solid var(--card-border);border-radius:10px;
+  padding:14px;display:flex;flex-direction:column;gap:8px;transition:all .3s;
+}
+.st-node.active{border-color:var(--accent);box-shadow:0 0 14px rgba(56,189,248,.15)}
+.st-node.fault{border-color:var(--danger);background:rgba(244,63,94,.06)}
+.st-num{font-size:.65rem;font-weight:700;font-family:var(--mono);color:var(--text-dim)}
+.st-name{font-size:.82rem;font-weight:700;color:#fff}
+.st-meta{font-size:.68rem;font-family:var(--mono);color:var(--text-sub);display:flex;justify-content:space-between}
+
+/* Controls & Terminal */
+.lower-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.lower-grid{grid-template-columns:1fr}}
+
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.card__title{font-size:.85rem;font-weight:700;color:#fff}
+
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:10px 18px;border-radius:8px;font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn-red{background:var(--danger);color:#fff}
+.btn-red:hover{background:#e11d48}
+.btn-sec{background:rgba(255,255,255,.06);color:#fff;border:1px solid var(--card-border)}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="header">
+    <div>
+      <h1 class="header__title">AeroTech SCADA · Monitoreo Industrial & Robótica</h1>
+      <p style="font-size:.8rem;color:var(--text-sub)">Línea de Ensamblaje Automatizada · Telemetría PLC Siemens / OPC-UA</p>
+    </div>
+    <div class="header__tag" id="mainStatus">LÍNEA OPERATIVA · CADENCIA 94 PPM</div>
+  </header>
+
+  <div class="oee-grid">
+    <div class="oee-card">
+      <div class="oee-lbl">OEE General (Eficiencia)</div>
+      <div class="oee-val" style="color:var(--safe)">88.4%</div>
+      <div class="oee-sub">Benchmark mundial: &gt; 85%</div>
+    </div>
+    <div class="oee-card">
+      <div class="oee-lbl">Unidades Producidas</div>
+      <div class="oee-val" id="valUnits">1,420</div>
+      <div class="oee-sub">Meta del turno: 2,000 uds</div>
+    </div>
+    <div class="oee-card">
+      <div class="oee-lbl">Tasa de Defectos</div>
+      <div class="oee-val" style="color:var(--safe)" id="valDefect">0.12%</div>
+      <div class="oee-sub">Tolerancia máxima: &lt; 0.5%</div>
+    </div>
+    <div class="oee-card">
+      <div class="oee-lbl">Tiempo de Ciclo (Takt)</div>
+      <div class="oee-val" style="color:var(--accent)">12.4s</div>
+      <div class="oee-sub">Por ensamble completo</div>
+    </div>
+  </div>
+
+  <div class="stations-card">
+    <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:14px">⚙️ Estaciones de la Línea de Producción</div>
+    <div class="stations">
+      <div class="st-node active" id="st-1">
+        <span class="st-num">ESTACIÓN 01</span>
+        <span class="st-name">🦾 Troquelado</span>
+        <div class="st-meta"><span>Presión: 420 bar</span><span style="color:var(--safe)">OK</span></div>
+      </div>
+      <div class="st-node active" id="st-2">
+        <span class="st-num">ESTACIÓN 02</span>
+        <span class="st-name">⚡ Soldadura Láser</span>
+        <div class="st-meta"><span>Temp: 1,840°C</span><span style="color:var(--safe)">OK</span></div>
+      </div>
+      <div class="st-node active" id="st-3">
+        <span class="st-num">ESTACIÓN 03</span>
+        <span class="st-name">🔬 Visión Artificial</span>
+        <div class="st-meta"><span>Tolerancia: 50µm</span><span style="color:var(--safe)">OK</span></div>
+      </div>
+      <div class="st-node active" id="st-4">
+        <span class="st-num">ESTACIÓN 04</span>
+        <span class="st-name">🎨 Pintura Robot</span>
+        <div class="st-meta"><span>Capa: 120µm</span><span style="color:var(--safe)">OK</span></div>
+      </div>
+      <div class="st-node active" id="st-5">
+        <span class="st-num">ESTACIÓN 05</span>
+        <span class="st-name">📦 Empaque Final</span>
+        <div class="st-meta"><span>Cadencia: 94ppm</span><span style="color:var(--safe)">OK</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lower-grid">
+    <div class="card">
+      <div class="card__title">🎮 Control de Planta & Simulación de Fallas</div>
+      <p style="font-size:.78rem;color:var(--text-sub)">Permite a los supervisores simular interrupciones en la línea para evaluar la respuesta de los sistemas SCADA.</p>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn btn-red" onclick="simulateJam()">⚠️ Simular Atasco en Soldadura (Estación 2)</button>
+        <button class="btn btn-sec" onclick="resumeLine()">🔄 Restablecer Línea de Producción</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__title">📜 Registro de Eventos PLC en Tiempo Real</div>
+      <div id="scadaLog" style="font-family:var(--mono);font-size:.72rem;display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto">
+        <div style="color:var(--safe)">[10:14:00] Protocolo OPC-UA conectado a 5 autómatas programables.</div>
+        <div style="color:var(--text-sub)">[10:14:15] Estación 03 Visión Artificial: 0 defectos en los últimos 200 lotes.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function simulateJam(){
+  const st2 = document.getElementById('st-2');
+  st2.className = 'st-node fault';
+  document.getElementById('mainStatus').textContent = '⚠️ LÍNEA DETENIDA · FALLA EN ESTACIÓN 2';
+  document.getElementById('mainStatus').style.background = 'rgba(244,63,94,.15)';
+  document.getElementById('mainStatus').style.color = 'var(--danger)';
+  
+  const log = document.getElementById('scadaLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML += `<div style="color:var(--danger)">[${now}] 🛑 PARO DE EMERGENCIA: Atasco mecánico en Robot Soldador 2. Presión hidráulica en caída.</div>`;
+}
+
+function resumeLine(){
+  const st2 = document.getElementById('st-2');
+  st2.className = 'st-node active';
+  document.getElementById('mainStatus').textContent = 'LÍNEA OPERATIVA · CADENCIA 94 PPM';
+  document.getElementById('mainStatus').style.background = 'rgba(16,185,129,.1)';
+  document.getElementById('mainStatus').style.color = 'var(--safe)';
+  
+  const log = document.getElementById('scadaLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML += `<div style="color:var(--safe)">[${now}] ✅ Brazo robótico despejado. Autómata PLC reanudando ciclo normal.</div>`;
+}
+</script>
+</body>
+</html>

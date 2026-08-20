@@ -1,0 +1,2801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SALVAR VIDAS // MOTOR DE BROADCAST MULTI-CARRIER (TELEMETRÍA FAN-OUT)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       CYBERPUNK / TACTICAL HUD DESIGN SYSTEM & TOKENS
+       ========================================================================== */
+    :root {
+      --bg-darkest: #030812;
+      --bg-primary: #070d1a;
+      --bg-secondary: #0c1527;
+      --bg-panel: rgba(12, 21, 39, 0.90);
+      --bg-card: rgba(18, 30, 56, 0.78);
+      --bg-card-hover: rgba(26, 42, 77, 0.92);
+      --bg-glass: rgba(15, 23, 42, 0.70);
+
+      --border-hud: #1a2a47;
+      --border-active: #3b82f6;
+      --border-bright: #60a5fa;
+
+      --cyber-violet: #a855f7;
+      --cyber-violet-glow: rgba(168, 85, 247, 0.45);
+      --ultra-blue: #3b82f6;
+      --ultra-blue-glow: rgba(59, 130, 246, 0.45);
+      --matrix-teal: #06b6d4;
+      --matrix-teal-glow: rgba(6, 182, 212, 0.45);
+
+      --safe-emerald: #10b981;
+      --safe-emerald-glow: rgba(16, 185, 129, 0.45);
+      --warn-amber: #f59e0b;
+      --warn-amber-glow: rgba(245, 158, 11, 0.45);
+      --danger-crimson: #ef4444;
+      --danger-crimson-glow: rgba(239, 68, 68, 0.5);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --text-dim: #475569;
+
+      --font-mono: 'Fira Code', 'JetBrains Mono', monospace;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-display: 'Rajdhani', var(--font-sans);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-darkest);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(168, 85, 247, 0.09) 0%, transparent 40%),
+        radial-gradient(circle at 85% 90%, rgba(6, 182, 212, 0.09) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.45;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-darkest);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-hud);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-active);
+    }
+
+    /* ==========================================================================
+       TOP TACTICAL HEADER & TELEMETRY HUD BAR
+       ========================================================================== */
+    .tactical-header {
+      background: rgba(7, 13, 26, 0.96);
+      border-bottom: 1px solid var(--border-hud);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(8px, 1.5vw, 12px) clamp(10px, 2vw, 18px);
+    }
+
+    .header-main-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, var(--cyber-violet), var(--ultra-blue));
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 12px var(--cyber-violet-glow);
+    }
+
+    .brand-title-group {
+      min-width: 0;
+    }
+
+    .brand-title-group h1 {
+      font-family: var(--font-display);
+      font-size: clamp(14px, 2.4vw, 18px);
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #fff;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+    }
+
+    .brand-title-group h1 span.highlight {
+      color: var(--matrix-teal);
+      text-shadow: 0 0 8px var(--matrix-teal-glow);
+    }
+
+    .brand-subtitle {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 10px;
+      min-width: 0;
+    }
+
+    .live-clock {
+      color: var(--matrix-teal);
+      font-weight: 600;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tactical-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      color: var(--text-primary);
+      padding: 7px 14px;
+      border-radius: 4px;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+    }
+
+    .tactical-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-active);
+      box-shadow: 0 0 10px var(--ultra-blue-glow);
+    }
+
+    .tactical-btn.primary {
+      background: linear-gradient(135deg, #7c3aed, #2563eb);
+      border-color: #9333ea;
+      color: #fff;
+      box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+    }
+
+    .tactical-btn.primary:hover {
+      background: linear-gradient(135deg, #9333ea, #3b82f6);
+      box-shadow: 0 0 22px rgba(168, 85, 247, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .tactical-btn.primary:active {
+      transform: translateY(1px);
+    }
+
+    .select-dropdown {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      color: var(--text-primary);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .select-dropdown:focus {
+      border-color: var(--matrix-teal);
+      box-shadow: 0 0 8px var(--matrix-teal-glow);
+    }
+
+    /* Sound Control Widget */
+    .audio-control-group {
+      display: flex;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      padding: 4px 10px;
+      border-radius: 4px;
+      gap: 8px;
+    }
+
+    .audio-btn {
+      background: none;
+      border: none;
+      color: var(--matrix-teal);
+      cursor: pointer;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .audio-slider {
+      width: 60px;
+      accent-color: var(--matrix-teal);
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       METRICS / KPI STATUS BAR
+       ========================================================================== */
+    .kpi-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(26, 42, 71, 0.6);
+    }
+
+    .kpi-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      border-radius: 4px;
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-chip::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--border-active);
+    }
+
+    .kpi-chip.violet::before { background: var(--cyber-violet); }
+    .kpi-chip.blue::before { background: var(--ultra-blue); }
+    .kpi-chip.teal::before { background: var(--matrix-teal); }
+    .kpi-chip.emerald::before { background: var(--safe-emerald); }
+    .kpi-chip.amber::before { background: var(--warn-amber); }
+    .kpi-chip.crimson::before { background: var(--danger-crimson); }
+
+    .kpi-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kpi-value {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .kpi-value small {
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+
+    .status-badge-inline {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .status-badge-inline.pass {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--safe-emerald);
+      border: 1px solid var(--safe-emerald);
+    }
+
+    .status-badge-inline.fail {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger-crimson);
+      border: 1px solid var(--danger-crimson);
+      animation: pulse-danger 1.5s infinite;
+    }
+
+    .status-badge-inline.tripped {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warn-amber);
+      border: 1px solid var(--warn-amber);
+    }
+
+    @keyframes pulse-danger {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ==========================================================================
+       MAIN APP WORKSPACE GRID
+       ========================================================================== */
+    .app-workspace {
+      flex: 1;
+      padding: clamp(10px, 1.5vw, 18px);
+      display: grid;
+      grid-template-columns: 360px 1fr 390px;
+      gap: 14px;
+      max-width: 1920px;
+      margin: 0 auto;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .left-column, .center-column, .right-column {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    @media (max-width: 1400px) {
+      .app-workspace {
+        grid-template-columns: 340px 1fr;
+      }
+      .right-column {
+        grid-column: span 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .app-workspace {
+        grid-template-columns: 1fr;
+      }
+      .right-column {
+        grid-column: span 1;
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Tactical Panel Base */
+    .tactical-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-hud);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+      overflow: hidden;
+      min-width: 0;
+      max-width: 100%;
+      z-index: 2;
+    }
+
+    .panel-header {
+      background: rgba(18, 30, 56, 0.75);
+      border-bottom: 1px solid var(--border-hud);
+      padding: 9px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .panel-title {
+      min-width: 0;
+      word-break: break-word;
+      font-family: var(--font-display);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title .icon {
+      color: var(--matrix-teal);
+    }
+
+    .panel-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      color: var(--text-secondary);
+    }
+
+    .panel-body {
+      padding: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    /* ==========================================================================
+       LEFT COLUMN: CARRIER CHANNELS & CHAOS CONTROLS
+       ========================================================================== */
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .carrier-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      border-radius: 5px;
+      padding: 10px;
+      position: relative;
+      transition: all 0.25s ease;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .carrier-card:hover {
+      border-color: var(--border-active);
+      background: var(--bg-card-hover);
+    }
+
+    .carrier-card.active {
+      border-color: var(--matrix-teal);
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.15);
+    }
+
+    .carrier-card.degraded {
+      border-color: var(--warn-amber);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+    }
+
+    .carrier-card.tripped-failover {
+      border-color: var(--cyber-violet);
+      box-shadow: 0 0 14px var(--cyber-violet-glow);
+    }
+
+    .carrier-card.failed {
+      border-color: var(--danger-crimson);
+      box-shadow: 0 0 12px var(--danger-crimson-glow);
+    }
+
+    .carrier-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .carrier-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .carrier-status-tag {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    .status-optimal { background: rgba(16, 185, 129, 0.15); color: var(--safe-emerald); border: 1px solid rgba(16, 185, 129, 0.4); }
+    .status-degraded { background: rgba(245, 158, 11, 0.15); color: var(--warn-amber); border: 1px solid rgba(245, 158, 11, 0.4); }
+    .status-down { background: rgba(239, 68, 68, 0.2); color: var(--danger-crimson); border: 1px solid rgba(239, 68, 68, 0.5); }
+    .status-rerouted { background: rgba(168, 85, 247, 0.2); color: var(--cyber-violet); border: 1px solid rgba(168, 85, 247, 0.5); }
+
+    .carrier-meta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .carrier-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: rgba(7, 13, 26, 0.6);
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(26, 42, 71, 0.5);
+      min-width: 0;
+    }
+
+    .carrier-metric-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .carrier-metric-item .sublabel {
+      font-size: 8.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .carrier-metric-item .subval {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .carrier-progress-bar {
+      height: 4px;
+      background: var(--bg-darkest);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .carrier-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--ultra-blue), var(--safe-emerald));
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .carrier-progress-fill.failed {
+      background: var(--danger-crimson);
+    }
+
+    /* Chaos & Circuit Breaker Cockpit */
+    .chaos-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      border-radius: 5px;
+      padding: 10px;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .chaos-title {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--warn-amber);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .chaos-btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-bottom: 10px;
+      min-width: 0;
+    }
+
+    .chaos-toggle-btn {
+      background: rgba(18, 30, 56, 0.9);
+      border: 1px solid var(--border-hud);
+      color: var(--text-secondary);
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+
+    .chaos-toggle-btn:hover {
+      border-color: var(--warn-amber);
+      color: #fff;
+    }
+
+    .chaos-toggle-btn.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--warn-amber);
+      color: var(--warn-amber);
+      box-shadow: 0 0 10px var(--warn-amber-glow);
+    }
+
+    .chaos-toggle-btn.active.kill-sms {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: var(--danger-crimson);
+      color: #fca5a5;
+      box-shadow: 0 0 12px var(--danger-crimson-glow);
+    }
+
+    /* Circuit Breaker Visual State Machine */
+    .cb-visualizer {
+      background: rgba(7, 13, 26, 0.8);
+      border: 1px solid var(--border-hud);
+      border-radius: 4px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .cb-nodes-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .cb-node {
+      flex: 1;
+      text-align: center;
+      padding: 5px 2px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--text-dim);
+      transition: all 0.3s ease;
+      min-width: 0;
+    }
+
+    .cb-node.active.closed {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--safe-emerald);
+      color: var(--safe-emerald);
+      box-shadow: 0 0 10px var(--safe-emerald-glow);
+    }
+
+    .cb-node.active.open {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: var(--danger-crimson);
+      color: var(--danger-crimson);
+      box-shadow: 0 0 12px var(--danger-crimson-glow);
+    }
+
+    .cb-node.active.half-open {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--warn-amber);
+      color: var(--warn-amber);
+      box-shadow: 0 0 10px var(--warn-amber-glow);
+    }
+
+    .cb-arrow {
+      color: var(--text-dim);
+      font-size: 10px;
+      padding: 0 3px;
+    }
+
+    .cb-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    /* ==========================================================================
+       MIDDLE COLUMN: 60 FPS CANVAS PARTICLE VISUALIZER (5,000+ NODES)
+       ========================================================================== */
+    .center-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .canvas-panel {
+      flex: 1;
+      min-height: 500px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .canvas-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 12px;
+      background: rgba(12, 21, 39, 0.95);
+      border-bottom: 1px solid var(--border-hud);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .filter-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      color: var(--text-secondary);
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .filter-chip:hover, .filter-chip.active {
+      background: var(--border-active);
+      border-color: var(--border-bright);
+      color: #fff;
+      box-shadow: 0 0 8px var(--ultra-blue-glow);
+    }
+
+    .canvas-viewport-wrapper {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 440px;
+      background: radial-gradient(circle at center, #081124 0%, #030812 100%);
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    #particle-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+      z-index: 1;
+    }
+
+    /* Canvas Tactical HUD Overlay elements */
+    .canvas-overlay-legend {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(7, 13, 26, 0.85);
+      border: 1px solid var(--border-hud);
+      border-radius: 4px;
+      padding: 6px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      backdrop-filter: blur(6px);
+      pointer-events: none;
+      z-index: 10;
+      max-width: calc(100% - 20px);
+      box-sizing: border-box;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .legend-dot.queued { background: #475569; }
+    .legend-dot.in-flight { background: var(--warn-amber); box-shadow: 0 0 6px var(--warn-amber); }
+    .legend-dot.delivered { background: var(--safe-emerald); box-shadow: 0 0 6px var(--safe-emerald); }
+    .legend-dot.failed { background: var(--danger-crimson); box-shadow: 0 0 6px var(--danger-crimson); }
+    .legend-dot.retried { background: var(--cyber-violet); box-shadow: 0 0 6px var(--cyber-violet); }
+
+    .canvas-node-inspector {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(12, 21, 39, 0.95);
+      border: 1px solid var(--matrix-teal);
+      border-radius: 4px;
+      padding: 10px;
+      width: 220px;
+      max-width: calc(100% - 20px);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-secondary);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .canvas-node-inspector.visible {
+      opacity: 1;
+    }
+
+    .inspector-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--matrix-teal);
+      border-bottom: 1px solid rgba(6, 182, 212, 0.3);
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .inspector-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3px;
+    }
+
+    .inspector-row .val {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       RIGHT COLUMN: LATENCY HISTOGRAM & LIVE LOG TERMINAL
+       ========================================================================== */
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Latency Histogram Panel */
+    .histogram-container {
+      width: 100%;
+      min-height: 180px;
+      height: clamp(180px, 22vw, 240px);
+      position: relative;
+      background: rgba(7, 13, 26, 0.6);
+      border: 1px solid rgba(26, 42, 71, 0.6);
+      border-radius: 4px;
+      padding: 6px;
+    }
+
+    #histogram-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .sla-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: rgba(7, 13, 26, 0.7);
+      border: 1px solid rgba(26, 42, 71, 0.6);
+      border-radius: 4px;
+      padding: 8px;
+      min-width: 0;
+    }
+
+    .sla-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sla-item .label {
+      font-size: 9px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .sla-item .value {
+      font-family: var(--font-mono);
+      font-size: clamp(11px, 1.5vw, 14px);
+      font-weight: 700;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sla-item .value.pass { color: var(--safe-emerald); }
+    .sla-item .value.fail { color: var(--danger-crimson); }
+
+    /* Live Event Terminal Log */
+    .terminal-panel {
+      flex: 1;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    @media (max-width: 480px) {
+      .tactical-header {
+        padding: 8px 10px;
+      }
+      .app-workspace {
+        padding: 10px 8px;
+      }
+      .sla-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .carrier-metrics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      }
+      .chaos-btn-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .log-filter-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .terminal-body {
+      flex: 1;
+      background: #02050b;
+      border: 1px solid rgba(26, 42, 71, 0.8);
+      border-radius: 4px;
+      padding: 8px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      line-height: 1.45;
+      overflow-y: auto;
+      min-height: 180px;
+      max-height: 340px;
+      height: auto;
+    }
+
+    .log-line {
+      margin-bottom: 3px;
+      word-break: break-all;
+      display: flex;
+      gap: 6px;
+    }
+
+    .log-ts { color: var(--text-dim); }
+    .log-tag { font-weight: 700; }
+    .log-tag.info { color: var(--matrix-teal); }
+    .log-tag.dispatch { color: var(--ultra-blue); }
+    .log-tag.ack { color: var(--safe-emerald); }
+    .log-tag.warn { color: var(--warn-amber); }
+    .log-tag.failover { color: var(--cyber-violet); }
+    .log-tag.error { color: var(--danger-crimson); }
+    .log-msg { color: var(--text-secondary); }
+    .log-msg strong { color: #fff; }
+
+    /* ==========================================================================
+       RESPONSIVE MODIFIERS & GLOW EFFECTS
+       ========================================================================== */
+    .glow-violet { text-shadow: 0 0 8px var(--cyber-violet-glow); }
+    .glow-blue { text-shadow: 0 0 8px var(--ultra-blue-glow); }
+    .glow-teal { text-shadow: 0 0 8px var(--matrix-teal-glow); }
+    .glow-emerald { text-shadow: 0 0 8px var(--safe-emerald-glow); }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       TACTICAL HEADER HUD & CONTROL DECK
+       ========================================================================== -->
+  <header class="tactical-header">
+    <div class="header-main-row">
+      <div class="brand-section">
+        <div class="brand-badge">
+          <span>R4</span>
+          <span>FAN-OUT</span>
+        </div>
+        <div class="brand-title-group">
+          <h1>SALVAR VIDAS // <span class="highlight">MOTOR DE BROADCAST MULTI-CARRIER</span></h1>
+          <div class="brand-subtitle">
+            <span>INFRAESTRUCTURA DE DISTRIBUCIÓN MASIVA CRÍTICA</span>
+            <span>•</span>
+            <span class="live-clock" id="live-clock">UTC 00:00:00.000</span>
+            <span>•</span>
+            <span id="system-state-label" style="color: var(--safe-emerald);">SISTEMA EN STANDBY</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action & Simulation Controls -->
+      <div class="header-controls">
+        <div class="audio-control-group" title="Sintetizador Web Audio API">
+          <button class="audio-btn" id="btn-audio-toggle" aria-label="Silenciar / Activar Audio">🔊</button>
+          <input type="range" class="audio-slider" id="audio-volume" min="0" max="1" step="0.05" value="0.5" title="Volumen Sintetizador">
+        </div>
+
+        <select class="select-dropdown" id="select-population" title="Escala de Población de Dispositivos">
+          <option value="2500">2,500 Dispositivos</option>
+          <option value="5000" selected>5,000 Dispositivos (Estándar)</option>
+          <option value="10000">10,000 Dispositivos (Stress Test)</option>
+        </select>
+
+        <select class="select-dropdown" id="select-speed" title="Velocidad de Simulación">
+          <option value="0.5">Velocidad: 0.5x (Lenta)</option>
+          <option value="1.0" selected>Velocidad: 1.0x (Real)</option>
+          <option value="2.5">Velocidad: 2.5x (Rápida)</option>
+          <option value="10.0">Velocidad: Ultra (Burst)</option>
+        </select>
+
+        <button class="tactical-btn primary" id="btn-broadcast-trigger">
+          <span>⚡</span>
+          <span id="btn-trigger-text">DISPARAR FAN-OUT MASIVO</span>
+        </button>
+
+        <button class="tactical-btn" id="btn-reset">
+          <span>🔄</span>
+          <span>REINICIAR</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Telemetry KPI Bar -->
+    <div class="kpi-bar">
+      <div class="kpi-chip blue">
+        <div class="kpi-label">POBLACIÓN OBJETIVO</div>
+        <div class="kpi-value" id="kpi-target">5,000 <small>nodos</small></div>
+      </div>
+      <div class="kpi-chip emerald">
+        <div class="kpi-label">ENTREGADOS <span id="kpi-pct" class="status-badge-inline pass">0.0%</span></div>
+        <div class="kpi-value glow-emerald" id="kpi-delivered">0 <small>/ 5,000</small></div>
+      </div>
+      <div class="kpi-chip amber">
+        <div class="kpi-label">EN TRÁNSITO (IN-FLIGHT)</div>
+        <div class="kpi-value" id="kpi-inflight">0 <small>pkts</small></div>
+      </div>
+      <div class="kpi-chip crimson">
+        <div class="kpi-label">FALLIDOS / DROPPED</div>
+        <div class="kpi-value" id="kpi-failed">0 <small>pkts</small></div>
+      </div>
+      <div class="kpi-chip violet">
+        <div class="kpi-label">FAILOVER / REROUTED</div>
+        <div class="kpi-value" id="kpi-rerouted">0 <small>pkts</small></div>
+      </div>
+      <div class="kpi-chip teal">
+        <div class="kpi-label">LATENCIA MEDIA (μ)</div>
+        <div class="kpi-value" id="kpi-mean-latency">-- <small>ms</small></div>
+      </div>
+      <div class="kpi-chip violet">
+        <div class="kpi-label">LATENCIA P99</div>
+        <div class="kpi-value" id="kpi-p99-latency">-- <small>ms</small></div>
+      </div>
+      <div class="kpi-chip">
+        <div class="kpi-label">VALIDACIÓN SLA (&lt;850ms)</div>
+        <div class="kpi-value" id="kpi-sla-verdict">
+          <span class="status-badge-inline pass" id="kpi-sla-badge">SLA PASS (99.8%)</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN THREE-COLUMN WORKSPACE
+       ========================================================================== -->
+  <main class="app-workspace">
+
+    <!-- LEFT COLUMN: 4 CARRIER CHANNELS & CHAOS CONTROLS -->
+    <section class="left-column">
+      <div class="tactical-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">📡</span>
+            <span>4 CANALES DE TRANSMISIÓN</span>
+          </div>
+          <span class="panel-badge" id="channels-active-count">4 CANALES ONLINE</span>
+        </div>
+        <div class="panel-body">
+
+          <!-- Canal 1: FCM / APNs Push -->
+          <div class="carrier-card active" id="card-chan-fcm">
+            <div class="carrier-header">
+              <div class="carrier-name">
+                <span>📱</span>
+                <span>FCM / APNs PUSH</span>
+              </div>
+              <span class="carrier-status-tag status-optimal" id="tag-chan-fcm">ÓPTIMO</span>
+            </div>
+            <div class="carrier-meta">
+              <span>Google Cloud Pub/Sub → HTTP/2 Push</span>
+              <span>SLA: 99.92%</span>
+            </div>
+            <div class="carrier-metrics-grid">
+              <div class="carrier-metric-item">
+                <span class="sublabel">Entregados</span>
+                <span class="subval" id="fcm-delivered">0 / 2,400</span>
+              </div>
+              <div class="carrier-metric-item">
+                <span class="sublabel">Latencia Base</span>
+                <span class="subval" id="fcm-latency">340 ms</span>
+              </div>
+              <div class="carrier-metric-item">
+                <span class="sublabel">Throughput</span>
+                <span class="subval" id="fcm-tps">0 msg/s</span>
+              </div>
+            </div>
+            <div class="carrier-progress-bar">
+              <div class="carrier-progress-fill" id="fcm-progress"></div>
+            </div>
+          </div>
+
+          <!-- Canal 2: Emergency SMS Gateway -->
+          <div class="carrier-card" id="card-chan-sms">
+            <div class="carrier-header">
+              <div class="carrier-name">
+                <span>💬</span>
+                <span>SMS GATEWAY MASIVO</span>
+              </div>
+              <span class="carrier-status-tag status-optimal" id="tag-chan-sms">ÓPTIMO</span>
+            </div>
+            <div class="carrier-meta">
+              <span>SMPP v3.4 / AWS SNS / Twilio Multi-Telco</span>
+              <span>SLA: 99.65%</span>
+            </div>
+            <div class="carrier-metrics-grid">
+              <div class="carrier-metric-item">
+                <span class="sublabel">Entregados</span>
+                <span class="subval" id="sms-delivered">0 / 1,800</span>
+              </div>
+              <div class="carrier-metric-item">
+                <span class="sublabel">Latencia Base</span>
+                <span class="subval" id="sms-latency">680 ms</span>
+              </div>
+              <div class="carrier-metric-item">
+                <span class="sublabel">Cola SMPP</span>
+                <span class="subval" id="sms-queue">0 msgs</span>
+              </div>
+            </div>
+            <div class="carrier-progress-bar">
+              <div class="carrier-progress-fill" id="sms-progress"></div>
+            </div>
+          </div>
+
+          <!-- Canal 3: Megafonía IP & Sirenas LoRaWAN -->
+          <div class="carrier-card" id="card-chan-pa">
+            <div class="carrier-header">
+              <div class="carrier-name">
+                <span>🔊</span>
+                <span>MEGAFONÍA IP &amp; LORAWAN</span>
+              </div>
+              <span class="carrier-status-tag status-optimal" id="tag-chan-pa">ÓPTIMO</span>
+            </div>
+            <div class="carrier-meta">
+              <span>Multicast RTP + Sirenas 868MHz LoRa</span>
+              <span>SLA: 99.99%</span>
+            </div>
+            <div class="carrier-metrics-grid">
+              <div class="carrier-metric-item">
+                <span class="sublabel">Zonas / Sirenas</span>
+                <span class="subval" id="pa-delivered">0 / 150</span>
+              </div>
+              <div class="carrier-metric-item">
+                <span class="sublabel">Latencia</span>
+                <span class="subval" id="pa-latency">120 ms</span>
+              </div>
+              <div class="carrier-metric-item">
+                <span class="sublabel">RF RSSI</span>
+                <span class="subval" id="pa-rssi">-64 dBm</span>
+              </div>
+            </div>
+            <div class="carrier-progress-bar">
+              <div class="carrier-progress-fill" id="pa-progress"></div>
+            </div>
+          </div>
+
+          <!-- Canal 4: Brigade Digital Radio -->
+          <div class="carrier-card" id="card-chan-radio">
+            <div class="carrier-header">
+              <div class="carrier-name">
+                <span>📻</span>
+                <span>RADIO DIGITAL BRIGADAS</span>
+              </div>
+              <span class="carrier-status-tag status-optimal" id="tag-chan-radio">ÓPTIMO</span>
+            </div>
+            <div class="carrier-meta">
+              <span>P25 Phase 2 / TETRA Direct Mesh</span>
+              <span>SLA: 100.0%</span>
+            </div>
+            <div class="carrier-metrics-grid">
+              <div class="carrier-metric-item">
+                <span class="sublabel">Terminales</span>
+                <span class="subval" id="radio-delivered">0 / 50</span>
+              </div>
+              <div class="carrier-metric-item">
+                <span class="sublabel">Latencia</span>
+                <span class="subval" id="radio-latency">45 ms</span>
+              </div>
+              <div class="carrier-metric-item">
+                <span class="sublabel">Cifrado AES</span>
+                <span class="subval" style="color: var(--safe-emerald);">VALIDADO</span>
+              </div>
+            </div>
+            <div class="carrier-progress-bar">
+              <div class="carrier-progress-fill" id="radio-progress"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Chaos Engineering & Circuit Breaker Cockpit -->
+      <div class="tactical-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">⚡</span>
+            <span>CHAOS &amp; CIRCUIT BREAKER</span>
+          </div>
+          <span class="panel-badge" id="chaos-active-count">0 INYECCIONES</span>
+        </div>
+        <div class="panel-body">
+          <div class="chaos-panel">
+            <div class="chaos-title">
+              <span>INYECCIÓN DE FALLOS INTERACTIVA</span>
+              <span>🧪 CHAOS DECK</span>
+            </div>
+            <div class="chaos-btn-grid">
+              <button class="chaos-toggle-btn" id="btn-chaos-sms-spike">
+                <span>⚡ Latencia SMS (+1.5s)</span>
+                <span class="dot">○</span>
+              </button>
+              <button class="chaos-toggle-btn" id="btn-chaos-push-loss">
+                <span>📉 Pérdida Push (30%)</span>
+                <span class="dot">○</span>
+              </button>
+              <button class="chaos-toggle-btn kill-sms" id="btn-chaos-kill-sms">
+                <span>💣 Apagar SMS Gateway</span>
+                <span class="dot">○</span>
+              </button>
+              <button class="chaos-toggle-btn" id="btn-chaos-lora-jitter">
+                <span>📶 Jitter LoRa (+200ms)</span>
+                <span class="dot">○</span>
+              </button>
+            </div>
+
+            <!-- Circuit Breaker Visual State Machine -->
+            <div class="cb-visualizer">
+              <div class="cb-nodes-row">
+                <div class="cb-node active closed" id="cb-state-closed">
+                  <span>CLOSED</span>
+                  <small style="display:block; font-size: 8px;">(OPERACIÓN NORMAL)</small>
+                </div>
+                <div class="cb-arrow">⇄</div>
+                <div class="cb-node" id="cb-state-open">
+                  <span>OPEN</span>
+                  <small style="display:block; font-size: 8px;">(FAILOVER ACTIVO)</small>
+                </div>
+                <div class="cb-arrow">⇄</div>
+                <div class="cb-node" id="cb-state-half-open">
+                  <span>HALF-OPEN</span>
+                  <small style="display:block; font-size: 8px;">(SONDEO TRIAL)</small>
+                </div>
+              </div>
+              <div class="cb-meta">
+                <span>Tasa de Error: <strong id="cb-error-rate" style="color: var(--safe-emerald);">0.0%</strong></span>
+                <span>Umbral Disparo: <strong>&gt; 15%</strong></span>
+                <span>Cooldown Reset: <strong id="cb-timer">0.0s</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MIDDLE COLUMN: 60 FPS MICRO-NODE PARTICLE VISUALIZER -->
+    <section class="center-column">
+      <div class="tactical-panel canvas-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">🌌</span>
+            <span>VISUALIZADOR DE MICRO-NODOS (5,000+ DISPOSITIVOS @ 60 FPS)</span>
+          </div>
+          <div class="filter-btn-group">
+            <button class="filter-chip active" data-filter="all">TODOS</button>
+            <button class="filter-chip" data-filter="0">📱 FCM PUSH</button>
+            <button class="filter-chip" data-filter="1">💬 SMS</button>
+            <button class="filter-chip" data-filter="2">🔊 MEGAFONÍA</button>
+            <button class="filter-chip" data-filter="3">📻 RADIO</button>
+            <button class="filter-chip" data-filter="fails">🔴 FALLOS</button>
+          </div>
+        </div>
+
+        <div class="canvas-viewport-wrapper" id="canvas-container">
+          <canvas id="particle-canvas"></canvas>
+
+          <!-- Tactical HUD Legend -->
+          <div class="canvas-overlay-legend">
+            <div class="legend-item"><span class="legend-dot queued"></span><span>En Cola</span></div>
+            <div class="legend-item"><span class="legend-dot in-flight"></span><span>En Vuelo</span></div>
+            <div class="legend-item"><span class="legend-dot delivered"></span><span>Entregado</span></div>
+            <div class="legend-item"><span class="legend-dot failed"></span><span>Fallido</span></div>
+            <div class="legend-item"><span class="legend-dot retried"></span><span>Failover Reroute</span></div>
+          </div>
+
+          <!-- Micro-Node Inspection Tooltip Card -->
+          <div class="canvas-node-inspector" id="node-inspector">
+            <div class="inspector-title" id="insp-id">DISPOSITIVO #----</div>
+            <div class="inspector-row"><span>Canal:</span><span class="val" id="insp-channel">--</span></div>
+            <div class="inspector-row"><span>Estado:</span><span class="val" id="insp-status">--</span></div>
+            <div class="inspector-row"><span>Latencia:</span><span class="val" id="insp-latency">-- ms</span></div>
+            <div class="inspector-row"><span>Token / MSISDN:</span><span class="val" id="insp-token">--</span></div>
+            <div class="inspector-row"><span>Reintentos:</span><span class="val" id="insp-retries">0</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: LATENCY HISTOGRAM & REAL-TIME EVENT LOG -->
+    <section class="right-column">
+      <!-- Latency Distribution Histogram Panel -->
+      <div class="tactical-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">📊</span>
+            <span>HISTOGRAMA DE DISTRIBUCIÓN DE LATENCIA</span>
+          </div>
+          <span class="panel-badge" id="hist-total-samples">0 MUESTRAS</span>
+        </div>
+        <div class="panel-body">
+          <div class="histogram-container">
+            <canvas id="histogram-canvas"></canvas>
+          </div>
+
+          <!-- Statistical Telemetry Breakdown -->
+          <div class="sla-summary-grid">
+            <div class="sla-item">
+              <span class="label">P50 (Mediana)</span>
+              <span class="value" id="stat-p50">-- ms</span>
+            </div>
+            <div class="sla-item">
+              <span class="label">P90</span>
+              <span class="value" id="stat-p90">-- ms</span>
+            </div>
+            <div class="sla-item">
+              <span class="label">P95</span>
+              <span class="value" id="stat-p95">-- ms</span>
+            </div>
+            <div class="sla-item">
+              <span class="label">P99 (Cola)</span>
+              <span class="value glow-violet" id="stat-p99">-- ms</span>
+            </div>
+            <div class="sla-item">
+              <span class="label">Desv. Est (σ)</span>
+              <span class="value" id="stat-stddev">-- ms</span>
+            </div>
+            <div class="sla-item">
+              <span class="label">SLA (&lt;850ms)</span>
+              <span class="value pass" id="stat-sla-pct">100.0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time ANSI Event Terminal -->
+      <div class="tactical-panel terminal-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">📟</span>
+            <span>REGISTRO DE EVENTOS &amp; AUDITORÍA</span>
+          </div>
+          <div class="terminal-controls">
+            <select class="log-filter-select" id="log-filter">
+              <option value="all">TODOS</option>
+              <option value="dispatch">DISPATCH</option>
+              <option value="ack">ACKS</option>
+              <option value="chaos">CHAOS</option>
+              <option value="failover">FAILOVER</option>
+            </select>
+            <button class="filter-chip" id="btn-clear-logs" style="font-size: 9px; padding: 2px 6px;">LIMPIAR</button>
+          </div>
+        </div>
+        <div class="terminal-body" id="event-log-container">
+          <div class="log-line">
+            <span class="log-ts">[00:00:00.000]</span>
+            <span class="log-tag info">[SYS_INIT]</span>
+            <span class="log-msg">Motor de Fan-Out Multi-Carrier inicializado. 4 Canales enlazados y listos.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================================================
+       JAVASCRIPT: CORE SIMULATION ENGINE, WEB AUDIO SYNTH & VISUALIZERS
+       ========================================================================== -->
+  <script>
+    (function() {
+      'use strict';
+
+      /* ==========================================================================
+         1. AUDIO SYNTHESIZER (PROCEDURAL WEB AUDIO API)
+         ========================================================================== */
+      class ProceduralAudioEngine {
+        constructor() {
+          this.ctx = null;
+          this.masterGain = null;
+          this.isMuted = false;
+          this.volume = 0.5;
+          this.lastTickTime = 0;
+        }
+
+        init() {
+          if (this.ctx) return;
+          try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioContext();
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.volume, this.ctx.currentTime);
+            this.masterGain.connect(this.ctx.destination);
+          } catch (e) {
+            console.warn('Web Audio API no soportado o restringido:', e);
+          }
+        }
+
+        ensureContext() {
+          this.init();
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        }
+
+        setVolume(vol) {
+          this.volume = parseFloat(vol);
+          if (this.masterGain && this.ctx && !this.isMuted) {
+            this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+          }
+        }
+
+        toggleMute() {
+          this.isMuted = !this.isMuted;
+          if (this.masterGain && this.ctx) {
+            this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.volume, this.ctx.currentTime);
+          }
+          return this.isMuted;
+        }
+
+        // Fan-Out Mass Burst Sound: Sub-bass sweep + white noise blast
+        playBroadcastBurst() {
+          if (!this.ctx || this.isMuted) return;
+          this.ensureContext();
+          const now = this.ctx.currentTime;
+
+          // Sub-bass oscillator
+          const osc = this.ctx.createOscillator();
+          const oscGain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(160, now);
+          osc.frequency.exponentialRampToValueAtTime(35, now + 0.6);
+
+          oscGain.gain.setValueAtTime(0.4, now);
+          oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+
+          osc.connect(oscGain);
+          oscGain.connect(this.masterGain);
+          osc.start(now);
+          osc.stop(now + 0.7);
+
+          // Noise burst
+          const bufferSize = this.ctx.sampleRate * 0.4;
+          const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(1400, now);
+          filter.frequency.exponentialRampToValueAtTime(300, now + 0.4);
+          filter.Q.setValueAtTime(3.0, now);
+
+          const noiseGain = this.ctx.createGain();
+          noiseGain.gain.setValueAtTime(0.3, now);
+          noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+          noise.connect(filter);
+          filter.connect(noiseGain);
+          noiseGain.connect(this.masterGain);
+          noise.start(now);
+          noise.stop(now + 0.5);
+        }
+
+        // Micro delivery tick (Throttled to prevent audio distortion at 5,000 packets)
+        playDeliveryTick(freq = 880) {
+          if (!this.ctx || this.isMuted) return;
+          const now = performance.now();
+          if (now - this.lastTickTime < 18) return; // 18ms throttle
+          this.lastTickTime = now;
+
+          const t = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq + (Math.random() * 200 - 100), t);
+
+          gain.gain.setValueAtTime(0.04, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(t);
+          osc.stop(t + 0.045);
+        }
+
+        // Circuit Breaker Tripped Alarm Klaxon
+        playCircuitBreakerAlarm() {
+          if (!this.ctx || this.isMuted) return;
+          this.ensureContext();
+          const now = this.ctx.currentTime;
+
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(650, now);
+          osc.frequency.linearRampToValueAtTime(220, now + 0.35);
+
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        }
+
+        // Failover Arpeggio Ping
+        playFailoverChime() {
+          if (!this.ctx || this.isMuted) return;
+          this.ensureContext();
+          const now = this.ctx.currentTime;
+          const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+
+          freqs.forEach((f, idx) => {
+            const t = now + idx * 0.06;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, t);
+            gain.gain.setValueAtTime(0.15, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(t);
+            osc.stop(t + 0.15);
+          });
+        }
+      }
+
+      /* ==========================================================================
+         2. SIMULATION CONSTANTS & CONFIGURATION
+         ========================================================================== */
+      const CHANNEL_FCM = 0;
+      const CHANNEL_SMS = 1;
+      const CHANNEL_PA = 2;
+      const CHANNEL_RADIO = 3;
+
+      const STATE_QUEUED = 0;
+      const STATE_IN_FLIGHT = 1;
+      const STATE_DELIVERED = 2;
+      const STATE_FAILED = 3;
+      const STATE_RETRIED = 4;
+
+      const CHANNEL_DEFAULTS = [
+        {
+          id: CHANNEL_FCM,
+          name: 'FCM / APNs Push',
+          icon: '📱',
+          ratio: 0.48, // 48% of population
+          baseLatency: 340,
+          jitter: 60,
+          baseFailureRate: 0.0008,
+          color: '#3b82f6',
+          colorLight: '#60a5fa'
+        },
+        {
+          id: CHANNEL_SMS,
+          name: 'SMS Gateway',
+          icon: '💬',
+          ratio: 0.36, // 36% of population
+          baseLatency: 680,
+          jitter: 180,
+          baseFailureRate: 0.0035,
+          color: '#f59e0b',
+          colorLight: '#fbbf24'
+        },
+        {
+          id: CHANNEL_PA,
+          name: 'Megafonía IP / LoRa',
+          icon: '🔊',
+          ratio: 0.12, // 12% of population
+          baseLatency: 120,
+          jitter: 25,
+          baseFailureRate: 0.0001,
+          color: '#06b6d4',
+          colorLight: '#22d3ee'
+        },
+        {
+          id: CHANNEL_RADIO,
+          name: 'Radio Brigadas P25',
+          icon: '📻',
+          ratio: 0.04, // 4% of population
+          baseLatency: 45,
+          jitter: 10,
+          baseFailureRate: 0.0000,
+          color: '#a855f7',
+          colorLight: '#c084fc'
+        }
+      ];
+
+      /* ==========================================================================
+         3. FAN-OUT ENGINE & PARTICLE SYSTEM
+         ========================================================================== */
+      class FanOutBroadcastEngine {
+        constructor(audio) {
+          this.audio = audio;
+          this.totalPopulation = 5000;
+          this.speedMultiplier = 1.0;
+          this.isRunning = false;
+          this.startTime = 0;
+          this.filterChannel = 'all';
+
+          // Chaos Injections
+          this.chaosSmsSpike = false;      // +1500ms SMS latency
+          this.chaosPushLoss = false;      // 30% push drop rate
+          this.chaosKillSms = false;        // 100% SMS carrier kill
+          this.chaosLoraJitter = false;    // +200ms LoRa jitter
+
+          // Circuit Breaker State Machine
+          this.cbState = 'CLOSED';         // 'CLOSED' | 'OPEN' | 'HALF_OPEN'
+          this.cbErrorRate = 0.0;
+          this.cbCooldownTimer = 0;
+          this.cbTrialSuccessCount = 0;
+          this.cbTrialTotal = 0;
+
+          // Device particle arrays
+          this.nodes = [];
+          this.deliveredLatencies = [];
+
+          // Channel Counters
+          this.channelStats = [
+            { target: 0, delivered: 0, inFlight: 0, failed: 0, retried: 0, lastThroughput: 0 },
+            { target: 0, delivered: 0, inFlight: 0, failed: 0, retried: 0, lastThroughput: 0 },
+            { target: 0, delivered: 0, inFlight: 0, failed: 0, retried: 0, lastThroughput: 0 },
+            { target: 0, delivered: 0, inFlight: 0, failed: 0, retried: 0, lastThroughput: 0 }
+          ];
+
+          // Grand KPIs
+          this.totalDelivered = 0;
+          this.totalInFlight = 0;
+          this.totalFailed = 0;
+          this.totalRetried = 0;
+
+          this.initNodes();
+        }
+
+        setPopulation(size) {
+          this.totalPopulation = parseInt(size, 10);
+          this.reset();
+        }
+
+        setSpeed(spd) {
+          this.speedMultiplier = parseFloat(spd);
+        }
+
+        initNodes() {
+          this.nodes = new Array(this.totalPopulation);
+          this.deliveredLatencies = [];
+          this.totalDelivered = 0;
+          this.totalInFlight = 0;
+          this.totalFailed = 0;
+          this.totalRetried = 0;
+
+          // Calculate targets per channel
+          let assigned = 0;
+          for (let c = 0; c < 4; c++) {
+            const count = (c === 3) 
+              ? (this.totalPopulation - assigned)
+              : Math.floor(this.totalPopulation * CHANNEL_DEFAULTS[c].ratio);
+            
+            this.channelStats[c] = {
+              target: count,
+              delivered: 0,
+              inFlight: 0,
+              failed: 0,
+              retried: 0,
+              lastThroughput: 0
+            };
+            assigned += count;
+          }
+
+          let nodeIndex = 0;
+          for (let c = 0; c < 4; c++) {
+            const count = this.channelStats[c].target;
+            for (let i = 0; i < count; i++) {
+              const msisdn = (c === CHANNEL_SMS)
+                ? `+51 9${Math.floor(10000000 + Math.random() * 89999999)}`
+                : (c === CHANNEL_FCM)
+                ? `fcm_tok_${Math.random().toString(36).substring(2, 10)}`
+                : (c === CHANNEL_PA)
+                ? `PA-ZONA-${String(i + 1).padStart(3, '0')}`
+                : `TG911-TAC-${String(i + 1).padStart(2, '0')}`;
+
+              this.nodes[nodeIndex] = {
+                id: nodeIndex + 1,
+                channel: c,
+                originalChannel: c,
+                status: STATE_QUEUED,
+                msisdn: msisdn,
+                
+                // Coordinates in normalized space (0.0 to 1.0)
+                normX: 0.5,
+                normY: 0.5,
+                targetNormX: 0,
+                targetNormY: 0,
+                curX: 0,
+                curY: 0,
+                
+                // Timing & Latency
+                dispatchTime: 0,
+                targetDeliveryTime: 0,
+                latencyMs: 0,
+                retries: 0,
+                progress: 0.0,
+                speed: 1.0
+              };
+              nodeIndex++;
+            }
+          }
+
+          this.calculateNodeTargetPositions();
+        }
+
+        // Arrange devices in visually intuitive tactical quadrant clusters
+        calculateNodeTargetPositions() {
+          const total = this.nodes.length;
+          
+          for (let i = 0; i < total; i++) {
+            const n = this.nodes[i];
+            const c = n.channel;
+
+            let qx = 0.5, qy = 0.5;
+            let radiusSpread = 0.18;
+
+            if (c === CHANNEL_FCM) {
+              qx = 0.28; qy = 0.28; radiusSpread = 0.20;
+            } else if (c === CHANNEL_SMS) {
+              qx = 0.72; qy = 0.28; radiusSpread = 0.19;
+            } else if (c === CHANNEL_PA) {
+              qx = 0.28; qy = 0.72; radiusSpread = 0.14;
+            } else if (c === CHANNEL_RADIO) {
+              qx = 0.72; qy = 0.72; radiusSpread = 0.12;
+            }
+
+            const angle = i * 2.3999632;
+            const r = Math.sqrt(Math.random()) * radiusSpread;
+            
+            n.targetNormX = Math.max(0.04, Math.min(0.96, qx + Math.cos(angle) * r));
+            n.targetNormY = Math.max(0.04, Math.min(0.96, qy + Math.sin(angle) * r));
+            
+            n.normX = 0.5;
+            n.normY = 0.5;
+            n.curX = n.normX;
+            n.curY = n.normY;
+          }
+        }
+
+        // Trigger Mass Broadcast
+        startBroadcast() {
+          if (this.isRunning) return;
+          this.isRunning = true;
+          this.startTime = performance.now();
+          this.audio.playBroadcastBurst();
+
+          for (let i = 0; i < this.nodes.length; i++) {
+            const n = this.nodes[i];
+            n.status = STATE_IN_FLIGHT;
+            n.progress = 0.0;
+            
+            const dispatchDelay = Math.random() * 120;
+            n.dispatchTime = this.startTime + dispatchDelay;
+
+            const latency = this.computePacketLatency(n.channel);
+            n.targetDeliveryTime = n.dispatchTime + latency;
+            n.latencyMs = latency;
+          }
+
+          this.totalInFlight = this.nodes.length;
+          for (let c = 0; c < 4; c++) {
+            this.channelStats[c].inFlight = this.channelStats[c].target;
+          }
+        }
+
+        computePacketLatency(channel) {
+          const def = CHANNEL_DEFAULTS[channel];
+          let base = def.baseLatency;
+          let jitter = (Math.random() * 2 - 1) * def.jitter;
+
+          if (channel === CHANNEL_SMS && this.chaosSmsSpike) {
+            base += 1500 + Math.random() * 600;
+          }
+          if (channel === CHANNEL_PA && this.chaosLoraJitter) {
+            jitter += (Math.random() * 2 - 1) * 200;
+          }
+
+          const u1 = Math.random();
+          const u2 = Math.random();
+          const z = Math.sqrt(-2.0 * Math.log(u1 || 0.0001)) * Math.cos(2.0 * Math.PI * u2);
+          
+          let calculated = base + jitter + z * (def.jitter * 0.4);
+          return Math.max(18, Math.round(calculated));
+        }
+
+        // Step simulation tick
+        update(now) {
+          // Always evaluate Circuit Breaker state
+          this.updateCircuitBreaker(now);
+
+          if (!this.isRunning) return;
+
+          let newDeliveries = 0;
+          const dt = (now - this.startTime) * this.speedMultiplier;
+          const currentSimTime = this.startTime + dt;
+
+          for (let i = 0; i < this.nodes.length; i++) {
+            const n = this.nodes[i];
+
+            if (n.status === STATE_IN_FLIGHT || n.status === STATE_RETRIED) {
+              if (currentSimTime < n.dispatchTime) {
+                continue;
+              }
+
+              const totalDuration = n.targetDeliveryTime - n.dispatchTime;
+              const elapsed = currentSimTime - n.dispatchTime;
+              n.progress = Math.min(1.0, elapsed / Math.max(1, totalDuration));
+
+              const t = n.progress;
+              const cpX = 0.5 + (n.targetNormX - 0.5) * 0.5 + Math.sin(i) * 0.08;
+              const cpY = 0.5 + (n.targetNormY - 0.5) * 0.5 + Math.cos(i) * 0.08;
+
+              n.normX = (1 - t) * (1 - t) * 0.5 + 2 * (1 - t) * t * cpX + t * t * n.targetNormX;
+              n.normY = (1 - t) * (1 - t) * 0.5 + 2 * (1 - t) * t * cpY + t * t * n.targetNormY;
+
+              if (n.progress >= 1.0) {
+                this.evaluateDeliveryArrival(n, now);
+                newDeliveries++;
+              }
+            }
+          }
+
+          if (newDeliveries > 0) {
+            this.audio.playDeliveryTick();
+          }
+
+          // Check if broadcast completed
+          if (this.totalDelivered + this.totalFailed >= this.totalPopulation) {
+            this.isRunning = false;
+          }
+        }
+
+        evaluateDeliveryArrival(node, now) {
+          const c = node.channel;
+          let isFailure = false;
+
+          if (c === CHANNEL_SMS && this.chaosKillSms) {
+            isFailure = true;
+          } else if (c === CHANNEL_FCM && this.chaosPushLoss) {
+            isFailure = Math.random() < 0.30;
+          } else {
+            isFailure = Math.random() < CHANNEL_DEFAULTS[c].baseFailureRate;
+          }
+
+          // Failover Reroute Check
+          if ((isFailure || this.chaosKillSms) && (c === CHANNEL_SMS) && (this.cbState === 'OPEN' || this.chaosKillSms)) {
+            node.status = STATE_RETRIED;
+            node.retries++;
+            this.totalRetried++;
+            this.channelStats[c].retried++;
+
+            const failoverChannel = (Math.random() < 0.75) ? CHANNEL_FCM : CHANNEL_PA;
+            node.channel = failoverChannel;
+            node.dispatchTime = now;
+            const reroutePenalty = 45 + Math.random() * 30;
+            node.latencyMs += reroutePenalty;
+            node.targetDeliveryTime = now + reroutePenalty;
+            node.progress = 0.0;
+            return;
+          }
+
+          if (isFailure) {
+            node.status = STATE_FAILED;
+            this.totalFailed++;
+            this.channelStats[c].failed++;
+            this.channelStats[c].inFlight = Math.max(0, this.channelStats[c].inFlight - 1);
+            this.totalInFlight = Math.max(0, this.totalInFlight - 1);
+          } else {
+            node.status = STATE_DELIVERED;
+            this.totalDelivered++;
+            this.channelStats[c].delivered++;
+            this.channelStats[c].inFlight = Math.max(0, this.channelStats[c].inFlight - 1);
+            this.totalInFlight = Math.max(0, this.totalInFlight - 1);
+            this.deliveredLatencies.push(node.latencyMs);
+          }
+        }
+
+        updateCircuitBreaker(now) {
+          const smsDelivered = this.channelStats[CHANNEL_SMS].delivered;
+          const smsFailed = this.channelStats[CHANNEL_SMS].failed;
+          const smsTotal = smsDelivered + smsFailed;
+
+          if (this.chaosKillSms) {
+            this.cbErrorRate = 100.0;
+          } else if (this.chaosSmsSpike) {
+            this.cbErrorRate = 24.2;
+          } else if (smsTotal > 20) {
+            this.cbErrorRate = (smsFailed / smsTotal) * 100;
+          } else {
+            this.cbErrorRate = 0.0;
+          }
+
+          // State Machine
+          if (this.cbState === 'CLOSED') {
+            if (this.cbErrorRate > 15.0 || this.chaosKillSms) {
+              this.cbState = 'OPEN';
+              this.cbCooldownTimer = now + 4000;
+              this.audio.playCircuitBreakerAlarm();
+              this.audio.playFailoverChime();
+              
+              if (window.logEvent) {
+                window.logEvent('failover', `[CIRCUIT_BREAKER_TRIP] Carrier 'SMS-SMPP' degradado (${this.cbErrorRate.toFixed(1)}%). Desviando paquetes en tiempo real a FCM PUSH y LORAWAN.`);
+              }
+            }
+          } else if (this.cbState === 'OPEN') {
+            if (now >= this.cbCooldownTimer && !this.chaosKillSms) {
+              this.cbState = 'HALF_OPEN';
+              if (window.logEvent) {
+                window.logEvent('info', `[CIRCUIT_BREAKER_PROBE] Cooldown finalizado. Transición a HALF-OPEN para probar canal SMS.`);
+              }
+            }
+          } else if (this.cbState === 'HALF_OPEN') {
+            if (!this.chaosKillSms && !this.chaosSmsSpike) {
+              this.cbState = 'CLOSED';
+              this.cbErrorRate = 0.0;
+              if (window.logEvent) {
+                window.logEvent('ack', `[CIRCUIT_BREAKER_RESTORE] Canal SMS estabilizado. Circuit Breaker re-armado a estado CLOSED.`);
+              }
+            } else if (this.chaosKillSms) {
+              this.cbState = 'OPEN';
+              this.cbCooldownTimer = now + 3500;
+            }
+          }
+        }
+
+        reset() {
+          this.isRunning = false;
+          this.cbState = 'CLOSED';
+          this.cbErrorRate = 0.0;
+          this.initNodes();
+        }
+      }
+
+      /* ==========================================================================
+         4. CANVAS RENDERING ENGINE (60 FPS OPTIMIZED PARTICLES)
+         ========================================================================== */
+      class ParticleCanvasVisualizer {
+        constructor(canvas, engine) {
+          this.canvas = canvas;
+          this.ctx = canvas.getContext('2d');
+          this.engine = engine;
+          this.width = 0;
+          this.height = 0;
+          this.dpr = window.devicePixelRatio || 1;
+          this.pulsePhase = 0;
+          this.hoveredNode = null;
+
+          this.resize();
+          window.addEventListener('resize', () => this.resize());
+          this.setupInteractivity();
+        }
+
+        resize() {
+          const rect = this.canvas.parentElement.getBoundingClientRect();
+          this.width = rect.width;
+          this.height = rect.height;
+          this.canvas.width = this.width * this.dpr;
+          this.canvas.height = this.height * this.dpr;
+          this.ctx.scale(this.dpr, this.dpr);
+        }
+
+        setupInteractivity() {
+          this.canvas.addEventListener('mousemove', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            let closest = null;
+            let minDist = 14;
+
+            const nodes = this.engine.nodes;
+            const filter = this.engine.filterChannel;
+
+            for (let i = 0; i < nodes.length; i++) {
+              const n = nodes[i];
+              if (filter !== 'all') {
+                if (filter === 'fails' && n.status !== STATE_FAILED) continue;
+                if (filter !== 'fails' && String(n.channel) !== filter) continue;
+              }
+
+              const px = n.curX;
+              const py = n.curY;
+              const dist = Math.hypot(mouseX - px, mouseY - py);
+              if (dist < minDist) {
+                minDist = dist;
+                closest = n;
+              }
+            }
+
+            this.hoveredNode = closest;
+            this.updateInspector(closest);
+          });
+
+          this.canvas.addEventListener('mouseleave', () => {
+            this.hoveredNode = null;
+            this.updateInspector(null);
+          });
+        }
+
+        updateInspector(node) {
+          const insp = document.getElementById('node-inspector');
+          if (!node) {
+            insp.classList.remove('visible');
+            return;
+          }
+
+          insp.classList.add('visible');
+          document.getElementById('insp-id').textContent = `DISPOSITIVO #${node.id.toString().padStart(4, '0')}`;
+          document.getElementById('insp-channel').textContent = CHANNEL_DEFAULTS[node.channel].name;
+          
+          let stText = 'EN COLA';
+          let stColor = '#94a3b8';
+          if (node.status === STATE_IN_FLIGHT) { stText = 'EN TRÁNSITO'; stColor = '#f59e0b'; }
+          else if (node.status === STATE_DELIVERED) { stText = 'ENTREGADO'; stColor = '#10b981'; }
+          else if (node.status === STATE_FAILED) { stText = 'FALLIDO'; stColor = '#ef4444'; }
+          else if (node.status === STATE_RETRIED) { stText = 'FAILOVER REROUTE'; stColor = '#a855f7'; }
+
+          const statusElem = document.getElementById('insp-status');
+          statusElem.textContent = stText;
+          statusElem.style.color = stColor;
+
+          document.getElementById('insp-latency').textContent = `${node.latencyMs} ms`;
+          document.getElementById('insp-token').textContent = node.msisdn;
+          document.getElementById('insp-retries').textContent = node.retries;
+        }
+
+        render() {
+          this.pulsePhase += 0.05;
+          const ctx = this.ctx;
+          const w = this.width;
+          const h = this.height;
+
+          ctx.clearRect(0, 0, w, h);
+
+          // 1. Tactical Grid & Coordinate Rings
+          this.drawTacticalGrid(ctx, w, h);
+
+          // 2. Quadrant Cluster Outlines & Central Dispatch Hub
+          this.drawDispatchHub(ctx, w, h);
+
+          // 3. Render 5,000+ Device Micro-Nodes
+          const nodes = this.engine.nodes;
+          const total = nodes.length;
+          const filter = this.engine.filterChannel;
+
+          const cx = w * 0.5;
+          const cy = h * 0.5;
+
+          for (let i = 0; i < total; i++) {
+            const n = nodes[i];
+
+            if (filter !== 'all') {
+              if (filter === 'fails' && n.status !== STATE_FAILED) continue;
+              if (filter !== 'fails' && String(n.channel) !== filter) continue;
+            }
+
+            n.curX = n.normX * w;
+            n.curY = n.normY * h;
+
+            ctx.beginPath();
+            let radius = 2.0;
+
+            if (n.status === STATE_QUEUED) {
+              ctx.fillStyle = 'rgba(71, 85, 105, 0.45)';
+              radius = 1.6;
+            } else if (n.status === STATE_IN_FLIGHT) {
+              ctx.fillStyle = '#f59e0b';
+              radius = 2.6 + Math.sin(this.pulsePhase + i) * 0.5;
+
+              ctx.strokeStyle = 'rgba(245, 158, 11, 0.2)';
+              ctx.lineWidth = 1;
+              ctx.moveTo(cx, cy);
+              ctx.lineTo(n.curX, n.curY);
+              ctx.stroke();
+              ctx.beginPath();
+            } else if (n.status === STATE_DELIVERED) {
+              ctx.fillStyle = (n.channel === CHANNEL_FCM) ? '#3b82f6'
+                            : (n.channel === CHANNEL_SMS) ? '#10b981'
+                            : (n.channel === CHANNEL_PA)  ? '#06b6d4'
+                            : '#a855f7';
+              radius = 2.2;
+            } else if (n.status === STATE_FAILED) {
+              ctx.fillStyle = '#ef4444';
+              radius = 3.2;
+            } else if (n.status === STATE_RETRIED) {
+              ctx.fillStyle = '#c084fc';
+              radius = 2.8;
+            }
+
+            ctx.arc(n.curX, n.curY, radius, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Highlight Hovered Node
+          if (this.hoveredNode) {
+            const hn = this.hoveredNode;
+            ctx.beginPath();
+            ctx.strokeStyle = '#06b6d4';
+            ctx.lineWidth = 2;
+            ctx.arc(hn.curX, hn.curY, 7 + Math.sin(this.pulsePhase * 2) * 2, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(6, 182, 212, 0.5)';
+            ctx.setLineDash([3, 3]);
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(hn.curX, hn.curY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        }
+
+        drawTacticalGrid(ctx, w, h) {
+          const cx = w * 0.5;
+          const cy = h * 0.5;
+
+          ctx.strokeStyle = 'rgba(26, 42, 71, 0.4)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(cx, 0); ctx.lineTo(cx, h);
+          ctx.moveTo(0, cy); ctx.lineTo(w, cy);
+          ctx.stroke();
+
+          ctx.strokeStyle = 'rgba(30, 58, 102, 0.25)';
+          [0.15, 0.30, 0.45].forEach(ratio => {
+            ctx.beginPath();
+            ctx.arc(cx, cy, Math.min(w, h) * ratio, 0, Math.PI * 2);
+            ctx.stroke();
+          });
+        }
+
+        drawDispatchHub(ctx, w, h) {
+          const cx = w * 0.5;
+          const cy = h * 0.5;
+
+          ctx.beginPath();
+          const hubGlow = ctx.createRadialGradient(cx, cy, 2, cx, cy, 28);
+          hubGlow.addColorStop(0, 'rgba(168, 85, 247, 0.8)');
+          hubGlow.addColorStop(0.5, 'rgba(59, 130, 246, 0.4)');
+          hubGlow.addColorStop(1, 'transparent');
+          ctx.fillStyle = hubGlow;
+          ctx.arc(cx, cy, 28 + Math.sin(this.pulsePhase) * 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.fillStyle = '#a855f7';
+          ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.font = '600 11px Rajdhani, sans-serif';
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+          ctx.textAlign = 'center';
+
+          ctx.fillText('Q1 // FCM APNs CLUSTER', w * 0.28, h * 0.08);
+          ctx.fillText('Q2 // SMS GATEWAY CLUSTER', w * 0.72, h * 0.08);
+          ctx.fillText('Q3 // MEGAFONÍA & LORAWAN', w * 0.28, h * 0.94);
+          ctx.fillText('Q4 // BRIGADE RADIO MESH', w * 0.72, h * 0.94);
+        }
+      }
+
+      /* ==========================================================================
+         5. LATENCY HISTOGRAM & STATISTICAL TELEMETRY ENGINE
+         ========================================================================== */
+      class LatencyHistogramEngine {
+        constructor(canvas, engine) {
+          this.canvas = canvas;
+          this.ctx = canvas.getContext('2d');
+          this.engine = engine;
+          this.dpr = window.devicePixelRatio || 1;
+
+          this.binEdges = [
+            0, 100, 200, 300, 400, 500, 600, 700, 800, 850, 950, 1100, 1300, 1500, 1800, 2500
+          ];
+          this.bins = new Array(this.binEdges.length - 1).fill(0);
+          this.p50 = 0;
+          this.p90 = 0;
+          this.p95 = 0;
+          this.p99 = 0;
+          this.mean = 0;
+          this.resize();
+          window.addEventListener('resize', () => this.resize());
+        }
+
+        resize() {
+          const rect = this.canvas.parentElement.getBoundingClientRect();
+          this.canvas.width = rect.width * this.dpr;
+          this.canvas.height = rect.height * this.dpr;
+          this.ctx.scale(this.dpr, this.dpr);
+          this.width = rect.width;
+          this.height = rect.height;
+        }
+
+        updateStats() {
+          const latencies = this.engine.deliveredLatencies;
+          const total = latencies.length;
+          this.bins.fill(0);
+
+          if (total === 0) {
+            document.getElementById('hist-total-samples').textContent = '0 MUESTRAS';
+            document.getElementById('kpi-mean-latency').textContent = '--';
+            document.getElementById('kpi-p99-latency').textContent = '--';
+            document.getElementById('stat-p50').textContent = '-- ms';
+            document.getElementById('stat-p90').textContent = '-- ms';
+            document.getElementById('stat-p95').textContent = '-- ms';
+            document.getElementById('stat-p99').textContent = '-- ms';
+            document.getElementById('stat-stddev').textContent = '-- ms';
+            document.getElementById('stat-sla-pct').textContent = '100.0%';
+            return;
+          }
+
+          let sum = 0;
+          let underSlaCount = 0;
+
+          for (let i = 0; i < total; i++) {
+            const val = latencies[i];
+            sum += val;
+            if (val <= 850) underSlaCount++;
+
+            for (let b = 0; b < this.binEdges.length - 1; b++) {
+              if (val >= this.binEdges[b] && val < this.binEdges[b + 1]) {
+                this.bins[b]++;
+                break;
+              }
+            }
+          }
+
+          this.mean = sum / total;
+          let varianceSum = 0;
+          for (let i = 0; i < total; i++) {
+            varianceSum += Math.pow(latencies[i] - this.mean, 2);
+          }
+          const stdDev = Math.sqrt(varianceSum / total);
+
+          const sorted = [...latencies].sort((a, b) => a - b);
+          this.p50 = sorted[Math.floor(total * 0.50)] || 0;
+          this.p90 = sorted[Math.floor(total * 0.90)] || 0;
+          this.p95 = sorted[Math.floor(total * 0.95)] || 0;
+          this.p99 = sorted[Math.min(total - 1, Math.floor(total * 0.99))] || 0;
+
+          const slaPct = (underSlaCount / total) * 100;
+          const isSlaPass = slaPct >= 99.8;
+
+          document.getElementById('hist-total-samples').textContent = `${total} MUESTRAS`;
+          document.getElementById('kpi-mean-latency').innerHTML = `${Math.round(this.mean)} <small>ms</small>`;
+          document.getElementById('kpi-p99-latency').innerHTML = `${Math.round(this.p99)} <small>ms</small>`;
+          document.getElementById('stat-p50').textContent = `${Math.round(this.p50)} ms`;
+          document.getElementById('stat-p90').textContent = `${Math.round(this.p90)} ms`;
+          document.getElementById('stat-p95').textContent = `${Math.round(this.p95)} ms`;
+          document.getElementById('stat-p99').textContent = `${Math.round(this.p99)} ms`;
+          document.getElementById('stat-stddev').textContent = `±${Math.round(stdDev)} ms`;
+
+          const slaElem = document.getElementById('stat-sla-pct');
+          slaElem.textContent = `${slaPct.toFixed(2)}%`;
+          slaElem.className = isSlaPass ? 'value pass' : 'value fail';
+
+          const badge = document.getElementById('kpi-sla-badge');
+          if (isSlaPass) {
+            badge.textContent = `SLA PASS (${slaPct.toFixed(1)}%)`;
+            badge.className = 'status-badge-inline pass';
+          } else {
+            badge.textContent = `SLA BREACH (${slaPct.toFixed(1)}%)`;
+            badge.className = 'status-badge-inline fail';
+          }
+        }
+
+        render() {
+          const ctx = this.ctx;
+          const w = this.width;
+          const h = this.height;
+
+          ctx.clearRect(0, 0, w, h);
+
+          const numBins = this.bins.length;
+          const paddingBottom = 26;
+          const paddingTop = 15;
+          const paddingLeft = 32;
+          const paddingRight = 10;
+          const chartW = w - paddingLeft - paddingRight;
+          const chartH = h - paddingTop - paddingBottom;
+
+          const maxBinVal = Math.max(10, ...this.bins);
+          const barWidth = (chartW / numBins) - 2;
+
+          // Draw Axis & Grid lines
+          ctx.strokeStyle = 'rgba(26, 42, 71, 0.6)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(paddingLeft, h - paddingBottom);
+          ctx.lineTo(w - paddingRight, h - paddingBottom);
+          ctx.moveTo(paddingLeft, paddingTop);
+          ctx.lineTo(paddingLeft, h - paddingBottom);
+          ctx.stroke();
+
+          // Y-Axis tick labels
+          ctx.font = '9px Fira Code, monospace';
+          ctx.fillStyle = '#64748b';
+          ctx.textAlign = 'right';
+          ctx.fillText(maxBinVal.toString(), paddingLeft - 4, paddingTop + 8);
+          ctx.fillText(Math.round(maxBinVal / 2).toString(), paddingLeft - 4, paddingTop + chartH / 2 + 3);
+          ctx.fillText('0', paddingLeft - 4, h - paddingBottom);
+
+          // Draw Bars
+          for (let i = 0; i < numBins; i++) {
+            const count = this.bins[i];
+            const barH = (count / maxBinVal) * chartH;
+            const x = paddingLeft + i * (barWidth + 2);
+            const y = h - paddingBottom - barH;
+
+            const binCenter = (this.binEdges[i] + this.binEdges[i + 1]) / 2;
+            const isBreach = binCenter > 850;
+
+            const grad = ctx.createLinearGradient(x, y, x, h - paddingBottom);
+            if (isBreach) {
+              grad.addColorStop(0, '#ef4444');
+              grad.addColorStop(1, 'rgba(239, 68, 68, 0.2)');
+            } else {
+              grad.addColorStop(0, '#06b6d4');
+              grad.addColorStop(1, 'rgba(59, 130, 246, 0.25)');
+            }
+
+            ctx.fillStyle = grad;
+            ctx.fillRect(x, y, barWidth, barH);
+
+            if (count > 0) {
+              ctx.fillStyle = isBreach ? '#fca5a5' : '#67e8f9';
+              ctx.fillRect(x, y, barWidth, 1.5);
+            }
+
+            if (i % 2 === 0 || i === 8) {
+              ctx.textAlign = 'center';
+              ctx.fillStyle = (this.binEdges[i] === 850) ? '#f59e0b' : '#64748b';
+              ctx.fillText(`${this.binEdges[i]}m`, x + barWidth / 2, h - paddingBottom + 12);
+            }
+          }
+
+          // Percentile line markers
+          if (this.engine.deliveredLatencies.length > 0) {
+            const getXForLatency = (ms) => {
+              const maxMs = this.binEdges[this.binEdges.length - 1];
+              return paddingLeft + Math.min(chartW, (ms / maxMs) * chartW);
+            };
+
+            // P50 line
+            const p50X = getXForLatency(this.p50);
+            ctx.beginPath();
+            ctx.strokeStyle = '#06b6d4';
+            ctx.setLineDash([2, 3]);
+            ctx.moveTo(p50X, paddingTop);
+            ctx.lineTo(p50X, h - paddingBottom);
+            ctx.stroke();
+
+            // P99 line
+            const p99X = getXForLatency(this.p99);
+            ctx.beginPath();
+            ctx.strokeStyle = '#a855f7';
+            ctx.setLineDash([4, 2]);
+            ctx.lineWidth = 1.5;
+            ctx.moveTo(p99X, paddingTop);
+            ctx.lineTo(p99X, h - paddingBottom);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+
+          // 850ms SLA Threshold Line Marker
+          const slaIndex = 8.5;
+          const slaX = paddingLeft + (slaIndex / numBins) * chartW;
+          
+          ctx.beginPath();
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+          ctx.moveTo(slaX, paddingTop);
+          ctx.lineTo(slaX, h - paddingBottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.font = '700 8.5px Fira Code, monospace';
+          ctx.fillStyle = '#ef4444';
+          ctx.textAlign = 'left';
+          ctx.fillText('SLA 850ms', slaX + 3, paddingTop + 10);
+        }
+      }
+
+      /* ==========================================================================
+         6. APPLICATION CONTROLLER & EVENT COORDINATOR
+         ========================================================================== */
+      class ApplicationController {
+        constructor() {
+          this.audio = new ProceduralAudioEngine();
+          this.engine = new FanOutBroadcastEngine(this.audio);
+          
+          this.canvasElem = document.getElementById('particle-canvas');
+          this.visualizer = new ParticleCanvasVisualizer(this.canvasElem, this.engine);
+
+          this.histCanvas = document.getElementById('histogram-canvas');
+          this.histogram = new LatencyHistogramEngine(this.histCanvas, this.engine);
+
+          this.setupUI();
+          this.setupClock();
+          this.bindChaosControls();
+          this.startAnimationLoop();
+        }
+
+        setupUI() {
+          const btnTrigger = document.getElementById('btn-broadcast-trigger');
+          btnTrigger.addEventListener('click', () => {
+            this.audio.ensureContext();
+            if (!this.engine.isRunning) {
+              this.engine.startBroadcast();
+              document.getElementById('btn-trigger-text').textContent = 'BROADCAST EN PROGRESO...';
+              document.getElementById('system-state-label').textContent = 'DISPARANDO FAN-OUT MASIVO';
+              document.getElementById('system-state-label').style.color = 'var(--warn-amber)';
+              this.log('dispatch', `[FAN_OUT_DISPATCH] Iniciando broadcast masivo a ${this.engine.totalPopulation} dispositivos en 4 canales.`);
+            }
+          });
+
+          const btnReset = document.getElementById('btn-reset');
+          btnReset.addEventListener('click', () => {
+            this.engine.reset();
+            this.histogram.updateStats();
+            document.getElementById('btn-trigger-text').textContent = 'DISPARAR FAN-OUT MASIVO';
+            document.getElementById('system-state-label').textContent = 'SISTEMA EN STANDBY';
+            document.getElementById('system-state-label').style.color = 'var(--safe-emerald)';
+            this.log('info', '[SYS_RESET] Simulación reiniciada a estado cero.');
+          });
+
+          const selPop = document.getElementById('select-population');
+          selPop.addEventListener('change', (e) => {
+            this.engine.setPopulation(e.target.value);
+            this.histogram.updateStats();
+            this.log('info', `[CONFIG] Escala de población reconfigurada a ${e.target.value} nodos.`);
+          });
+
+          const selSpeed = document.getElementById('select-speed');
+          selSpeed.addEventListener('change', (e) => {
+            this.engine.setSpeed(e.target.value);
+            this.log('info', `[CONFIG] Velocidad de simulación ajustada a ${e.target.value}x.`);
+          });
+
+          const btnAudio = document.getElementById('btn-audio-toggle');
+          btnAudio.addEventListener('click', () => {
+            const muted = this.audio.toggleMute();
+            btnAudio.textContent = muted ? '🔇' : '🔊';
+          });
+
+          const sliderVol = document.getElementById('audio-volume');
+          sliderVol.addEventListener('input', (e) => {
+            this.audio.setVolume(e.target.value);
+          });
+
+          const filterChips = document.querySelectorAll('.filter-chip[data-filter]');
+          filterChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+              filterChips.forEach(c => c.classList.remove('active'));
+              chip.classList.add('active');
+              this.engine.filterChannel = chip.getAttribute('data-filter');
+            });
+          });
+
+          document.getElementById('btn-clear-logs').addEventListener('click', () => {
+            document.getElementById('event-log-container').innerHTML = '';
+          });
+        }
+
+        bindChaosControls() {
+          const btnSmsSpike = document.getElementById('btn-chaos-sms-spike');
+          btnSmsSpike.addEventListener('click', () => {
+            this.engine.chaosSmsSpike = !this.engine.chaosSmsSpike;
+            btnSmsSpike.classList.toggle('active', this.engine.chaosSmsSpike);
+            btnSmsSpike.querySelector('.dot').textContent = this.engine.chaosSmsSpike ? '●' : '○';
+            this.log('chaos', this.engine.chaosSmsSpike 
+              ? '[CHAOS_INJECT] Latencia inducida en SMS Gateway (+1,500ms jitter).'
+              : '[CHAOS_CLEARED] Latencia de SMS restaurada a condiciones normales.');
+            this.updateChaosBadges();
+          });
+
+          const btnPushLoss = document.getElementById('btn-chaos-push-loss');
+          btnPushLoss.addEventListener('click', () => {
+            this.engine.chaosPushLoss = !this.engine.chaosPushLoss;
+            btnPushLoss.classList.toggle('active', this.engine.chaosPushLoss);
+            btnPushLoss.querySelector('.dot').textContent = this.engine.chaosPushLoss ? '●' : '○';
+            this.log('chaos', this.engine.chaosPushLoss
+              ? '[CHAOS_INJECT] Pérdida de paquetes inyectada en FCM / APNs (30% drop).'
+              : '[CHAOS_CLEARED] Conexión FCM / APNs restaurada.');
+            this.updateChaosBadges();
+          });
+
+          const btnKillSms = document.getElementById('btn-chaos-kill-sms');
+          btnKillSms.addEventListener('click', () => {
+            this.engine.chaosKillSms = !this.engine.chaosKillSms;
+            btnKillSms.classList.toggle('active', this.engine.chaosKillSms);
+            btnKillSms.querySelector('.dot').textContent = this.engine.chaosKillSms ? '●' : '○';
+            this.log('chaos', this.engine.chaosKillSms
+              ? '[CHAOS_KILL] ¡ENLACE SMPP SMS DESCONECTADO! Error 100% inducido.'
+              : '[CHAOS_RESTORE] Enlace SMPP SMS restablecido online.');
+            this.updateChaosBadges();
+          });
+
+          const btnLoraJitter = document.getElementById('btn-chaos-lora-jitter');
+          btnLoraJitter.addEventListener('click', () => {
+            this.engine.chaosLoraJitter = !this.engine.chaosLoraJitter;
+            btnLoraJitter.classList.toggle('active', this.engine.chaosLoraJitter);
+            btnLoraJitter.querySelector('.dot').textContent = this.engine.chaosLoraJitter ? '●' : '○';
+            this.log('chaos', this.engine.chaosLoraJitter
+              ? '[CHAOS_INJECT] Interferencia RF inyectada en canal LoRaWAN (+200ms).'
+              : '[CHAOS_CLEARED] Canal LoRaWAN limpio.');
+            this.updateChaosBadges();
+          });
+        }
+
+        updateChaosBadges() {
+          let count = 0;
+          if (this.engine.chaosSmsSpike) count++;
+          if (this.engine.chaosPushLoss) count++;
+          if (this.engine.chaosKillSms) count++;
+          if (this.engine.chaosLoraJitter) count++;
+          document.getElementById('chaos-active-count').textContent = `${count} INYECCIONES`;
+        }
+
+        setupClock() {
+          const clockElem = document.getElementById('live-clock');
+          const update = () => {
+            const now = new Date();
+            clockElem.textContent = `UTC ${now.toISOString().substring(11, 23)}`;
+            requestAnimationFrame(update);
+          };
+          requestAnimationFrame(update);
+        }
+
+        log(type, msg) {
+          const container = document.getElementById('event-log-container');
+          if (!container) return;
+
+          const now = new Date();
+          const ts = `[${now.toISOString().substring(11, 23)}]`;
+          
+          const line = document.createElement('div');
+          line.className = 'log-line';
+
+          let tagClass = 'info';
+          let tagText = '[INFO]';
+          if (type === 'dispatch') { tagClass = 'dispatch'; tagText = '[DISPATCH]'; }
+          else if (type === 'ack') { tagClass = 'ack'; tagText = '[ACK]'; }
+          else if (type === 'chaos') { tagClass = 'warn'; tagText = '[CHAOS]'; }
+          else if (type === 'failover') { tagClass = 'failover'; tagText = '[FAILOVER]'; }
+          else if (type === 'error') { tagClass = 'error'; tagText = '[ERROR]'; }
+
+          line.innerHTML = `<span class="log-ts">${ts}</span><span class="log-tag ${tagClass}">${tagText}</span><span class="log-msg">${msg}</span>`;
+          container.appendChild(line);
+          container.scrollTop = container.scrollHeight;
+        }
+
+        updateHUD() {
+          const engine = this.engine;
+          const delivered = engine.totalDelivered;
+          const target = engine.totalPopulation;
+          const pct = ((delivered / target) * 100).toFixed(1);
+
+          document.getElementById('kpi-target').innerHTML = `${target.toLocaleString()} <small>nodos</small>`;
+          document.getElementById('kpi-delivered').innerHTML = `${delivered.toLocaleString()} <small>/ ${target.toLocaleString()}</small>`;
+          document.getElementById('kpi-pct').textContent = `${pct}%`;
+          document.getElementById('kpi-inflight').innerHTML = `${engine.totalInFlight.toLocaleString()} <small>pkts</small>`;
+          document.getElementById('kpi-failed').innerHTML = `${engine.totalFailed.toLocaleString()} <small>pkts</small>`;
+          document.getElementById('kpi-rerouted').innerHTML = `${engine.totalRetried.toLocaleString()} <small>pkts</small>`;
+
+          // Per-Channel Cards Telemetry
+          // FCM
+          document.getElementById('fcm-delivered').textContent = `${engine.channelStats[CHANNEL_FCM].delivered} / ${engine.channelStats[CHANNEL_FCM].target}`;
+          const fcmPct = (engine.channelStats[CHANNEL_FCM].delivered / Math.max(1, engine.channelStats[CHANNEL_FCM].target)) * 100;
+          document.getElementById('fcm-progress').style.width = `${fcmPct}%`;
+          const fcmCard = document.getElementById('card-chan-fcm');
+          const fcmTag = document.getElementById('tag-chan-fcm');
+          if (engine.chaosPushLoss) {
+            fcmCard.className = 'carrier-card degraded';
+            fcmTag.className = 'carrier-status-tag status-degraded';
+            fcmTag.textContent = 'DEGRADADO (30% DROP)';
+          } else {
+            fcmCard.className = 'carrier-card active';
+            fcmTag.className = 'carrier-status-tag status-optimal';
+            fcmTag.textContent = 'ÓPTIMO';
+          }
+
+          // SMS
+          document.getElementById('sms-delivered').textContent = `${engine.channelStats[CHANNEL_SMS].delivered} / ${engine.channelStats[CHANNEL_SMS].target}`;
+          const smsPct = (engine.channelStats[CHANNEL_SMS].delivered / Math.max(1, engine.channelStats[CHANNEL_SMS].target)) * 100;
+          document.getElementById('sms-progress').style.width = `${smsPct}%`;
+          const smsCard = document.getElementById('card-chan-sms');
+          const smsTag = document.getElementById('tag-chan-sms');
+          if (engine.chaosKillSms || engine.cbState === 'OPEN') {
+            smsCard.className = 'carrier-card tripped-failover';
+            smsTag.className = 'carrier-status-tag status-rerouted';
+            smsTag.textContent = 'FAILOVER ACTIVO (REROUTE)';
+          } else if (engine.chaosSmsSpike) {
+            smsCard.className = 'carrier-card degraded';
+            smsTag.className = 'carrier-status-tag status-degraded';
+            smsTag.textContent = 'LATENCIA CRÍTICA (+1.5s)';
+          } else {
+            smsCard.className = 'carrier-card';
+            smsTag.className = 'carrier-status-tag status-optimal';
+            smsTag.textContent = 'ÓPTIMO';
+          }
+
+          // PA
+          document.getElementById('pa-delivered').textContent = `${engine.channelStats[CHANNEL_PA].delivered} / ${engine.channelStats[CHANNEL_PA].target}`;
+          const paPct = (engine.channelStats[CHANNEL_PA].delivered / Math.max(1, engine.channelStats[CHANNEL_PA].target)) * 100;
+          document.getElementById('pa-progress').style.width = `${paPct}%`;
+
+          // Radio
+          document.getElementById('radio-delivered').textContent = `${engine.channelStats[CHANNEL_RADIO].delivered} / ${engine.channelStats[CHANNEL_RADIO].target}`;
+          const radioPct = (engine.channelStats[CHANNEL_RADIO].delivered / Math.max(1, engine.channelStats[CHANNEL_RADIO].target)) * 100;
+          document.getElementById('radio-progress').style.width = `${radioPct}%`;
+
+          // Circuit Breaker State Nodes
+          const cbClosed = document.getElementById('cb-state-closed');
+          const cbOpen = document.getElementById('cb-state-open');
+          const cbHalf = document.getElementById('cb-state-half-open');
+
+          cbClosed.className = `cb-node ${engine.cbState === 'CLOSED' ? 'active closed' : ''}`;
+          cbOpen.className = `cb-node ${engine.cbState === 'OPEN' ? 'active open' : ''}`;
+          cbHalf.className = `cb-node ${engine.cbState === 'HALF_OPEN' ? 'active half-open' : ''}`;
+
+          const errElem = document.getElementById('cb-error-rate');
+          errElem.textContent = `${engine.cbErrorRate.toFixed(1)}%`;
+          errElem.style.color = engine.cbErrorRate > 15 ? 'var(--danger-crimson)' : 'var(--safe-emerald)';
+
+          const timerElem = document.getElementById('cb-timer');
+          if (engine.cbState === 'OPEN') {
+            const remain = Math.max(0, (engine.cbCooldownTimer - performance.now()) / 1000);
+            timerElem.textContent = `${remain.toFixed(1)}s`;
+          } else {
+            timerElem.textContent = '0.0s';
+          }
+        }
+
+        startAnimationLoop() {
+          let lastStatsTime = 0;
+
+          const loop = (now) => {
+            this.engine.update(now);
+            this.visualizer.render();
+
+            if (now - lastStatsTime > 100) {
+              lastStatsTime = now;
+              this.histogram.updateStats();
+              this.histogram.render();
+              this.updateHUD();
+            }
+
+            requestAnimationFrame(loop);
+          };
+
+          requestAnimationFrame(loop);
+        }
+      }
+
+      // Initialize on DOM Ready
+      window.addEventListener('DOMContentLoaded', () => {
+        window.app = new ApplicationController();
+        window.logEvent = (type, msg) => window.app.log(type, msg);
+      });
+
+    })();
+  </script>
+</body>
+</html>

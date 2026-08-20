@@ -1,0 +1,911 @@
+{
+  "staticAudit": {
+    "tv-diagnostic": {
+      "clampCount": 23,
+      "sampleClamps": [
+        "clamp(28px, 5vw, 56px)",
+        "clamp(12px, 3vw, 24px)",
+        "clamp(24px, 4vw, 40px)",
+        "clamp(0.62rem, 1.4vw, 0.75rem)",
+        "clamp(1.4rem, 4vw, 2.6rem)"
+      ],
+      "zIndexCount": 6,
+      "zIndexValues": [
+        0,
+        1,
+        2
+      ],
+      "fixedHeightCards": [
+        {
+          "class": "logs__body",
+          "height": 360
+        },
+        {
+          "class": "log-list",
+          "height": 310
+        }
+      ],
+      "integrityFlags": []
+    },
+    "network-health": {
+      "clampCount": 21,
+      "sampleClamps": [
+        "clamp(24px, 4vw, 44px)",
+        "clamp(12px, 3vw, 20px)",
+        "clamp(1.4rem,3.8vw,2.3rem)",
+        "clamp(0.75rem, 1.6vw, 0.88rem)",
+        "clamp(0.62rem, 1.3vw, 0.72rem)"
+      ],
+      "zIndexCount": 8,
+      "zIndexValues": [
+        -1,
+        0,
+        1,
+        2
+      ],
+      "fixedHeightCards": [
+        {
+          "class": "logs__body",
+          "height": 340
+        },
+        {
+          "class": "log-list",
+          "height": 300
+        }
+      ],
+      "integrityFlags": []
+    },
+    "security-audit": {
+      "clampCount": 17,
+      "sampleClamps": [
+        "clamp(1.05rem, 2.5vw, 1.4rem)",
+        "clamp(0.6rem, 1.2vw, 0.7rem)",
+        "clamp(0.72rem, 1.4vw, 0.85rem)",
+        "clamp(0.68rem, 1.3vw, 0.78rem)",
+        "clamp(0.75rem, 1.5vw, 0.85rem)"
+      ],
+      "zIndexCount": 11,
+      "zIndexValues": [
+        0,
+        1,
+        2,
+        99,
+        100,
+        999
+      ],
+      "fixedHeightCards": [
+        {
+          "class": "terminal-body",
+          "height": 140
+        }
+      ],
+      "integrityFlags": []
+    },
+    "server-status": {
+      "clampCount": 9,
+      "sampleClamps": [
+        "clamp(1rem, 3vw, 2rem)",
+        "clamp(1rem, 2.2vw, 1.35rem)",
+        "clamp(0.65rem, 1.2vw, 0.75rem)",
+        "clamp(0.72rem, 1.5vw, 0.82rem)",
+        "clamp(0.68rem, 1.2vw, 0.75rem)"
+      ],
+      "zIndexCount": 11,
+      "zIndexValues": [
+        0,
+        2,
+        10,
+        50,
+        100
+      ],
+      "fixedHeightCards": [],
+      "integrityFlags": []
+    },
+    "transaction-flow": {
+      "clampCount": 7,
+      "sampleClamps": [
+        "clamp(1.1rem, 2.8vw, 1.5rem)",
+        "clamp(0.7rem, 1.4vw, 0.82rem)",
+        "clamp(0.68rem, 1.3vw, 0.78rem)",
+        "clamp(1.15rem, 2.5vw, 1.5rem)",
+        "clamp(0.85rem, 1.8vw, 0.98rem)"
+      ],
+      "zIndexCount": 12,
+      "zIndexValues": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        100
+      ],
+      "fixedHeightCards": [
+        {
+          "class": "ambient-glow",
+          "height": 400
+        },
+        {
+          "class": "payment-card",
+          "height": 180
+        },
+        {
+          "class": "inspector-pane",
+          "height": 380
+        },
+        {
+          "class": "terminal-body",
+          "height": 150
+        }
+      ],
+      "integrityFlags": []
+    },
+    "gcp-serverless-pipeline": {
+      "clampCount": 9,
+      "sampleClamps": [
+        "clamp(15px, 2.5vw, 20px)",
+        "clamp(10px, 1.4vw, 12.5px)",
+        "clamp(9.5px, 1.2vw, 11px)",
+        "clamp(12px, 1.8vw, 16px)",
+        "clamp(12px, 1.8vw, 15px)"
+      ],
+      "zIndexCount": 2,
+      "zIndexValues": [
+        99,
+        100
+      ],
+      "fixedHeightCards": [
+        {
+          "class": "log-terminal-window",
+          "height": 200
+        }
+      ],
+      "integrityFlags": []
+    },
+    "gcp-event-pubsub": {
+      "clampCount": 12,
+      "sampleClamps": [
+        "clamp(14px, 2.2vw, 18px)",
+        "clamp(10px, 1.2vw, 12px)",
+        "clamp(11.5px, 1.5vw, 14px)",
+        "clamp(13px, 1.8vw, 16px)",
+        "clamp(11.5px, 1.5vw, 13.5px)"
+      ],
+      "zIndexCount": 4,
+      "zIndexValues": [
+        2,
+        3,
+        50,
+        100
+      ],
+      "fixedHeightCards": [
+        {
+          "class": "dlq-table-wrapper",
+          "height": 160
+        },
+        {
+          "class": "log-stream-box",
+          "height": 160
+        },
+        {
+          "class": "code-viewer-box",
+          "height": 240
+        }
+      ],
+      "integrityFlags": []
+    },
+    "gcp-sql-networking": {
+      "clampCount": 6,
+      "sampleClamps": [
+        "clamp(1.05rem, 2.5vw, 1.35rem)",
+        "clamp(0.72rem, 1.3vw, 0.84rem)",
+        "clamp(1.25rem, 2.8vw, 1.7rem)",
+        "clamp(0.9rem, 1.8vw, 1.08rem)",
+        "clamp(280px, 35vw, 400px)"
+      ],
+      "zIndexCount": 6,
+      "zIndexValues": [
+        0,
+        1,
+        2,
+        99,
+        100
+      ],
+      "fixedHeightCards": [
+        {
+          "class": "ambient-glow",
+          "height": 380
+        },
+        {
+          "class": "topology-container",
+          "height": 280
+        },
+        {
+          "class": "gauge-wrapper",
+          "height": 170
+        },
+        {
+          "class": "table-container",
+          "height": 160
+        },
+        {
+          "class": "terminal-container",
+          "height": 180
+        },
+        {
+          "class": "topology-container",
+          "height": 280
+        }
+      ],
+      "integrityFlags": []
+    }
+  },
+  "viewportOverflow": {
+    "tv-diagnostic": [],
+    "network-health": [],
+    "security-audit": [],
+    "server-status": [],
+    "transaction-flow": [],
+    "gcp-serverless-pipeline": [],
+    "gcp-event-pubsub": [],
+    "gcp-sql-networking": []
+  },
+  "collisionAudit": {
+    "tv-diagnostic": [],
+    "network-health": [],
+    "security-audit": [],
+    "server-status": [],
+    "transaction-flow": [],
+    "gcp-serverless-pipeline": [],
+    "gcp-event-pubsub": [],
+    "gcp-sql-networking": []
+  },
+  "textClippingAudit": {
+    "tv-diagnostic": [],
+    "network-health": [],
+    "security-audit": [],
+    "server-status": [],
+    "transaction-flow": [],
+    "gcp-serverless-pipeline": [],
+    "gcp-event-pubsub": [],
+    "gcp-sql-networking": []
+  },
+  "zIndexStratification": {
+    "tv-diagnostic": [
+      {
+        "cls": "scene",
+        "z": 0,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "hub",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "track",
+        "z": 1,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "node",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "node__emoji",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "node__emoji",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "node__emoji",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "node__emoji",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "footer",
+        "z": 1,
+        "tag": "FOOTER",
+        "id": ""
+      }
+    ],
+    "network-health": [
+      {
+        "cls": "app",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "trk",
+        "z": 1,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "nd",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "em",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "nd",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "em",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "nd",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "em",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "nd",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "em",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "nd",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "em",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "footer",
+        "z": 2,
+        "tag": "FOOTER",
+        "id": ""
+      }
+    ],
+    "security-audit": [
+      {
+        "cls": "app-container",
+        "z": 1,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "stepper-track-bg",
+        "z": 1,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "stepper-track-fill",
+        "z": 1,
+        "tag": "DIV",
+        "id": "stepperTrackFill"
+      },
+      {
+        "cls": "stepper-node state-pending",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "stepper-node state-pending",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "stepper-node state-pending",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "stepper-node state-pending",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "stepper-node state-pending",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "stepper-node state-pending",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "stepper-node state-pending",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "drawer-overlay",
+        "z": 99,
+        "tag": "DIV",
+        "id": "drawerOverlay"
+      },
+      {
+        "cls": "inspection-drawer",
+        "z": 100,
+        "tag": "ASIDE",
+        "id": "inspectionDrawer"
+      },
+      {
+        "cls": "modal-overlay",
+        "z": 100,
+        "tag": "DIV",
+        "id": "execSummaryModal"
+      },
+      {
+        "cls": "toast-container",
+        "z": 100,
+        "tag": "DIV",
+        "id": "toastContainer"
+      }
+    ],
+    "server-status": [
+      {
+        "cls": "scanlines",
+        "z": 0,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "app-container",
+        "z": 2,
+        "tag": "DIV",
+        "id": "appContainer"
+      },
+      {
+        "cls": "noc-header",
+        "z": 50,
+        "tag": "HEADER",
+        "id": ""
+      },
+      {
+        "cls": "sparkline-header",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "sparkline-header",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "sparkline-header",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "sparkline-header",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "sparkline-header",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "sparkline-header",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "sparkline-header",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "sparkline-header",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "sparkline-header",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "chaos-overlay",
+        "z": 100,
+        "tag": "DIV",
+        "id": "chaosModalOverlay"
+      },
+      {
+        "cls": "terminal-drawer",
+        "z": 100,
+        "tag": "ASIDE",
+        "id": "terminalDrawer"
+      },
+      {
+        "cls": "sla-tooltip",
+        "z": 100,
+        "tag": "DIV",
+        "id": "slaTooltip"
+      },
+      {
+        "cls": "toast-container",
+        "z": 100,
+        "tag": "DIV",
+        "id": "toastContainer"
+      }
+    ],
+    "transaction-flow": [
+      {
+        "cls": "ambient-glow",
+        "z": 0,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "app-container",
+        "z": 1,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": {},
+        "z": 1,
+        "tag": "svg",
+        "id": "tracksSvg"
+      },
+      {
+        "cls": "nodes-grid",
+        "z": 2,
+        "tag": "DIV",
+        "id": "mainNodesGrid"
+      },
+      {
+        "cls": "node-step-index",
+        "z": 3,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node-icon",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node-step-index",
+        "z": 3,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node-icon",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node-step-index",
+        "z": 3,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node-icon",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node-step-index",
+        "z": 3,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node-icon",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node-step-index",
+        "z": 3,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node-icon",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node-retry-badge",
+        "z": 4,
+        "tag": "SPAN",
+        "id": "retryBadge"
+      },
+      {
+        "cls": "node-step-index",
+        "z": 3,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "node-icon",
+        "z": 2,
+        "tag": "SPAN",
+        "id": ""
+      },
+      {
+        "cls": "bifurcations-container",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "card-top-row",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "card-pan-display",
+        "z": 2,
+        "tag": "DIV",
+        "id": "cardPanDisplay"
+      },
+      {
+        "cls": "card-bottom-row",
+        "z": 2,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "toast-container",
+        "z": 100,
+        "tag": "DIV",
+        "id": "toastContainer"
+      }
+    ],
+    "gcp-serverless-pipeline": [
+      {
+        "cls": "drawer-backdrop",
+        "z": 99,
+        "tag": "DIV",
+        "id": "drawer-backdrop"
+      },
+      {
+        "cls": "drawer-modal",
+        "z": 100,
+        "tag": "DIV",
+        "id": "drawer-modal"
+      }
+    ],
+    "gcp-event-pubsub": [
+      {
+        "cls": "app-header",
+        "z": 50,
+        "tag": "HEADER",
+        "id": ""
+      },
+      {
+        "cls": "chart-crosshair-tooltip",
+        "z": 3,
+        "tag": "DIV",
+        "id": "chartTooltip"
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "modal-overlay",
+        "z": 100,
+        "tag": "DIV",
+        "id": "dlqModal"
+      }
+    ],
+    "gcp-sql-networking": [
+      {
+        "cls": "ambient-glow",
+        "z": 0,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "app-container",
+        "z": 1,
+        "tag": "DIV",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "TH",
+        "z": 2,
+        "tag": "TH",
+        "id": ""
+      },
+      {
+        "cls": "modal-backdrop",
+        "z": 99,
+        "tag": "DIV",
+        "id": "explainModal"
+      },
+      {
+        "cls": "toast-container",
+        "z": 100,
+        "tag": "DIV",
+        "id": "toastContainer"
+      }
+    ]
+  },
+  "integrityAudit": {},
+  "adversarialStress": {
+    "tv-diagnostic": [],
+    "network-health": [],
+    "security-audit": [],
+    "server-status": [],
+    "transaction-flow": [],
+    "gcp-serverless-pipeline": [],
+    "gcp-event-pubsub": [],
+    "gcp-sql-networking": []
+  },
+  "consoleErrors": {
+    "tv-diagnostic": [],
+    "network-health": [],
+    "security-audit": [],
+    "server-status": [],
+    "transaction-flow": [],
+    "gcp-serverless-pipeline": [],
+    "gcp-event-pubsub": [],
+    "gcp-sql-networking": []
+  }
+}

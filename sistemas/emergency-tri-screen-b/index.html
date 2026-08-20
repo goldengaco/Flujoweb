@@ -1,0 +1,3141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Aegis Linear — Minimalist Tri-Panel Emergency Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   AEGIS LINEAR DARK DESIGN SYSTEM TOKENS
+   Apple / Linear Minimalist Slate Dark Aesthetic
+   ========================================================================== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  --bg-base: #090d16;
+  --bg-surface: #0c1220;
+  --bg-card: #0f1523;
+  --bg-card-elevated: #141d30;
+  --bg-card-trans: rgba(15, 21, 35, 0.88);
+  
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-glow: rgba(56, 189, 248, 0.35);
+  
+  --text-main: #f1f5f9;
+  --text-sub: #94a3b8;
+  --text-dim: #64748b;
+  --text-highlight: #ffffff;
+  
+  --accent-sky: #38bdf8;
+  --accent-blue: #2563eb;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+  --accent-purple: #8b5cf6;
+  
+  --cad-grid: rgba(56, 189, 248, 0.06);
+  --cad-grid-major: rgba(56, 189, 248, 0.14);
+  --cad-wall: #334155;
+  --cad-wall-glow: rgba(56, 189, 248, 0.2);
+  --cad-door: #0284c7;
+  --cad-zone-bg: rgba(15, 23, 42, 0.5);
+  
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 9999px;
+  
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-subtle);
+  --shadow-elevated: 0 12px 32px -4px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--border-medium);
+  --shadow-glow-sky: 0 0 24px -4px rgba(56, 189, 248, 0.25);
+  --shadow-glow-rose: 0 0 28px -4px rgba(244, 63, 94, 0.3);
+  --shadow-glow-emerald: 0 0 24px -4px rgba(16, 185, 129, 0.25);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+html, body {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollbar Minimal */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ==========================================================================
+   TOP APPLICATION BAR
+   ========================================================================== */
+.topbar {
+  height: 56px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+  z-index: 50;
+}
+
+.topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+}
+
+.brand-logo svg {
+  width: 16px;
+  height: 16px;
+  fill: #fff;
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-highlight);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.brand-title .badge-variant {
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--accent-sky);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+}
+
+.brand-desc {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.topbar__center {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.system-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: var(--accent-emerald);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.system-status-pill.status--active {
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.4);
+  color: var(--accent-rose);
+  animation: pulse-border 1.8s infinite;
+}
+
+.system-status-pill .pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(244, 63, 94, 0); }
+}
+
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-icon-action {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-sub);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-icon-action:hover {
+  background: var(--bg-card-elevated);
+  color: var(--text-highlight);
+  border-color: var(--border-medium);
+}
+
+.btn-icon-action.active-sound {
+  color: var(--accent-sky);
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+/* ==========================================================================
+   MASTER TRI-PANEL WORKSPACE LAYOUT
+   ========================================================================== */
+.workspace {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 330px 1fr 350px;
+  gap: 18px;
+  padding: 18px;
+  max-width: 1920px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 0;
+}
+
+/* Panel Containers */
+.panel-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  height: 100%;
+}
+
+.panel-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.panel-title span {
+  color: var(--text-sub);
+}
+
+/* ==========================================================================
+   LEFT COLUMN: PHONE A (MODERN SMARTPHONE MOCKUP)
+   ========================================================================== */
+.phone-mockup-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.phone-mockup {
+  width: 100%;
+  max-width: 320px;
+  background: #020408;
+  border-radius: 40px;
+  border: 3.5px solid #1e293b;
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 20px 40px -10px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(56, 189, 248, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Dynamic Island & Notch */
+.phone-notch {
+  height: 28px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  position: relative;
+  z-index: 30;
+}
+
+.notch-island {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 4px;
+  width: 86px;
+  height: 20px;
+  background: #090d16;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.island-camera {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #334155, #020617);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.island-sensor {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+/* Status Bar */
+.phone-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 16px 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.status-time {
+  color: var(--text-sub);
+}
+
+.status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Phone Screen Content */
+.phone-screen {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: linear-gradient(180deg, rgba(12, 18, 32, 0.95) 0%, rgba(9, 13, 22, 1) 100%);
+  position: relative;
+}
+
+/* Phone App Header */
+.phone-app-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.phone-app-subtitle {
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-sky);
+}
+
+.phone-app-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-highlight);
+  letter-spacing: -0.02em;
+}
+
+/* Severity Selector Pills */
+.severity-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.severity-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.severity-pills {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.severity-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  font-size: 0.66rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  padding: 6px 2px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.severity-btn:hover {
+  color: var(--text-highlight);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.severity-btn.active {
+  background: var(--bg-card-elevated);
+  color: var(--text-highlight);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--border-medium);
+}
+
+.severity-btn[data-severity="drill"].active {
+  color: var(--accent-amber);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.severity-btn[data-severity="fire"].active {
+  color: var(--accent-rose);
+  border-color: rgba(244, 63, 94, 0.3);
+}
+
+.severity-btn[data-severity="quake"].active {
+  color: var(--accent-sky);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+/* Haptic Pulse Master Activation Button */
+.haptic-trigger-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 6px 0;
+  position: relative;
+}
+
+.haptic-btn-outer {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ripple-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--accent-sky);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.haptic-btn-outer:hover .ripple-ring-1 {
+  width: 140px;
+  height: 140px;
+  opacity: 0.3;
+  animation: ripple-pulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.haptic-btn-outer:hover .ripple-ring-2 {
+  width: 160px;
+  height: 160px;
+  opacity: 0.15;
+  animation: ripple-pulse 2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s infinite;
+}
+
+@keyframes ripple-pulse {
+  0% { transform: scale(0.85); opacity: 0.6; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+
+.haptic-btn {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #1e293b, #090d16);
+  border: 2px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 
+    0 8px 24px -4px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(56, 189, 248, 0.15),
+    inset 0 2px 4px rgba(255, 255, 255, 0.15);
+  color: var(--text-highlight);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 10;
+  user-select: none;
+}
+
+.haptic-btn:hover {
+  transform: scale(1.04);
+  border-color: var(--accent-sky);
+  box-shadow: 
+    0 12px 30px -4px rgba(0, 0, 0, 0.9),
+    0 0 30px rgba(56, 189, 248, 0.3),
+    inset 0 2px 6px rgba(255, 255, 255, 0.25);
+}
+
+.haptic-btn:active {
+  transform: scale(0.96);
+}
+
+.haptic-btn.active-alarm {
+  background: radial-gradient(circle at 35% 35%, #881337, #4c0519);
+  border-color: var(--accent-rose);
+  box-shadow: 
+    0 8px 24px -4px rgba(244, 63, 94, 0.5),
+    0 0 35px rgba(244, 63, 94, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  animation: haptic-pulse-danger 1.5s infinite alternate;
+}
+
+@keyframes haptic-pulse-danger {
+  0% { transform: scale(1); box-shadow: 0 0 15px rgba(244, 63, 94, 0.3); }
+  100% { transform: scale(1.05); box-shadow: 0 0 35px rgba(244, 63, 94, 0.6); }
+}
+
+.haptic-icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.haptic-text {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.haptic-subtext {
+  font-size: 0.58rem;
+  color: var(--text-sub);
+  font-family: var(--font-mono);
+}
+
+/* Donut Progress Tally on Phone */
+.phone-tally-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.donut-chart-container {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.donut-svg {
+  transform: rotate(-90deg);
+  width: 48px;
+  height: 48px;
+}
+
+.donut-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 4.5;
+}
+
+.donut-fill {
+  fill: none;
+  stroke: var(--accent-emerald);
+  stroke-width: 4.5;
+  stroke-dasharray: 100 100;
+  stroke-dashoffset: 100;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+}
+
+.donut-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-highlight);
+}
+
+.tally-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.tally-title {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.tally-counts {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-highlight);
+}
+
+.tally-counts span {
+  color: var(--accent-emerald);
+}
+
+/* Protocol Switches on Phone */
+.protocol-switches {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.protocol-switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  font-size: 0.66rem;
+  color: var(--text-sub);
+}
+
+.switch-toggle {
+  position: relative;
+  width: 30px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.switch-toggle.on {
+  background: var(--accent-sky);
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+
+.switch-toggle.on .switch-thumb {
+  transform: translateX(14px);
+}
+
+/* Quick Hazard Inject Bar */
+.quick-hazard-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-hazard-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.btn-hazard-mini {
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  color: #fda4af;
+  font-size: 0.62rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  padding: 5px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.btn-hazard-mini:hover {
+  background: rgba(244, 63, 94, 0.18);
+  border-color: rgba(244, 63, 94, 0.4);
+  color: #fff;
+}
+
+/* ==========================================================================
+   CENTER COLUMN: ARCHITECTURAL CAD FLOORPLAN SIMULATION
+   ========================================================================== */
+.cad-center-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+
+.cad-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+}
+
+.cad-toolbar__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cad-metric-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-sub);
+}
+
+.cad-metric-badge strong {
+  color: var(--accent-sky);
+  font-weight: 600;
+}
+
+.cad-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cad-btn-toggle {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-sub);
+  font-size: 0.68rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cad-btn-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-highlight);
+}
+
+.cad-btn-toggle.active {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: var(--accent-sky);
+}
+
+/* CAD Canvas Frame */
+.cad-canvas-container {
+  flex: 1;
+  position: relative;
+  background: #070a12;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8), var(--shadow-card);
+  overflow: hidden;
+  display: flex;
+  min-height: 480px;
+}
+
+#floorplanCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* HUD Overlay on Canvas */
+.cad-hud-overlay {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cad-hud-card {
+  background: rgba(9, 13, 22, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.cad-hud-compass-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(9, 13, 22, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+/* Bottom Telemetry Gauges Bar */
+.cad-gauges-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.gauge-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gauge-lbl {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+.gauge-val {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-highlight);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.gauge-unit {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--text-sub);
+}
+
+/* ==========================================================================
+   RIGHT COLUMN: SYNCHRONIZED RECIPIENT MOBILE CARDS (PHONES B, C, D)
+   ========================================================================== */
+.recipients-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+/* Card 1: Phone B (Personal Resident Card & Rotating Compass) */
+.recipient-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.3s ease;
+}
+
+.recipient-card.alert-active {
+  border-color: rgba(244, 63, 94, 0.35);
+  box-shadow: 0 4px 20px -2px rgba(244, 63, 94, 0.15), 0 0 0 1px rgba(244, 63, 94, 0.25);
+}
+
+.card-top-tag {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.device-id-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent-sky);
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+}
+
+.device-user-role {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+/* Push Notification Pill */
+.push-notification-box {
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.push-notification-box.standby {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.push-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  fill: var(--accent-rose);
+}
+
+.push-notification-box.standby .push-icon {
+  fill: var(--accent-emerald);
+}
+
+.push-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.push-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-highlight);
+}
+
+.push-msg {
+  font-size: 0.65rem;
+  color: var(--text-sub);
+  line-height: 1.3;
+}
+
+/* Rotating Live Escape Compass */
+.escape-compass-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.compass-visual {
+  width: 44px;
+  height: 44px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.compass-dial-svg {
+  width: 44px;
+  height: 44px;
+  transform: rotate(0deg);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.compass-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+}
+
+.compass-target {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-sky);
+}
+
+.compass-bearing {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-sub);
+}
+
+/* One-Tap Safety Button ("Estoy a Salvo") */
+.btn-safety-checkin {
+  width: 100%;
+  background: var(--bg-card-elevated);
+  border: 1px solid var(--border-medium);
+  color: var(--text-highlight);
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.btn-safety-checkin:hover {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: var(--accent-emerald);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+}
+
+.btn-safety-checkin:active {
+  transform: scale(0.98);
+}
+
+.btn-safety-checkin.checked-in {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--accent-emerald);
+  color: var(--accent-emerald);
+  cursor: default;
+}
+
+/* Card 2: Phone C (Safety Brigade Sector Check) */
+.brigade-sectors-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sector-check-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 6px 10px;
+  font-size: 0.68rem;
+}
+
+.sector-name {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.sector-status-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-dim);
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sector-status-btn.cleared {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: var(--accent-emerald);
+}
+
+/* Stairwell Door Status Toggles */
+.stairwell-toggles-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.btn-stairwell {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-sub);
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  padding: 6px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.btn-stairwell.clear {
+  color: var(--accent-emerald);
+  border-color: rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.btn-stairwell.blocked {
+  color: var(--accent-rose);
+  border-color: rgba(244, 63, 94, 0.3);
+  background: rgba(244, 63, 94, 0.08);
+}
+
+/* Card 3: Phone D (Headcount Activity Ticker) */
+.live-events-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  padding-right: 2px;
+}
+
+.event-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-sub);
+}
+
+.event-entry.safe {
+  border-left: 2px solid var(--accent-emerald);
+  color: #a7f3d0;
+}
+
+.event-entry.alarm {
+  border-left: 2px solid var(--accent-rose);
+  color: #fecdd3;
+}
+
+.event-time {
+  color: var(--text-dim);
+  font-size: 0.58rem;
+  min-width: 48px;
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVE TAB BAR (< 992px)
+   ========================================================================== */
+.mobile-tab-nav {
+  display: none;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  padding: 6px 12px;
+  z-index: 100;
+  justify-content: space-around;
+}
+
+.mobile-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.mobile-tab-btn.active {
+  color: var(--accent-sky);
+  background: rgba(56, 189, 248, 0.1);
+}
+
+/* ==========================================================================
+   MEDIA QUERIES FOR FLUID RESPONSIVENESS (360px to 4K)
+   ========================================================================== */
+@media (max-width: 1280px) {
+  .workspace {
+    grid-template-columns: 290px 1fr 310px;
+    gap: 12px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .workspace {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    height: auto;
+    overflow-y: auto;
+  }
+  .cad-center-wrapper {
+    grid-column: 1 / -1;
+    min-height: 440px;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 6px 10px;
+    height: auto;
+    min-height: 48px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .brand-desc, .brand-title .badge-variant {
+    display: none;
+  }
+  .brand-title {
+    font-size: 0.8rem;
+  }
+  .system-status-pill {
+    padding: 3px 8px;
+    font-size: 0.62rem;
+  }
+  .topbar__center {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-icon-action {
+    padding: 4px 8px;
+    font-size: 0.66rem;
+  }
+  .workspace {
+    display: block;
+    padding: 8px 6px;
+    height: auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+  .panel-column {
+    display: none;
+    height: auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .panel-column.mobile-visible {
+    display: flex;
+  }
+  .mobile-tab-nav {
+    display: flex;
+  }
+  .phone-mockup-wrapper {
+    padding: 0;
+    width: 100%;
+  }
+  .phone-mockup {
+    max-width: 100%;
+    border-radius: 28px;
+    border-width: 2px;
+  }
+  .cad-toolbar {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  .cad-canvas-container {
+    min-height: 340px;
+  }
+  .cad-gauges-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .recipient-card {
+    padding: 10px;
+  }
+  .escape-compass-section {
+    padding: 6px 8px;
+    gap: 8px;
+  }
+  .stairwell-toggles-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  .btn-stairwell {
+    padding: 4px 2px;
+    font-size: 0.6rem;
+  }
+}
+</style>
+</head>
+<body>
+
+  <!-- Master Top Navigation Bar -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <div class="brand-badge">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="brand-info">
+          <div class="brand-title">
+            AEGIS LINEAR
+            <span class="badge-variant">VARIANT B · CAD MINIMALIST</span>
+          </div>
+          <div class="brand-desc">Tri-Screen Multi-Device Evacuation Mesh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="topbar__center">
+      <div class="system-status-pill" id="globalStatusPill">
+        <span class="pulse-dot"></span>
+        <span id="globalStatusText">SISTEMA SEGURO · STANDBY</span>
+      </div>
+    </div>
+
+    <div class="topbar__right">
+      <button class="btn-icon-action active-sound" id="btnAudioToggle" title="Activar/Silenciar Audio Procedural">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <span id="audioToggleLabel">Audio On</span>
+      </button>
+      <button class="btn-icon-action" id="btnMasterReset" title="Reiniciar Simulación">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <span>Reset</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Master Tri-Panel Responsive Workspace -->
+  <main class="workspace" id="mainWorkspace">
+
+    <!-- ====================================================================
+         COLUMN 1 (LEFT): MASTER DISPATCHER PHONE A
+         ==================================================================== -->
+    <section class="panel-column mobile-visible" id="colPhoneA">
+      <div class="phone-mockup-wrapper">
+        <div class="phone-mockup" id="phoneAFrame">
+          
+          <!-- Modern Dynamic Island / Notch -->
+          <div class="phone-notch">
+            <div class="notch-island">
+              <div class="island-camera"></div>
+              <div class="island-sensor" id="phoneASensor"></div>
+            </div>
+          </div>
+
+          <!-- Status Bar -->
+          <div class="phone-status-bar">
+            <span class="status-time" id="phoneAClock">09:41</span>
+            <div class="status-icons">
+              <span>5G</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
+              <span>98%</span>
+            </div>
+          </div>
+
+          <!-- Screen Content -->
+          <div class="phone-screen">
+            
+            <div class="phone-app-header">
+              <span class="phone-app-subtitle">Terminal de Mando · Emisor</span>
+              <h2 class="phone-app-title">Despachador Maestro</h2>
+            </div>
+
+            <!-- Severity Pills Selector -->
+            <div class="severity-picker">
+              <span class="severity-label">Nivel de Severidad</span>
+              <div class="severity-pills" id="severityPills">
+                <button class="severity-btn" data-severity="drill">Simulacro</button>
+                <button class="severity-btn active" data-severity="fire">Fuego Real</button>
+                <button class="severity-btn" data-severity="quake">Sismo</button>
+              </div>
+            </div>
+
+            <!-- Haptic Pulse Master Activation Trigger -->
+            <div class="haptic-trigger-zone">
+              <div class="haptic-btn-outer">
+                <div class="ripple-ring ripple-ring-1"></div>
+                <div class="ripple-ring ripple-ring-2"></div>
+                <button class="haptic-btn" id="btnHapticTrigger">
+                  <svg class="haptic-icon" id="hapticBtnIcon" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  </svg>
+                  <span class="haptic-text" id="hapticBtnText">ACTIVAR</span>
+                  <span class="haptic-subtext" id="hapticBtnSub">Pulso Háptico</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Evacuation Donut Progress Tally -->
+            <div class="phone-tally-card">
+              <div class="donut-chart-container">
+                <svg class="donut-svg" viewBox="0 0 36 36">
+                  <circle class="donut-bg" cx="18" cy="18" r="15.9155"></circle>
+                  <circle class="donut-fill" id="donutProgressCircle" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="donut-center-text" id="donutPctText">0%</div>
+              </div>
+              <div class="tally-details">
+                <div class="tally-title">Evacuación en Curso</div>
+                <div class="tally-counts"><span id="tallySafeVal">0</span> / <span id="tallyTotalVal">48</span> a Salvo</div>
+              </div>
+            </div>
+
+            <!-- Real-time Egress Protocol Switches -->
+            <div class="protocol-switches">
+              <div class="protocol-switch-row">
+                <span>Bloqueo de Ascensores</span>
+                <div class="switch-toggle on" data-protocol="elevators"><div class="switch-thumb"></div></div>
+              </div>
+              <div class="protocol-switch-row">
+                <span>Presurización de Escaleras</span>
+                <div class="switch-toggle on" data-protocol="pressurization"><div class="switch-thumb"></div></div>
+              </div>
+              <div class="protocol-switch-row">
+                <span>Luces Guía LED Activas</span>
+                <div class="switch-toggle on" data-protocol="led"><div class="switch-thumb"></div></div>
+              </div>
+            </div>
+
+            <!-- Quick Hazard Injection Bar -->
+            <div class="quick-hazard-section">
+              <span class="severity-label">Inyección de Amenazas</span>
+              <div class="quick-hazard-btns">
+                <button class="btn-hazard-mini" id="btnHazardServer">🔥 Fuego Servidores</button>
+                <button class="btn-hazard-mini" id="btnHazardBreak">💨 Humo Cafetería</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         COLUMN 2 (CENTER): ARCHITECTURAL CAD FLOORPLAN SIMULATION
+         ==================================================================== -->
+    <section class="panel-column cad-center-wrapper" id="colFloorplan">
+      
+      <!-- CAD Controls Toolbar -->
+      <div class="cad-toolbar">
+        <div class="cad-toolbar__left">
+          <div class="cad-metric-badge">
+            FPS: <strong id="cadFpsCounter">60</strong>
+          </div>
+          <div class="cad-metric-badge">
+            Ocupantes: <strong id="cadOccupantCounter">48</strong>
+          </div>
+          <div class="cad-metric-badge">
+            Vel. Flujo: <strong id="cadFlowVelocity">0.00 m/s</strong>
+          </div>
+        </div>
+
+        <div class="cad-toolbar__right">
+          <button class="cad-btn-toggle" id="btnToggleHeatmap">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span>Mapa de Calor</span>
+          </button>
+          <button class="cad-btn-toggle active" id="btnToggleVectors">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <span>Vectores Flujo</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Canvas Container -->
+      <div class="cad-canvas-container" id="canvasContainer">
+        <canvas id="floorplanCanvas"></canvas>
+        
+        <!-- Live HUD Overlay -->
+        <div class="cad-hud-overlay">
+          <div class="cad-hud-card">
+            <span>CAD ESQUEMÁTICO NIVEL 3</span>
+            <span style="color:var(--accent-sky)">PLANTA 1:100</span>
+          </div>
+        </div>
+
+        <div class="cad-hud-compass-badge">
+          <span>NORTE ARQUITECTÓNICO ↑</span>
+        </div>
+      </div>
+
+      <!-- Bottom Real-time Telemetry Gauges -->
+      <div class="cad-gauges-row">
+        <div class="gauge-card">
+          <span class="gauge-lbl">Velocidad Media</span>
+          <div class="gauge-val"><span id="gaugeAvgSpeed">0.0</span><span class="gauge-unit">m/s</span></div>
+        </div>
+        <div class="gauge-card">
+          <span class="gauge-lbl">Cuellos de Botella</span>
+          <div class="gauge-val"><span id="gaugeBottlenecks" style="color:var(--accent-emerald)">0</span><span class="gauge-unit">puertas</span></div>
+        </div>
+        <div class="gauge-card">
+          <span class="gauge-lbl">Tiempo Estimado</span>
+          <div class="gauge-val"><span id="gaugeEvacTime" style="color:var(--accent-sky)">--:--</span><span class="gauge-unit">min</span></div>
+        </div>
+        <div class="gauge-card">
+          <span class="gauge-lbl">Rutas Despejadas</span>
+          <div class="gauge-val"><span id="gaugeClearRoutes" style="color:var(--accent-emerald)">2/2</span><span class="gauge-unit">salidas</span></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ====================================================================
+         COLUMN 3 (RIGHT): SYNCHRONIZED RECIPIENT MOBILE CARDS (PHONES B, C, D)
+         ==================================================================== -->
+    <section class="panel-column recipients-wrapper" id="colRecipients">
+      
+      <!-- Card 1: Phone B (Personal Resident Card & Rotating Escape Compass) -->
+      <div class="recipient-card" id="cardPhoneB">
+        <div class="card-top-tag">
+          <span class="device-id-badge">PHONE_B · DISPOSITIVO MÓVIL</span>
+          <span class="device-user-role">Residente (Ala Norte)</span>
+        </div>
+
+        <!-- Push Alert Banner -->
+        <div class="push-notification-box standby" id="phoneBPush">
+          <svg class="push-icon" viewBox="0 0 24 24">
+            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+          </svg>
+          <div class="push-content">
+            <div class="push-title" id="phoneBPushTitle">Edificio Seguro</div>
+            <div class="push-msg" id="phoneBPushMsg">Sin alertas activas. Mantenga despejados los pasillos.</div>
+          </div>
+        </div>
+
+        <!-- Dynamic Live Rotating Escape Compass -->
+        <div class="escape-compass-section">
+          <div class="compass-visual">
+            <svg class="compass-dial-svg" id="escapeCompassSvg" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="20" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+              <!-- Compass Needle -->
+              <polygon points="22,6 26,22 22,18" fill="var(--accent-rose)"/>
+              <polygon points="22,6 18,22 22,18" fill="#fda4af"/>
+              <polygon points="22,38 26,22 22,26" fill="var(--text-dim)"/>
+              <polygon points="22,38 18,22 22,26" fill="rgba(255,255,255,0.2)"/>
+              <circle cx="22" cy="22" r="3" fill="#fff"/>
+            </svg>
+          </div>
+          <div class="compass-info">
+            <div class="compass-target" id="compassTargetExit">Salida Norte A (Más cercana)</div>
+            <div class="compass-bearing" id="compassBearingTxt">Rumbo: 015° NNE · Distancia: 14 m</div>
+          </div>
+        </div>
+
+        <!-- One-Tap Check-In Button -->
+        <button class="btn-safety-checkin" id="btnPhoneBCheckin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="btnPhoneBCheckinText">ESTOY A SALVO (CHECK-IN)</span>
+        </button>
+      </div>
+
+      <!-- Card 2: Phone C (Safety Brigade Leader Console) -->
+      <div class="recipient-card" id="cardPhoneC">
+        <div class="card-top-tag">
+          <span class="device-id-badge" style="color:var(--accent-amber);border-color:rgba(245,158,11,0.25);background:rgba(245,158,11,0.08)">PHONE_C · BRIGADA</span>
+          <span class="device-user-role">Líder de Seguridad</span>
+        </div>
+
+        <!-- Sector Clearance Checklist -->
+        <div class="brigade-sectors-grid">
+          <div class="sector-check-item">
+            <span class="sector-name">Ala Norte (Oficinas)</span>
+            <button class="sector-status-btn" data-sector="north">En Proceso</button>
+          </div>
+          <div class="sector-check-item">
+            <span class="sector-name">Ala Central (Cubículos)</span>
+            <button class="sector-status-btn" data-sector="central">En Proceso</button>
+          </div>
+          <div class="sector-check-item">
+            <span class="sector-name">Ala Sur (Cafetería)</span>
+            <button class="sector-status-btn" data-sector="south">En Proceso</button>
+          </div>
+        </div>
+
+        <!-- Stairwell Doors Access Toggles -->
+        <div class="stairwell-toggles-row">
+          <button class="btn-stairwell clear" id="btnToggleStairA" data-stair="A">
+            Escalera A: <strong>DESPEJADA</strong>
+          </button>
+          <button class="btn-stairwell clear" id="btnToggleStairB" data-stair="B">
+            Escalera B: <strong>DESPEJADA</strong>
+          </button>
+        </div>
+
+        <button class="btn-safety-checkin" id="btnPhoneCCheckin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="btnPhoneCCheckinText">CHECK-IN BRIGADA A SALVO</span>
+        </button>
+      </div>
+
+      <!-- Card 3: Phone D (Headcount & Triage Ticker) -->
+      <div class="recipient-card" id="cardPhoneD">
+        <div class="card-top-tag">
+          <span class="device-id-badge" style="color:var(--accent-emerald);border-color:rgba(16,185,129,0.25);background:rgba(16,185,129,0.08)">PHONE_D · SEGURIDAD</span>
+          <span class="device-user-role">Punto de Encuentro</span>
+        </div>
+
+        <!-- Live Activity Log -->
+        <div class="live-events-feed" id="eventsFeed">
+          <div class="event-entry">
+            <span class="event-time">09:41:00</span>
+            <span>Sistema en espera. Red operativa.</span>
+          </div>
+        </div>
+
+        <button class="btn-safety-checkin" id="btnPhoneDCheckin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="btnPhoneDCheckinText">CONFIRMAR ZONA EXTERIOR SEGURA</span>
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Mobile Responsive Bottom Navigation Bar (<768px) -->
+  <nav class="mobile-tab-nav" id="mobileTabNav">
+    <button class="mobile-tab-btn active" data-target="colPhoneA">
+      <span>📱</span> Emisor (A)
+    </button>
+    <button class="mobile-tab-btn" data-target="colFloorplan">
+      <span>🗺️</span> Plano CAD
+    </button>
+    <button class="mobile-tab-btn" data-target="colRecipients">
+      <span>👥</span> Receptores
+    </button>
+  </nav>
+
+  <!-- ====================================================================
+       VANILLA JAVASCRIPT SIMULATION & STATE ENGINE
+       ==================================================================== -->
+  <script>
+  (function() {
+    'use strict';
+
+    /* ====================================================================
+       1. PROCEDURAL AUDIO ENGINE (Web Audio API)
+       Minimalist Haptic Clicks, Warning Pulses & Subtle Notification Chimes
+       ==================================================================== */
+    class ProceduralAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+        this.alarmOsc = null;
+        this.alarmGain = null;
+        this.isAlarmSounding = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            this.ctx = new AudioContextClass();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      // Linear Minimalist Sub-Bass Haptic Click Pulse
+      playHapticClick() {
+        if (this.isMuted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(95, now);
+          osc.frequency.exponentialRampToValueAtTime(32, now + 0.07);
+          
+          gain.gain.setValueAtTime(0.35, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+          
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } catch (e) {
+          console.warn('[Audio] Haptic error:', e);
+        }
+      }
+
+      // Crisp UI Toggle Click
+      playToggleClick() {
+        if (this.isMuted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(820, now);
+          osc.frequency.exponentialRampToValueAtTime(1400, now + 0.04);
+          
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          
+          osc.start(now);
+          osc.stop(now + 0.045);
+        } catch (e) {}
+      }
+
+      // Check-In Success Chime
+      playCheckinSuccess() {
+        if (this.isMuted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+          notes.forEach((freq, idx) => {
+            const now = this.ctx.currentTime + (idx * 0.06);
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+            
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+            
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            
+            osc.start(now);
+            osc.stop(now + 0.2);
+          });
+        } catch (e) {}
+      }
+
+      // Continuous Minimalist Emergency Alarm Pulse
+      startAlarmTone() {
+        if (this.isMuted) return;
+        this.init();
+        if (!this.ctx || this.isAlarmSounding) return;
+
+        try {
+          const now = this.ctx.currentTime;
+          this.alarmGain = this.ctx.createGain();
+          this.alarmGain.gain.setValueAtTime(0.01, now);
+          this.alarmGain.gain.linearRampToValueAtTime(0.12, now + 0.2);
+          this.alarmGain.connect(this.ctx.destination);
+
+          this.alarmOsc = this.ctx.createOscillator();
+          this.alarmOsc.type = 'sine';
+          this.alarmOsc.frequency.setValueAtTime(660, now);
+
+          const lfo = this.ctx.createOscillator();
+          lfo.type = 'sine';
+          lfo.frequency.setValueAtTime(2.5, now);
+
+          const lfoGain = this.ctx.createGain();
+          lfoGain.gain.setValueAtTime(180, now);
+
+          lfo.connect(lfoGain);
+          lfoGain.connect(this.alarmOsc.frequency);
+
+          this.alarmOsc.connect(this.alarmGain);
+
+          this.alarmOsc.start(now);
+          lfo.start(now);
+          this.isAlarmSounding = true;
+          this.lfoRef = lfo;
+        } catch (e) {}
+      }
+
+      stopAlarmTone() {
+        if (!this.isAlarmSounding || !this.alarmGain) return;
+        try {
+          const now = this.ctx.currentTime;
+          this.alarmGain.gain.cancelScheduledValues(now);
+          this.alarmGain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+          setTimeout(() => {
+            if (this.alarmOsc) {
+              this.alarmOsc.stop();
+              this.alarmOsc.disconnect();
+              if (this.lfoRef) {
+                this.lfoRef.stop();
+                this.lfoRef.disconnect();
+              }
+              this.isAlarmSounding = false;
+            }
+          }, 250);
+        } catch (e) {
+          this.isAlarmSounding = false;
+        }
+      }
+
+      toggleMute() {
+        this.isMuted = !this.isMuted;
+        if (this.isMuted && this.isAlarmSounding) {
+          this.stopAlarmTone();
+        }
+        return !this.isMuted;
+      }
+    }
+
+    const audio = new ProceduralAudioEngine();
+
+    /* ====================================================================
+       2. SYNCHRONIZATION EVENT BUS (BroadcastChannel + Local PubSub)
+       ==================================================================== */
+    class EmergencyEventBus {
+      constructor(channelName = 'flujoweb_emergency_tri_screen') {
+        this.channelName = channelName;
+        this.subscribers = new Map();
+        this.channel = null;
+
+        if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+          try {
+            this.channel = new BroadcastChannel(this.channelName);
+            this.channel.onmessage = (event) => {
+              if (event && event.data && event.data.type) {
+                this.dispatch(event.data.type, event.data.payload, false);
+              }
+            };
+          } catch (e) {
+            console.warn('[SyncBus] BroadcastChannel error:', e);
+          }
+        }
+      }
+
+      on(type, callback) {
+        if (!this.subscribers.has(type)) {
+          this.subscribers.set(type, new Set());
+        }
+        this.subscribers.get(type).add(callback);
+        return () => this.subscribers.get(type).delete(callback);
+      }
+
+      emit(type, payload = {}, broadcast = true) {
+        this.dispatch(type, payload, true);
+        if (broadcast && this.channel) {
+          try {
+            this.channel.postMessage({
+              type,
+              payload,
+              origin: 'VARIANT_B',
+              timestamp: Date.now()
+            });
+          } catch (e) {}
+        }
+      }
+
+      dispatch(type, payload, isLocal) {
+        if (this.subscribers.has(type)) {
+          this.subscribers.get(type).forEach(cb => {
+            try { cb(payload, isLocal); } catch (err) { console.error(err); }
+          });
+        }
+      }
+    }
+
+    const bus = new EmergencyEventBus();
+
+    /* ====================================================================
+       3. TOPOLOGY & NAVMESH WAYPOINT GRAPH
+       Coordinates in logical space (800 x 520)
+       ==================================================================== */
+    const WAYPOINTS = [
+      // Exit Portals (Outdoor Safe Muster Zones)
+      { id: 'EXIT_A', x: 400, y: 35, type: 'exit', name: 'Salida Norte A', isBlocked: false },
+      { id: 'EXIT_B', x: 400, y: 485, type: 'exit', name: 'Salida Sur B', isBlocked: false },
+
+      // North Hallway Spines
+      { id: 'HW_N_MID', x: 400, y: 85, type: 'hallway', isBlocked: false },
+      { id: 'HW_N_LEFT', x: 200, y: 85, type: 'hallway', isBlocked: false },
+      { id: 'HW_N_RIGHT', x: 600, y: 85, type: 'hallway', isBlocked: false },
+
+      // Central Corridor Spine
+      { id: 'HW_C_TOP', x: 400, y: 160, type: 'hallway', isBlocked: false },
+      { id: 'HW_C_MID', x: 400, y: 260, type: 'hallway', isBlocked: false },
+      { id: 'HW_C_BOT', x: 400, y: 360, type: 'hallway', isBlocked: false },
+
+      // South Hallway Spines
+      { id: 'HW_S_MID', x: 400, y: 435, type: 'hallway', isBlocked: false },
+      { id: 'HW_S_LEFT', x: 200, y: 435, type: 'hallway', isBlocked: false },
+      { id: 'HW_S_RIGHT', x: 600, y: 435, type: 'hallway', isBlocked: false },
+
+      // Room Waypoints / Doors
+      // Executive Offices (North-West)
+      { id: 'ROOM_EXEC', x: 180, y: 150, type: 'room', name: 'Oficinas Ejecutivas', isBlocked: false },
+      { id: 'DOOR_EXEC', x: 290, y: 150, type: 'door', isBlocked: false },
+
+      // Server Room / Data Center (North-East)
+      { id: 'ROOM_SERVER', x: 620, y: 150, type: 'room', name: 'Centro de Datos', isBlocked: false },
+      { id: 'DOOR_SERVER', x: 510, y: 150, type: 'door', isBlocked: false },
+
+      // Open Cubicle Workspace (Center West & Center East)
+      { id: 'ROOM_CUBICLE_W', x: 200, y: 260, type: 'room', name: 'Open Workspace O.', isBlocked: false },
+      { id: 'DOOR_CUBICLE_W', x: 330, y: 260, type: 'door', isBlocked: false },
+      
+      { id: 'ROOM_CUBICLE_E', x: 600, y: 260, type: 'room', name: 'Open Workspace E.', isBlocked: false },
+      { id: 'DOOR_CUBICLE_E', x: 470, y: 260, type: 'door', isBlocked: false },
+
+      // Meeting Pods (South-West)
+      { id: 'ROOM_MEETING', x: 180, y: 370, type: 'room', name: 'Salas de Juntas', isBlocked: false },
+      { id: 'DOOR_MEETING', x: 290, y: 370, type: 'door', isBlocked: false },
+
+      // Breakroom / Cafeteria (South-East)
+      { id: 'ROOM_BREAK', x: 620, y: 370, type: 'room', name: 'Cafetería / Lounge', isBlocked: false },
+      { id: 'DOOR_BREAK', x: 510, y: 370, type: 'door', isBlocked: false }
+    ];
+
+    // Connectivity Edges (Bidirectional)
+    const EDGES = [
+      ['EXIT_A', 'HW_N_MID'],
+      ['HW_N_MID', 'HW_N_LEFT'],
+      ['HW_N_MID', 'HW_N_RIGHT'],
+      ['HW_N_MID', 'HW_C_TOP'],
+      
+      ['HW_N_LEFT', 'DOOR_EXEC'],
+      ['DOOR_EXEC', 'ROOM_EXEC'],
+      ['DOOR_EXEC', 'HW_C_TOP'],
+
+      ['HW_N_RIGHT', 'DOOR_SERVER'],
+      ['DOOR_SERVER', 'ROOM_SERVER'],
+      ['DOOR_SERVER', 'HW_C_TOP'],
+
+      ['HW_C_TOP', 'HW_C_MID'],
+      ['HW_C_MID', 'DOOR_CUBICLE_W'],
+      ['DOOR_CUBICLE_W', 'ROOM_CUBICLE_W'],
+
+      ['HW_C_MID', 'DOOR_CUBICLE_E'],
+      ['DOOR_CUBICLE_E', 'ROOM_CUBICLE_E'],
+
+      ['HW_C_MID', 'HW_C_BOT'],
+      ['HW_C_BOT', 'DOOR_MEETING'],
+      ['DOOR_MEETING', 'ROOM_MEETING'],
+      ['DOOR_MEETING', 'HW_S_LEFT'],
+
+      ['HW_C_BOT', 'DOOR_BREAK'],
+      ['DOOR_BREAK', 'ROOM_BREAK'],
+      ['DOOR_BREAK', 'HW_S_RIGHT'],
+
+      ['HW_C_BOT', 'HW_S_MID'],
+      ['HW_S_MID', 'HW_S_LEFT'],
+      ['HW_S_MID', 'HW_S_RIGHT'],
+      ['HW_S_MID', 'EXIT_B']
+    ];
+
+    // Room Layout Boundaries for CAD Blueprint Rendering
+    const ROOM_ZONES = [
+      { id: 'EXEC', name: 'ZONA A: OFICINAS EJECUTIVAS', area: '85 m²', x: 60, y: 90, w: 240, h: 120 },
+      { id: 'SERVER', name: 'ZONA D: CENTRO DE DATOS', area: '58 m²', x: 500, y: 90, w: 240, h: 120 },
+      { id: 'CUBICLE_W', name: 'ZONA B: OPEN SPACE OESTE', area: '120 m²', x: 60, y: 220, w: 270, h: 90 },
+      { id: 'CUBICLE_E', name: 'ZONA B: OPEN SPACE ESTE', area: '120 m²', x: 470, y: 220, w: 270, h: 90 },
+      { id: 'MEETING', name: 'ZONA C: SALAS DE REUNIÓN', area: '72 m²', x: 60, y: 320, w: 240, h: 110 },
+      { id: 'BREAK', name: 'ZONA E: CAFETERÍA & LOUNGE', area: '88 m²', x: 500, y: 320, w: 240, h: 110 }
+    ];
+
+    /* ====================================================================
+       4. PATHFINDING ENGINE (A* Search on NavMesh)
+       ==================================================================== */
+    class NavMeshGraph {
+      constructor(waypoints, edges) {
+        this.nodes = new Map();
+        this.adj = new Map();
+
+        waypoints.forEach(wp => {
+          this.nodes.set(wp.id, { ...wp });
+          this.adj.set(wp.id, []);
+        });
+
+        edges.forEach(([u, v]) => {
+          if (this.nodes.has(u) && this.nodes.has(v)) {
+            const dist = Math.hypot(this.nodes.get(u).x - this.nodes.get(v).x, this.nodes.get(u).y - this.nodes.get(v).y);
+            this.adj.get(u).push({ to: v, dist });
+            this.adj.get(v).push({ to: u, dist });
+          }
+        });
+      }
+
+      setBlocked(nodeId, blocked) {
+        if (this.nodes.has(nodeId)) {
+          this.nodes.get(nodeId).isBlocked = blocked;
+        }
+      }
+
+      findNearestNode(x, y) {
+        let bestId = 'HW_C_MID';
+        let bestDist = Infinity;
+        this.nodes.forEach((node, id) => {
+          if (!node.isBlocked) {
+            const d = Math.hypot(node.x - x, node.y - y);
+            if (d < bestDist) {
+              bestDist = d;
+              bestId = id;
+            }
+          }
+        });
+        return bestId;
+      }
+
+      findPath(startId, targetId) {
+        if (startId === targetId) return [targetId];
+        if (this.nodes.get(startId)?.isBlocked || this.nodes.get(targetId)?.isBlocked) {
+          return null;
+        }
+
+        const openSet = new Set([startId]);
+        const cameFrom = new Map();
+        const gScore = new Map();
+        const fScore = new Map();
+
+        this.nodes.forEach((_, id) => {
+          gScore.set(id, Infinity);
+          fScore.set(id, Infinity);
+        });
+
+        gScore.set(startId, 0);
+        const targetNode = this.nodes.get(targetId);
+        fScore.set(startId, Math.hypot(targetNode.x - this.nodes.get(startId).x, targetNode.y - this.nodes.get(startId).y));
+
+        while (openSet.size > 0) {
+          let current = null;
+          let lowestF = Infinity;
+          for (const node of openSet) {
+            const score = fScore.get(node);
+            if (score < lowestF) {
+              lowestF = score;
+              current = node;
+            }
+          }
+
+          if (current === targetId) {
+            const path = [current];
+            while (cameFrom.has(current)) {
+              current = cameFrom.get(current);
+              path.unshift(current);
+            }
+            return path;
+          }
+
+          openSet.delete(current);
+          const neighbors = this.adj.get(current) || [];
+
+          for (const edge of neighbors) {
+            const neighborId = edge.to;
+            const neighborNode = this.nodes.get(neighborId);
+            if (neighborNode.isBlocked) continue;
+
+            const tentativeG = gScore.get(current) + edge.dist;
+            if (tentativeG < gScore.get(neighborId)) {
+              cameFrom.set(neighborId, current);
+              gScore.set(neighborId, tentativeG);
+              const h = Math.hypot(targetNode.x - neighborNode.x, targetNode.y - neighborNode.y);
+              fScore.set(neighborId, tentativeG + h);
+              openSet.add(neighborId);
+            }
+          }
+        }
+        return null;
+      }
+    }
+
+    const navGraph = new NavMeshGraph(WAYPOINTS, EDGES);
+
+    /* ====================================================================
+       5. OCCUPANT PARTICLE SYSTEM
+       Autonomous agents with fluid steering physics and velocity vectors
+       ==================================================================== */
+    class OccupantParticle {
+      constructor(id, x, y, assignedZone) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.originX = x;
+        this.originY = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.speed = 1.35 + Math.random() * 0.45;
+        this.radius = 3.5;
+        this.zone = assignedZone;
+        this.state = 'working'; // 'working' | 'evacuating' | 'safe'
+        this.path = [];
+        this.pathIndex = 0;
+        this.targetExit = 'EXIT_A';
+        this.wanderAngle = Math.random() * Math.PI * 2;
+        this.assignedExitName = 'Salida Norte A';
+      }
+
+      reset(x, y) {
+        this.x = x || this.originX;
+        this.y = y || this.originY;
+        this.vx = 0;
+        this.vy = 0;
+        this.state = 'working';
+        this.path = [];
+        this.pathIndex = 0;
+      }
+
+      planEvacuation(forceExit = null) {
+        if (this.state === 'safe') return;
+
+        let bestExit = forceExit;
+        if (!bestExit) {
+          // Choose closest unblocked exit
+          const dA = Math.hypot(400 - this.x, 35 - this.y);
+          const dB = Math.hypot(400 - this.x, 485 - this.y);
+          const exitABlocked = navGraph.nodes.get('EXIT_A').isBlocked || navGraph.nodes.get('HW_N_MID').isBlocked;
+          const exitBBlocked = navGraph.nodes.get('EXIT_B').isBlocked || navGraph.nodes.get('HW_S_MID').isBlocked;
+
+          if (!exitABlocked && (dA <= dB || exitBBlocked)) {
+            bestExit = 'EXIT_A';
+          } else if (!exitBBlocked) {
+            bestExit = 'EXIT_B';
+          } else {
+            bestExit = 'EXIT_A'; // fallback
+          }
+        }
+
+        this.targetExit = bestExit;
+        this.assignedExitName = bestExit === 'EXIT_A' ? 'Salida Norte A' : 'Salida Sur B';
+        const startNode = navGraph.findNearestNode(this.x, this.y);
+        const calculatedPath = navGraph.findPath(startNode, this.targetExit);
+
+        if (calculatedPath && calculatedPath.length > 0) {
+          this.path = calculatedPath;
+          this.pathIndex = 0;
+          this.state = 'evacuating';
+        } else {
+          // If no path to preferred exit, try fallback exit
+          const altExit = bestExit === 'EXIT_A' ? 'EXIT_B' : 'EXIT_A';
+          const altPath = navGraph.findPath(startNode, altExit);
+          if (altPath) {
+            this.targetExit = altExit;
+            this.assignedExitName = altExit === 'EXIT_A' ? 'Salida Norte A' : 'Salida Sur B';
+            this.path = altPath;
+            this.pathIndex = 0;
+            this.state = 'evacuating';
+          }
+        }
+      }
+
+      update(dt, occupants) {
+        if (this.state === 'safe') {
+          // Idle in assembly area
+          this.vx *= 0.85;
+          this.vy *= 0.85;
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+          return;
+        }
+
+        if (this.state === 'working') {
+          // Gentle ambient micro-wandering within office cubicle
+          if (Math.random() < 0.03) {
+            this.wanderAngle += (Math.random() - 0.5) * 1.5;
+          }
+          const fx = Math.cos(this.wanderAngle) * 0.15;
+          const fy = Math.sin(this.wanderAngle) * 0.15;
+          
+          // Tether to origin desk
+          const distToOrigin = Math.hypot(this.x - this.originX, this.y - this.originY);
+          if (distToOrigin > 18) {
+            this.vx += (this.originX - this.x) * 0.02;
+            this.vy += (this.originY - this.y) * 0.02;
+          } else {
+            this.vx = fx;
+            this.vy = fy;
+          }
+
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+          return;
+        }
+
+        if (this.state === 'evacuating') {
+          if (!this.path || this.pathIndex >= this.path.length) {
+            this.state = 'safe';
+            return;
+          }
+
+          const targetNodeId = this.path[this.pathIndex];
+          const targetNode = navGraph.nodes.get(targetNodeId);
+
+          // Check if current target node got blocked mid-route
+          if (targetNode && targetNode.isBlocked) {
+            this.planEvacuation();
+            return;
+          }
+
+          if (targetNode) {
+            const dx = targetNode.x - this.x;
+            const dy = targetNode.y - this.y;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist < 10) {
+              this.pathIndex++;
+              if (this.pathIndex >= this.path.length) {
+                this.state = 'safe';
+                this.vx = (Math.random() - 0.5) * 0.8;
+                this.vy = (Math.random() - 0.5) * 0.8;
+                bus.emit('OCCUPANT_CHECKIN_SAFE', { occupantId: this.id });
+                return;
+              }
+            } else {
+              // Steering seek force toward target waypoint
+              const desiredVx = dist > 0 ? (dx / dist) * this.speed : 0;
+              const desiredVy = dist > 0 ? (dy / dist) * this.speed : 0;
+
+              this.vx += (desiredVx - this.vx) * 0.18;
+              this.vy += (desiredVy - this.vy) * 0.18;
+
+              // Reynolds Separation Force (anti-clumping in doorways)
+              if (occupants && occupants.length > 0) {
+                let sepX = 0, sepY = 0, count = 0;
+                for (let j = 0; j < occupants.length; j++) {
+                  const other = occupants[j];
+                  if (other.id !== this.id && other.state === 'evacuating') {
+                    const odx = this.x - other.x;
+                    const ody = this.y - other.y;
+                    const odist = Math.hypot(odx, ody);
+                    if (odist > 0.001 && odist < 14) {
+                      sepX += (odx / odist) / odist;
+                      sepY += (ody / odist) / odist;
+                      count++;
+                    }
+                  }
+                }
+                if (count > 0) {
+                  this.vx += sepX * 1.8;
+                  this.vy += sepY * 1.8;
+                }
+              }
+
+              // Cap maximum speed
+              const curSpeed = Math.hypot(this.vx, this.vy);
+              if (curSpeed > this.speed * 1.4 && curSpeed > 0) {
+                this.vx = (this.vx / curSpeed) * (this.speed * 1.4);
+                this.vy = (this.vy / curSpeed) * (this.speed * 1.4);
+              }
+
+              this.x += this.vx * dt;
+              this.y += this.vy * dt;
+            }
+          }
+        }
+      }
+    }
+
+    /* ====================================================================
+       6. GLOBAL SIMULATION STATE STORE
+       ==================================================================== */
+    const state = {
+      alarmState: 'STANDBY', // 'STANDBY' | 'ACTIVE' | 'RESET'
+      severity: 'fire',      // 'drill' | 'fire' | 'quake'
+      channel: 'DEFAULT_CAD_MESH',
+      occupantsTotal: 48,
+      occupantsSafe: 0,
+      occupantsEvacuating: 0,
+      hazards: [],
+      stairwells: {
+        A: 'CLEAR',
+        B: 'CLEAR'
+      },
+      showHeatmap: false,
+      showVectors: true,
+      audioEnabled: true,
+      checkInStatus: {
+        PHONE_B: false,
+        PHONE_C: false,
+        PHONE_D: false
+      },
+      startTime: 0,
+      elapsedSeconds: 0,
+      particles: []
+    };
+
+    // Initialize 48 Occupants Across Room Zones
+    function initOccupants(totalCount = 48) {
+      state.particles = [];
+      const zones = ROOM_ZONES;
+      let count = 0;
+
+      while (count < totalCount) {
+        const zone = zones[count % zones.length];
+        const padding = 20;
+        const x = zone.x + padding + Math.random() * (zone.w - padding * 2);
+        const y = zone.y + padding + Math.random() * (zone.h - padding * 2);
+        state.particles.push(new OccupantParticle(count + 1, x, y, zone.id));
+        count++;
+      }
+      state.occupantsTotal = totalCount;
+      state.occupantsSafe = 0;
+      state.occupantsEvacuating = 0;
+    }
+
+    initOccupants(48);
+
+    /* ====================================================================
+       7. CAD CANVAS RENDERER & 60 FPS ANIMATION LOOP
+       High-DPI Razor Sharp Rendering with fine hairline grid & fluid vectors
+       ==================================================================== */
+    const canvas = document.getElementById('floorplanCanvas');
+    const ctx = canvas.getContext('2d');
+    let animationFrameId = null;
+    let lastTimestamp = performance.now();
+    let frameCount = 0;
+    let lastFpsUpdate = performance.now();
+
+    function resizeCanvas() {
+      const container = document.getElementById('canvasContainer');
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Congestion Bottleneck Tracker
+    const chokepoints = [
+      { id: 'DOOR_EXEC', x: 290, y: 150, radius: 24, density: 0 },
+      { id: 'DOOR_SERVER', x: 510, y: 150, radius: 24, density: 0 },
+      { id: 'HW_C_MID', x: 400, y: 260, radius: 32, density: 0 },
+      { id: 'DOOR_MEETING', x: 290, y: 370, radius: 24, density: 0 },
+      { id: 'DOOR_BREAK', x: 510, y: 370, radius: 24, density: 0 },
+      { id: 'EXIT_A', x: 400, y: 35, radius: 36, density: 0 },
+      { id: 'EXIT_B', x: 400, y: 485, radius: 36, density: 0 }
+    ];
+
+    function renderCADFrame(timestamp) {
+      const dt = Math.min((timestamp - lastTimestamp) / 16.666, 2.0);
+      lastTimestamp = timestamp;
+
+      // Update FPS counter
+      frameCount++;
+      if (timestamp - lastFpsUpdate >= 500) {
+        const fps = Math.round((frameCount * 1000) / (timestamp - lastFpsUpdate));
+        document.getElementById('cadFpsCounter').textContent = fps;
+        frameCount = 0;
+        lastFpsUpdate = timestamp;
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = rect.width / 800;
+      const scaleY = rect.height / 520;
+
+      // Clear Frame
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      ctx.save();
+      ctx.scale(scaleX, scaleY);
+
+      // 1. Draw Architectural CAD Hairline Grid
+      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
+      for (let x = 0; x <= 800; x += 20) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 520);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= 520; y += 20) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(800, y);
+        ctx.stroke();
+      }
+
+      // Major Grid Lines
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+      for (let x = 0; x <= 800; x += 100) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 520);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= 520; y += 100) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(800, y);
+        ctx.stroke();
+      }
+
+      // 2. Draw NavMesh Hallway Paths (Subtle CAD Guides)
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      EDGES.forEach(([u, v]) => {
+        const n1 = navGraph.nodes.get(u);
+        const n2 = navGraph.nodes.get(v);
+        if (n1 && n2) {
+          ctx.beginPath();
+          ctx.moveTo(n1.x, n1.y);
+          ctx.lineTo(n2.x, n2.y);
+          ctx.stroke();
+        }
+      });
+
+      // 3. Draw Room Enclosures & CAD Boundary Walls
+      ROOM_ZONES.forEach(zone => {
+        // Room Fill
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.45)';
+        ctx.fillRect(zone.x, zone.y, zone.w, zone.h);
+
+        // CAD Wall Outline
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.85)';
+        ctx.strokeRect(zone.x, zone.y, zone.w, zone.h);
+
+        // CAD Room Area Tag
+        ctx.font = '500 8.5px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+        ctx.fillText(zone.name, zone.x + 8, zone.y + 16);
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+        ctx.fillText(`ÁREA: ${zone.area}`, zone.x + 8, zone.y + 28);
+      });
+
+      // 4. Draw Exit Portals (North & South)
+      // Exit A (North)
+      const exitABlocked = navGraph.nodes.get('EXIT_A').isBlocked;
+      ctx.fillStyle = exitABlocked ? 'rgba(244, 63, 94, 0.2)' : 'rgba(16, 185, 129, 0.2)';
+      ctx.strokeStyle = exitABlocked ? 'var(--accent-rose)' : 'var(--accent-emerald)';
+      ctx.lineWidth = 2;
+      ctx.fillRect(340, 10, 120, 30);
+      ctx.strokeRect(340, 10, 120, 30);
+
+      ctx.font = '700 9px "Inter", sans-serif';
+      ctx.fillStyle = exitABlocked ? '#fda4af' : '#6ee7b7';
+      ctx.textAlign = 'center';
+      ctx.fillText(exitABlocked ? 'SALIDA A: BLOQUEADA' : 'SALIDA NORTE A (DESPEJADA)', 400, 28);
+
+      // Exit B (South)
+      const exitBBlocked = navGraph.nodes.get('EXIT_B').isBlocked;
+      ctx.fillStyle = exitBBlocked ? 'rgba(244, 63, 94, 0.2)' : 'rgba(16, 185, 129, 0.2)';
+      ctx.strokeStyle = exitBBlocked ? 'var(--accent-rose)' : 'var(--accent-emerald)';
+      ctx.fillRect(340, 480, 120, 30);
+      ctx.strokeRect(340, 480, 120, 30);
+      ctx.fillStyle = exitBBlocked ? '#fda4af' : '#6ee7b7';
+      ctx.fillText(exitBBlocked ? 'SALIDA B: BLOQUEADA' : 'SALIDA SUR B (DESPEJADA)', 400, 498);
+      ctx.textAlign = 'left';
+
+      // 5. Draw Active Hazards (Smoke & Fire)
+      state.hazards.forEach(hazard => {
+        const rad = hazard.radius;
+        const grad = ctx.createRadialGradient(hazard.x, hazard.y, 4, hazard.x, hazard.y, rad);
+        grad.addColorStop(0, 'rgba(244, 63, 94, 0.85)');
+        grad.addColorStop(0.5, 'rgba(245, 158, 11, 0.5)');
+        grad.addColorStop(1, 'rgba(244, 63, 94, 0)');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(hazard.x, hazard.y, rad, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pulsing hazard ring
+        ctx.strokeStyle = 'rgba(244, 63, 94, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(hazard.x, hazard.y, rad * (0.8 + Math.sin(timestamp * 0.005) * 0.2), 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Hazard label
+        ctx.font = '700 8.5px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(`AMENAZA: ${hazard.zone.toUpperCase()}`, hazard.x - 40, hazard.y - rad - 4);
+      });
+
+      // 6. Update Chokepoint Densities & Draw Heatmap (if enabled)
+      chokepoints.forEach(cp => { cp.density = 0; });
+      let totalSpeed = 0;
+      let evacCount = 0;
+      let safeCount = 0;
+
+      state.particles.forEach(p => {
+        p.update(dt, state.particles);
+
+        if (p.state === 'safe') {
+          safeCount++;
+        } else if (p.state === 'evacuating') {
+          evacCount++;
+          const curSpeed = Math.hypot(p.vx, p.vy);
+          totalSpeed += curSpeed;
+
+          // Check chokepoints
+          chokepoints.forEach(cp => {
+            if (Math.hypot(p.x - cp.x, p.y - cp.y) < cp.radius) {
+              cp.density++;
+            }
+          });
+        }
+      });
+
+      state.occupantsSafe = safeCount;
+      state.occupantsEvacuating = evacCount;
+
+      // Draw Doorway Congestion Heatmap Overlay
+      if (state.showHeatmap) {
+        chokepoints.forEach(cp => {
+          if (cp.density > 0) {
+            const heatIntensity = Math.min(cp.density / 8, 1.0);
+            const grad = ctx.createRadialGradient(cp.x, cp.y, 2, cp.x, cp.y, cp.radius * 1.4);
+            
+            if (heatIntensity < 0.4) {
+              grad.addColorStop(0, 'rgba(16, 185, 129, 0.45)');
+              grad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+            } else if (heatIntensity < 0.75) {
+              grad.addColorStop(0, 'rgba(245, 158, 11, 0.6)');
+              grad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+            } else {
+              grad.addColorStop(0, 'rgba(244, 63, 94, 0.75)');
+              grad.addColorStop(1, 'rgba(244, 63, 94, 0)');
+            }
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cp.x, cp.y, cp.radius * 1.4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+      }
+
+      // 7. Draw Occupant Particles & Velocity Vectors
+      state.particles.forEach(p => {
+        if (p.state === 'working') {
+          // Soft slate cyan dot
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (p.state === 'evacuating') {
+          // Amber/Cyan evacuee with velocity streamline
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius + 0.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Draw Velocity Vector
+          if (state.showVectors) {
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.45)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x - p.vx * 6, p.y - p.vy * 6);
+            ctx.stroke();
+          }
+        } else if (p.state === 'safe') {
+          // Emerald safe dot outside exit
+          ctx.fillStyle = '#10b981';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      ctx.restore();
+
+      // 8. Update UI Gauges & Telemetry Readouts
+      const avgVelocity = evacCount > 0 ? (totalSpeed / evacCount) * 1.12 : 0;
+      document.getElementById('cadFlowVelocity').textContent = `${avgVelocity.toFixed(2)} m/s`;
+      document.getElementById('gaugeAvgSpeed').textContent = avgVelocity.toFixed(2);
+      
+      const bottleneckCount = chokepoints.filter(cp => cp.density >= 4).length;
+      const bEl = document.getElementById('gaugeBottlenecks');
+      bEl.textContent = bottleneckCount;
+      bEl.style.color = bottleneckCount > 0 ? 'var(--accent-rose)' : 'var(--accent-emerald)';
+
+      // Update Tally in Phone A
+      const pct = state.occupantsTotal > 0 ? Math.round((safeCount / state.occupantsTotal) * 100) : 100;
+      const donutText = document.getElementById('donutPctText');
+      if (donutText) donutText.textContent = `${pct}%`;
+      const tallySafe = document.getElementById('tallySafeVal');
+      if (tallySafe) tallySafe.textContent = safeCount;
+      const tallyTotal = document.getElementById('tallyTotalVal');
+      if (tallyTotal) tallyTotal.textContent = state.occupantsTotal;
+
+      const circle = document.getElementById('donutProgressCircle');
+      if (circle) {
+        const offset = 100 - pct;
+        circle.style.strokeDashoffset = Number.isFinite(offset) ? offset : 0;
+      }
+
+      // Update Live Compass on Phone B
+      updateEscapeCompass();
+
+      // Check for completion
+      if (state.alarmState === 'ACTIVE' && state.occupantsTotal > 0 && safeCount >= state.occupantsTotal) {
+        state.alarmState = 'STANDBY';
+        document.getElementById('globalStatusPill').className = 'system-status-pill';
+        document.getElementById('globalStatusText').textContent = 'EVACUACIÓN COMPLETADA · 100% SEGURO';
+        audio.stopAlarmTone();
+        audio.playCheckinSuccess();
+      }
+
+      animationFrameId = requestAnimationFrame(renderCADFrame);
+    }
+
+    animationFrameId = requestAnimationFrame(renderCADFrame);
+
+    /* ====================================================================
+       8. ESCAPE COMPASS DYNAMICS (Phone B)
+       Calculates real-time bearing angle pointing to nearest clear exit
+       ==================================================================== */
+    function updateEscapeCompass() {
+      const exitABlocked = navGraph.nodes.get('EXIT_A').isBlocked;
+      const exitBBlocked = navGraph.nodes.get('EXIT_B').isBlocked;
+      const compassSvg = document.getElementById('escapeCompassSvg');
+      const targetTxt = document.getElementById('compassTargetExit');
+      const bearingTxt = document.getElementById('compassBearingTxt');
+
+      if (!compassSvg || !targetTxt || !bearingTxt) return;
+
+      if (!exitABlocked) {
+        // Pointing North (Exit A: x=400, y=35)
+        compassSvg.style.transform = 'rotate(0deg)';
+        targetTxt.textContent = 'Salida Norte A (Despejada)';
+        targetTxt.style.color = 'var(--accent-sky)';
+        bearingTxt.textContent = 'Rumbo: 000° N · Distancia: 14 m';
+      } else if (!exitBBlocked) {
+        // Pointing South (Exit B: x=400, y=485)
+        compassSvg.style.transform = 'rotate(180deg)';
+        targetTxt.textContent = 'Salida Sur B (Ruta Alternativa)';
+        targetTxt.style.color = 'var(--accent-amber)';
+        bearingTxt.textContent = 'Rumbo: 180° S · Distancia: 36 m';
+      } else {
+        compassSvg.style.transform = 'rotate(90deg)';
+        targetTxt.textContent = '¡PRECAUCIÓN! Buscar Refugio';
+        targetTxt.style.color = 'var(--accent-rose)';
+        bearingTxt.textContent = 'Rumbo: 090° E · Refugio Presurizado';
+      }
+    }
+
+    /* ====================================================================
+       9. EVENT HANDLERS & SIMULATION DISPATCH
+       ==================================================================== */
+
+    // Clock update
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const timeStr = `${h}:${m}`;
+      const el = document.getElementById('phoneAClock');
+      if (el) el.textContent = timeStr;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function logEvent(msg, type = 'normal') {
+      const feed = document.getElementById('eventsFeed');
+      if (!feed) return;
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      
+      const row = document.createElement('div');
+      row.className = `event-entry ${type}`;
+      row.innerHTML = `<span class="event-time">${timeStr}</span><span>${msg}</span>`;
+      feed.prepend(row);
+
+      while (feed.children.length > 20) {
+        feed.removeChild(feed.lastChild);
+      }
+    }
+
+    // Trigger Alarm Function
+    function triggerEvacuation(options = {}) {
+      if (options.severity) state.severity = options.severity;
+      if (options.channel) state.channel = options.channel;
+
+      state.alarmState = 'ACTIVE';
+      state.startTime = Date.now();
+
+      // UI Status Bar
+      const statusPill = document.getElementById('globalStatusPill');
+      statusPill.className = 'system-status-pill status--active';
+      document.getElementById('globalStatusText').textContent = `ALARMA ACTIVA · ${state.severity.toUpperCase()}`;
+
+      // Phone A UI
+      const hapticBtn = document.getElementById('btnHapticTrigger');
+      hapticBtn.classList.add('active-alarm');
+      document.getElementById('hapticBtnText').textContent = 'EVACUANDO';
+      document.getElementById('hapticBtnSub').textContent = 'Alarma en Curso';
+
+      // Phone B UI
+      const bPush = document.getElementById('phoneBPush');
+      bPush.classList.remove('standby');
+      document.getElementById('phoneBPushTitle').textContent = '🚨 EVACUACIÓN INMEDIATA';
+      document.getElementById('phoneBPushMsg').textContent = `Alerta Nivel 3 (${state.severity}). Siga la brújula hacia la salida más próxima.`;
+      document.getElementById('cardPhoneB').classList.add('alert-active');
+
+      // Audio
+      audio.playHapticClick();
+      audio.startAlarmTone();
+
+      // Order occupants to evacuate
+      state.particles.forEach(p => p.planEvacuation());
+
+      logEvent(`Alarma de evacuación activada [${state.severity.toUpperCase()}]`, 'alarm');
+      bus.emit('ALARM_TRIGGERED', { severity: state.severity, channel: state.channel });
+    }
+
+    // Reset Simulation Function
+    function resetSimulationState() {
+      state.alarmState = 'STANDBY';
+      state.hazards = [];
+      state.stairwells.A = 'CLEAR';
+      state.stairwells.B = 'CLEAR';
+      state.checkInStatus = { PHONE_B: false, PHONE_C: false, PHONE_D: false };
+
+      navGraph.nodes.forEach(node => { node.isBlocked = false; });
+
+      initOccupants(state.occupantsTotal);
+
+      // Reset UI
+      const statusPill = document.getElementById('globalStatusPill');
+      statusPill.className = 'system-status-pill';
+      document.getElementById('globalStatusText').textContent = 'SISTEMA SEGURO · STANDBY';
+
+      const hapticBtn = document.getElementById('btnHapticTrigger');
+      hapticBtn.classList.remove('active-alarm');
+      document.getElementById('hapticBtnText').textContent = 'ACTIVAR';
+      document.getElementById('hapticBtnSub').textContent = 'Pulso Háptico';
+
+      // Reset Phone B Push
+      const bPush = document.getElementById('phoneBPush');
+      bPush.classList.add('standby');
+      document.getElementById('phoneBPushTitle').textContent = 'Edificio Seguro';
+      document.getElementById('phoneBPushMsg').textContent = 'Sin alertas activas. Mantenga despejados los pasillos.';
+      document.getElementById('cardPhoneB').classList.remove('alert-active');
+
+      // Reset Check-in buttons
+      ['btnPhoneBCheckin', 'btnPhoneCCheckin', 'btnPhoneDCheckin'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.classList.remove('checked-in');
+          btn.disabled = false;
+        }
+      });
+      document.getElementById('btnPhoneBCheckinText').textContent = 'ESTOY A SALVO (CHECK-IN)';
+      document.getElementById('btnPhoneCCheckinText').textContent = 'CHECK-IN BRIGADA A SALVO';
+      document.getElementById('btnPhoneDCheckinText').textContent = 'CONFIRMAR ZONA EXTERIOR SEGURA';
+
+      // Reset Stairwell buttons
+      const btnA = document.getElementById('btnToggleStairA');
+      const btnB = document.getElementById('btnToggleStairB');
+      btnA.className = 'btn-stairwell clear';
+      btnA.innerHTML = 'Escalera A: <strong>DESPEJADA</strong>';
+      btnB.className = 'btn-stairwell clear';
+      btnB.innerHTML = 'Escalera B: <strong>DESPEJADA</strong>';
+
+      audio.stopAlarmTone();
+      audio.playToggleClick();
+      logEvent('Simulación restablecida a estado base', 'normal');
+      bus.emit('ALARM_RESET', {});
+    }
+
+    // Inject Hazard Function
+    function injectHazardZone(zoneName) {
+      const id = 'HAZARD_' + Date.now();
+      let targetX = 400, targetY = 260, nodeToBlock = 'HW_C_MID';
+
+      if (zoneName.toLowerCase().includes('server') || zoneName.toLowerCase().includes('servidor')) {
+        targetX = 620; targetY = 150; nodeToBlock = 'DOOR_SERVER';
+      } else if (zoneName.toLowerCase().includes('break') || zoneName.toLowerCase().includes('cafeteria')) {
+        targetX = 620; targetY = 370; nodeToBlock = 'DOOR_BREAK';
+      } else if (zoneName.toLowerCase().includes('stair_b') || zoneName.toLowerCase().includes('escalera b')) {
+        targetX = 400; targetY = 435; nodeToBlock = 'HW_S_MID';
+      }
+
+      state.hazards.push({
+        id,
+        zone: zoneName,
+        x: targetX,
+        y: targetY,
+        radius: 42,
+        blocked: true
+      });
+
+      navGraph.setBlocked(nodeToBlock, true);
+
+      // Re-route evacuees
+      if (state.alarmState === 'ACTIVE') {
+        state.particles.forEach(p => {
+          if (p.state === 'evacuating') {
+            p.planEvacuation();
+          }
+        });
+      }
+
+      audio.playHapticClick();
+      logEvent(`Amenaza detectada en ${zoneName} - Rutas recalculadas`, 'alarm');
+      bus.emit('HAZARD_SPAWNED', { zone: zoneName });
+    }
+
+    // Toggle Stairwell Status
+    function toggleStairwellStatus(stairId, forcedStatus = null) {
+      const current = state.stairwells[stairId] || 'CLEAR';
+      const next = forcedStatus || (current === 'CLEAR' ? 'BLOCKED' : 'CLEAR');
+      state.stairwells[stairId] = next;
+
+      const nodeToBlock = stairId === 'A' ? 'EXIT_A' : 'EXIT_B';
+      navGraph.setBlocked(nodeToBlock, next === 'BLOCKED');
+
+      const btn = document.getElementById(`btnToggleStair${stairId}`);
+      if (btn) {
+        btn.className = `btn-stairwell ${next.toLowerCase()}`;
+        btn.innerHTML = `Escalera ${stairId}: <strong>${next === 'CLEAR' ? 'DESPEJADA' : 'BLOQUEADA'}</strong>`;
+      }
+
+      // Re-route evacuees if active
+      if (state.alarmState === 'ACTIVE') {
+        state.particles.forEach(p => {
+          if (p.state === 'evacuating') {
+            p.planEvacuation();
+          }
+        });
+      }
+
+      audio.playToggleClick();
+      logEvent(`Escalera ${stairId} marcada como ${next}`, next === 'BLOCKED' ? 'alarm' : 'normal');
+      bus.emit('STAIRWELL_STATUS_CHANGED', { stairId, status: next });
+    }
+
+    // Individual Safety Check-In
+    function handleSafeCheckIn(phoneId) {
+      state.checkInStatus[phoneId] = true;
+      audio.playCheckinSuccess();
+
+      if (phoneId === 'PHONE_B') {
+        const btn = document.getElementById('btnPhoneBCheckin');
+        btn.classList.add('checked-in');
+        document.getElementById('btnPhoneBCheckinText').textContent = '✅ CONFIRMADO A SALVO';
+        logEvent('Usuario Phone B registró check-in a salvo', 'safe');
+      } else if (phoneId === 'PHONE_C') {
+        const btn = document.getElementById('btnPhoneCCheckin');
+        btn.classList.add('checked-in');
+        document.getElementById('btnPhoneCCheckinText').textContent = '✅ BRIGADA CONFIRMADA A SALVO';
+        logEvent('Líder de Brigada (Phone C) check-in completado', 'safe');
+      } else if (phoneId === 'PHONE_D') {
+        const btn = document.getElementById('btnPhoneDCheckin');
+        btn.classList.add('checked-in');
+        document.getElementById('btnPhoneDCheckinText').textContent = '✅ ZONA REUNIÓN CERTIFICADA';
+        logEvent('Punto de Encuentro (Phone D) validado seguro', 'safe');
+      }
+
+      bus.emit('OCCUPANT_CHECKIN_SAFE', { origin: phoneId });
+    }
+
+    /* ====================================================================
+       10. UI ATTACHMENTS & EVENT LISTENERS
+       ==================================================================== */
+
+    // Phone A Haptic Activation Trigger
+    document.getElementById('btnHapticTrigger').addEventListener('click', () => {
+      if (state.alarmState === 'ACTIVE') {
+        resetSimulationState();
+      } else {
+        triggerEvacuation();
+      }
+    });
+
+    // Severity Pills
+    document.getElementById('severityPills').addEventListener('click', (e) => {
+      const btn = e.target.closest('.severity-btn');
+      if (!btn) return;
+      document.querySelectorAll('.severity-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.severity = btn.dataset.severity;
+      audio.playToggleClick();
+      logEvent(`Severidad configurada: ${state.severity.toUpperCase()}`, 'normal');
+    });
+
+    // Protocol Switches
+    document.querySelectorAll('.switch-toggle').forEach(sw => {
+      sw.addEventListener('click', () => {
+        sw.classList.toggle('on');
+        audio.playToggleClick();
+      });
+    });
+
+    // Quick Hazard Injection Buttons
+    document.getElementById('btnHazardServer').addEventListener('click', () => {
+      injectHazardZone('Server Room');
+    });
+    document.getElementById('btnHazardBreak').addEventListener('click', () => {
+      injectHazardZone('Breakroom');
+    });
+
+    // Top Bar Actions
+    document.getElementById('btnAudioToggle').addEventListener('click', () => {
+      const unmuted = audio.toggleMute();
+      const btn = document.getElementById('btnAudioToggle');
+      const lbl = document.getElementById('audioToggleLabel');
+      if (unmuted) {
+        btn.classList.add('active-sound');
+        lbl.textContent = 'Audio On';
+      } else {
+        btn.classList.remove('active-sound');
+        lbl.textContent = 'Muted';
+      }
+    });
+
+    document.getElementById('btnMasterReset').addEventListener('click', () => {
+      resetSimulationState();
+    });
+
+    // CAD Toolbar Toggles
+    document.getElementById('btnToggleHeatmap').addEventListener('click', function() {
+      state.showHeatmap = !state.showHeatmap;
+      this.classList.toggle('active', state.showHeatmap);
+      audio.playToggleClick();
+    });
+
+    document.getElementById('btnToggleVectors').addEventListener('click', function() {
+      state.showVectors = !state.showVectors;
+      this.classList.toggle('active', state.showVectors);
+      audio.playToggleClick();
+    });
+
+    // Recipient Cards Check-In Buttons
+    document.getElementById('btnPhoneBCheckin').addEventListener('click', () => {
+      handleSafeCheckIn('PHONE_B');
+    });
+    document.getElementById('btnPhoneCCheckin').addEventListener('click', () => {
+      handleSafeCheckIn('PHONE_C');
+    });
+    document.getElementById('btnPhoneDCheckin').addEventListener('click', () => {
+      handleSafeCheckIn('PHONE_D');
+    });
+
+    // Stairwell Toggles
+    document.getElementById('btnToggleStairA').addEventListener('click', () => {
+      toggleStairwellStatus('A');
+    });
+    document.getElementById('btnToggleStairB').addEventListener('click', () => {
+      toggleStairwellStatus('B');
+    });
+
+    // Brigade Sector Toggles
+    document.querySelectorAll('.sector-status-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('cleared');
+        btn.textContent = btn.classList.contains('cleared') ? 'Despejado ✓' : 'En Proceso';
+        audio.playToggleClick();
+      });
+    });
+
+    // Mobile Responsive Tab Navigation (<768px)
+    document.querySelectorAll('.mobile-tab-btn').forEach(tabBtn => {
+      tabBtn.addEventListener('click', () => {
+        document.querySelectorAll('.mobile-tab-btn').forEach(b => b.classList.remove('active'));
+        tabBtn.classList.add('active');
+        const targetId = tabBtn.dataset.target;
+        
+        document.querySelectorAll('.panel-column').forEach(col => {
+          col.classList.remove('mobile-visible');
+        });
+        const targetCol = document.getElementById(targetId);
+        if (targetCol) targetCol.classList.add('mobile-visible');
+        
+        if (targetId === 'colFloorplan') {
+          setTimeout(resizeCanvas, 50);
+        }
+      });
+    });
+
+    /* ====================================================================
+       11. GLOBAL PROGRAMMATIC TEST AUTOMATION HARNESS
+       Exposing window.__EMERGENCY_TRI_B__ strictly conforming to PROJECT.md
+       ==================================================================== */
+    window.__EMERGENCY_TRI_B__ = {
+      getState: function() {
+        return {
+          alarmState: state.alarmState,
+          channel: state.channel,
+          severity: state.severity,
+          occupantsTotal: state.occupantsTotal,
+          occupantsSafe: state.occupantsSafe,
+          occupantsEvacuating: state.occupantsEvacuating,
+          hazards: state.hazards.map(h => ({
+            id: h.id,
+            zone: h.zone,
+            radius: h.radius,
+            blocked: h.blocked
+          })),
+          stairwells: { ...state.stairwells },
+          particles: state.particles.map(p => ({
+            id: p.id,
+            x: Math.round(p.x),
+            y: Math.round(p.y),
+            state: p.state,
+            exitId: p.targetExit
+          }))
+        };
+      },
+
+      triggerAlarm: function(options = {}) {
+        triggerEvacuation(options);
+      },
+
+      resetSimulation: function() {
+        resetSimulationState();
+      },
+
+      injectHazard: function(zone) {
+        injectHazardZone(zone);
+      },
+
+      checkInSafe: function(phoneId) {
+        handleSafeCheckIn(phoneId);
+      },
+
+      toggleStairwell: function(stairwellId, status) {
+        toggleStairwellStatus(stairwellId, status);
+      },
+
+      setOccupantCount: function(count) {
+        initOccupants(count);
+        document.getElementById('cadOccupantCounter').textContent = count;
+        document.getElementById('tallyTotalVal').textContent = count;
+      }
+    };
+
+  })();
+  </script>
+</body>
+</html>

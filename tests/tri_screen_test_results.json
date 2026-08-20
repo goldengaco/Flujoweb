@@ -1,0 +1,137 @@
+{
+  "timestamp": "2026-08-20T05:05:28.338Z",
+  "totalExecuted": 81,
+  "totalPassed": 81,
+  "totalFailed": 0,
+  "durationMs": 57734,
+  "suites": [
+    {
+      "name": "Tier 1: Feature Coverage — Variant A (Tactical Cyberpunk)",
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "duration": 7169,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: Boundary & Corner Cases — Variant A: Tactical Cyberpunk Tri-Panel Simulator",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "duration": 5601,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: Cross-Feature Combinations — Variant A: Tactical Cyberpunk Tri-Panel Simulator",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 3179,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: Scenario 1 — Tactical Cyberpunk Full Evacuation Drill (Variant A)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 1240,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: Feature Coverage — Variant B (Clean Minimalist Linear Dark)",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "duration": 3968,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: Boundary & Corner Cases — Variant B: Clean Minimalist Linear Dark Simulator",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "duration": 5554,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: Cross-Feature Combinations — Variant B: Clean Minimalist Linear Dark Simulator",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 3206,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: Scenario 2 — Clean Linear Seismic & Bottleneck Heatmap Drill (Variant B)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 1128,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: Feature Coverage — Variant C (2.5D Isometric Mission Control)",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 3103,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: Boundary & Corner Cases — Variant C: 2.5D Isometric Mission Control Simulator",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "duration": 5570,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: Cross-Feature Combinations — Variant C: 2.5D Isometric Mission Control Simulator",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 3243,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: Scenario 3 — 2.5D Mission Control & BLE Proximity Triage Drill (Variant C)",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 1116,
+      "failures": []
+    },
+    {
+      "name": "Tier 1: Feature Coverage — Master Enterprise Launchpad Portal",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "duration": 2915,
+      "failures": []
+    },
+    {
+      "name": "Tier 2: Boundary & Corner Cases — Master Enterprise Launchpad Portal",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "duration": 6130,
+      "failures": []
+    },
+    {
+      "name": "Tier 3: Cross-Feature Combinations — Master Enterprise Launchpad Portal",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "duration": 3335,
+      "failures": []
+    },
+    {
+      "name": "Tier 4: Scenario 4 — Master Launchpad Portal Lifecycle Drill",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "duration": 913,
+      "failures": []
+    }
+  ]
+}
