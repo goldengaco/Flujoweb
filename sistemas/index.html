@@ -996,7 +996,7 @@
       <div class="filter-pills-row">
         <button class="filter-btn category-pill active" data-category="all" data-filter="all">
           <span>🌐 All Systems</span>
-          <span class="pill-count" id="count-all">26</span>
+          <span class="pill-count" id="count-all">27</span>
         </button>
         <button class="filter-btn category-pill" data-category="datadog-grafana" data-filter="datadog-grafana">
           <span>📊 Datadog, Grafana & ELK</span>
@@ -1016,7 +1016,7 @@
         </button>
         <button class="filter-btn category-pill" data-category="mulesoft" data-filter="mulesoft">
           <span>🌐 MuleSoft & Apigee</span>
-          <span class="pill-count" id="count-mulesoft">2</span>
+          <span class="pill-count" id="count-mulesoft">3</span>
         </button>
         <button class="filter-btn category-pill" data-category="gcp-sre" data-filter="gcp-sre">
           <span>☁️ Google Cloud SRE</span>
@@ -1411,6 +1411,18 @@
         href: './ticket-flow-map/index.html',
         metrics: { latency: '1.2s', sla: '99.4%', rps: '34 tickets' },
         visType: 'tx'
+      },
+      {
+        id: 'mulesoft-engine-simulator',
+        name: 'MuleSoft Core Engine · Runtime 4.x',
+        subtitle: 'Mule Event Anatomy, DataWeave 2.0 & API-Led 3-Tiers',
+        category: 'mulesoft',
+        categoryLabel: '🌐 MuleSoft & Apigee',
+        badges: ['Mule Event (vars)', 'DataWeave 2.0', 'Scatter-Gather', 'On-Error-Propagate'],
+        description: 'Interactive inside-out simulator demonstrating how the Mule runtime engine works: Event Processors, 3-Tier API-Led Connectivity, parallel routing, and error handlers.',
+        href: './mulesoft-engine-simulator/index.html',
+        metrics: { latency: '42ms', sla: '99.99%', rps: 'Core Flow' },
+        visType: 'mesh'
       }
     ];
 

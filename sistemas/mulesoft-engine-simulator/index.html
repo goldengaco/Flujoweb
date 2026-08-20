@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuleSoft Core Engine — Simulador del Runtime 4.x & API-Led</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#0b0f19;--bg-card:#141a29;--border:#222b40;
+  --mule-blue:#00a2df;--mule-cyan:#00d2ff;--dw-amber:#f59e0b;--safe:#10b981;--danger:#f43f5e;
+  --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#55637d;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:28px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:22px}
+
+/* MuleSoft Header */
+.mule-hdr{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:18px;border-bottom:1px solid var(--border);
+}
+.mule-brand{display:flex;align-items:center;gap:12px}
+.mule-logo{
+  width:42px;height:42px;border-radius:10px;background:var(--mule-blue);
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#fff;
+  box-shadow:0 0 20px rgba(0,162,223,0.4);
+}
+.mule-title{font-size:1.35rem;font-weight:700;letter-spacing:-0.02em}
+.mule-tag{
+  font-size:0.75rem;padding:5px 14px;border-radius:20px;background:rgba(0,162,223,0.15);
+  border:1px solid rgba(0,162,223,0.3);color:var(--mule-cyan);font-family:var(--mono);font-weight:600;
+}
+
+/* 3-Tier API-Led Visualizer */
+.arch-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  padding:20px;display:flex;flex-direction:column;gap:14px;
+}
+.arch-title{font-size:0.9rem;font-weight:700;color:#fff;display:flex;justify-content:space-between}
+
+.tiers-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:12px}
+@media(max-width:768px){.tiers-grid{grid-template-columns:1fr}}
+
+.tier-box{
+  background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px;
+  padding:14px;display:flex;flex-direction:column;gap:6px;transition:all 0.3s;
+}
+.tier-box.active{border-color:var(--mule-blue);box-shadow:0 0 16px rgba(0,162,223,0.25);background:rgba(0,162,223,0.05)}
+.tier-lbl{font-size:0.65rem;font-weight:700;font-family:var(--mono);color:var(--mule-cyan);text-transform:uppercase}
+.tier-name{font-size:0.85rem;font-weight:700;color:#fff}
+.tier-desc{font-size:0.72rem;color:var(--text-sub);line-height:1.3}
+
+/* Flow Execution Pipeline */
+.flow-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  padding:20px;display:flex;flex-direction:column;gap:14px;
+}
+.steps-row{display:grid;grid-template-columns:repeat(5, 1fr);gap:10px}
+@media(max-width:880px){.steps-row{grid-template-columns:1fr}}
+
+.step-node{
+  background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;
+  padding:12px;display:flex;flex-direction:column;gap:6px;transition:all 0.3s;
+}
+.step-node.active{border-color:var(--mule-cyan);background:rgba(0,210,255,0.08);box-shadow:0 0 14px rgba(0,210,255,0.2)}
+.step-node.done{border-color:var(--safe);background:rgba(16,185,129,0.04)}
+.step-node.error{border-color:var(--danger);background:rgba(244,63,94,0.08)}
+.st-type{font-size:0.62rem;font-weight:700;font-family:var(--mono);color:var(--text-dim)}
+.st-title{font-size:0.8rem;font-weight:700;color:#fff}
+.st-sub{font-size:0.68rem;color:var(--text-sub)}
+
+/* Mule Event Inspector (Message & Vars) */
+.inspector-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.inspector-grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:18px;display:flex;flex-direction:column;gap:10px;
+}
+.card-hdr{font-size:0.85rem;font-weight:700;color:#fff;display:flex;justify-content:space-between}
+
+.code-box{
+  background:#070a12;border:1px solid rgba(255,255,255,0.05);border-radius:8px;
+  padding:12px;font-family:var(--mono);font-size:0.72rem;color:#a5f3fc;
+  overflow-x:auto;max-height:170px;line-height:1.4;
+}
+
+/* Action Controls */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.btn{
+  padding:10px 18px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.2s;
+}
+.btn-blue{background:var(--mule-blue);color:#fff}
+.btn-blue:hover{background:#0284c7}
+.btn-amber{background:var(--dw-amber);color:#000}
+.btn-amber:hover{background:#d97706}
+.btn-red{background:var(--danger);color:#fff}
+.btn-red:hover{background:#e11d48}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="mule-hdr">
+    <div class="mule-brand">
+      <div class="mule-logo">🫏</div>
+      <div>
+        <div class="mule-title">MuleSoft Core Engine · ¿Cómo Funciona Mule Runtime 4.x?</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Simulador de Arquitectura API-Led, DataWeave 2.0, Scatter-Gather y Manejo de Errores</div>
+      </div>
+    </div>
+    <div class="mule-tag">Runtime Fabric v2.4 · JVM ZGC 10ms</div>
+  </header>
+
+  <!-- 3-Tier API-Led Architecture -->
+  <div class="arch-card">
+    <div class="arch-title">
+      <span>🌐 1. Arquitectura API-Led Connectivity (3 Capas)</span>
+      <span style="font-size:0.72rem;color:var(--mule-cyan);font-family:var(--mono)">Patrón Oficial de Integración</span>
+    </div>
+    <div class="tiers-grid">
+      <!-- Experience API -->
+      <div class="tier-box active" id="tier-exp">
+        <span class="tier-lbl">CAPA 1 · EXPERIENCE API</span>
+        <span class="tier-name">📱 exp-mobile-orders-api</span>
+        <span class="tier-desc">Adapta el formato para la app móvil o frontend web. Quita datos innecesarios y aplica rate-limiting.</span>
+      </div>
+      <!-- Process API -->
+      <div class="tier-box" id="tier-proc">
+        <span class="tier-lbl">CAPA 2 · PROCESS API</span>
+        <span class="tier-name">⚙️ proc-order-fulfillment-api</span>
+        <span class="tier-desc">Orquesta la lógica de negocio pura: calcula descuentos, valida inventario y coordina pagos.</span>
+      </div>
+      <!-- System API -->
+      <div class="tier-box" id="tier-sys">
+        <span class="tier-lbl">CAPA 3 · SYSTEM API</span>
+        <span class="tier-name">🗄️ sys-sap-erp-api & sys-db-api</span>
+        <span class="tier-desc">Desacopla los sistemas difíciles (SAP S/4HANA, AS400, Oracle DB). Si SAP cambia, nada arriba se rompe.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flow Execution Stepper -->
+  <div class="flow-card">
+    <div class="arch-title">
+      <span>⚡ 2. Anatomía de un Flujo Mule (Mule Flow Execution)</span>
+      <span style="font-size:0.72rem;color:var(--safe);font-family:var(--mono)" id="flowState">STANDBY · LISTO PARA PETICIÓN</span>
+    </div>
+
+    <div class="steps-row">
+      <!-- Step 1 -->
+      <div class="step-node" id="sn-1">
+        <span class="st-type">EVENT SOURCE</span>
+        <span class="st-title">📥 HTTP Listener</span>
+        <span class="st-sub">POST /api/v1/orders</span>
+      </div>
+      <!-- Step 2 -->
+      <div class="step-node" id="sn-2">
+        <span class="st-type">CORE PROCESSOR</span>
+        <span class="st-title">📝 DataWeave 2.0</span>
+        <span class="st-sub">Transform Message</span>
+      </div>
+      <!-- Step 3 -->
+      <div class="step-node" id="sn-3">
+        <span class="st-type">ROUTING</span>
+        <span class="st-title">🔀 Scatter-Gather</span>
+        <span class="st-sub">Llamada Paralela SAP + DB</span>
+      </div>
+      <!-- Step 4 -->
+      <div class="step-node" id="sn-4">
+        <span class="st-type">STATE PERSISTENCE</span>
+        <span class="st-title">💾 Object Store v2</span>
+        <span class="st-sub">Guardar Idempotencia</span>
+      </div>
+      <!-- Step 5 -->
+      <div class="step-node" id="sn-5">
+        <span class="st-type">RESPONSE / ERROR</span>
+        <span class="st-title">✅ HTTP Response</span>
+        <span class="st-sub">201 Created (JSON)</span>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-blue" onclick="runHappyPath()">▶ Enviar Petición Exitosa (Happy Path 200 OK)</button>
+      <button class="btn btn-amber" onclick="runScatterGather()">🔀 Ejecutar Scatter-Gather Paralelo (SAP + Oracle)</button>
+      <button class="btn btn-red" onclick="runErrorSimulation()">⚠️ Simular Error 500 & On-Error-Propagate</button>
+      <button class="btn btn-sec" onclick="resetEngine()">🔄 Restablecer</button>
+    </div>
+  </div>
+
+  <!-- Mule Event Live Inspector -->
+  <div class="inspector-grid">
+    <!-- Attributes & Variables -->
+    <div class="card">
+      <div class="card-hdr">
+        <span>🔍 Mule Event: Variables (`vars`) & `attributes`</span>
+        <span style="font-size:0.7rem;color:var(--text-dim);font-family:var(--mono)">Memoria de Flujo</span>
+      </div>
+      <div class="code-box" id="varsBox">{
+  "attributes": {
+    "method": "POST",
+    "requestPath": "/api/v1/orders",
+    "headers": {
+      "X-Correlation-ID": "c0a801-9842-mule",
+      "Authorization": "Bearer eyJhbGciOi..."
+    }
+  },
+  "vars": {
+    "orderId": "ORD-2026-981",
+    "customerId": "CUST-8841",
+    "authValid": true
+  }
+}</div>
+    </div>
+
+    <!-- Payload & DataWeave Result -->
+    <div class="card">
+      <div class="card-hdr">
+        <span>📦 Mule Event: `payload` (DataWeave 2.0 Output)</span>
+        <span style="font-size:0.7rem;color:var(--dw-amber);font-family:var(--mono)">application/json</span>
+      </div>
+      <div class="code-box" id="payloadBox">{
+  "orderStatus": "CREATED",
+  "orderId": "ORD-2026-981",
+  "totalAmount": 1450.00,
+  "currency": "USD",
+  "downstreamCalls": [
+    { "target": "SAP S/4HANA", "status": "RESERVED", "latency": "18ms" },
+    { "target": "Oracle DB", "status": "COMMITTED", "latency": "8ms" }
+  ]
+}</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function highlightStep(stepNum, status='active'){
+  const node = document.getElementById(`sn-${stepNum}`);
+  node.className = `step-node ${status}`;
+}
+
+function runHappyPath(){
+  resetEngine();
+  document.getElementById('flowState').textContent = 'EJECUTANDO FLUJO NORMAL...';
+  document.getElementById('flowState').style.color = 'var(--mule-cyan)';
+
+  highlightStep(1, 'active');
+  setTimeout(()=>{
+    highlightStep(1, 'done');
+    highlightStep(2, 'active');
+    document.getElementById('tier-proc').className = 'tier-box active';
+  }, 400);
+
+  setTimeout(()=>{
+    highlightStep(2, 'done');
+    highlightStep(3, 'active');
+    document.getElementById('tier-sys').className = 'tier-box active';
+  }, 900);
+
+  setTimeout(()=>{
+    highlightStep(3, 'done');
+    highlightStep(4, 'active');
+  }, 1400);
+
+  setTimeout(()=>{
+    highlightStep(4, 'done');
+    highlightStep(5, 'done');
+    document.getElementById('flowState').textContent = '✅ COMPLETADO: 201 CREATED (42ms)';
+    document.getElementById('flowState').style.color = 'var(--safe)';
+  }, 1900);
+}
+
+function runScatterGather(){
+  resetEngine();
+  document.getElementById('flowState').textContent = 'EJECUTANDO SCATTER-GATHER (2 HILOS PARALELOS)...';
+  document.getElementById('flowState').style.color = 'var(--dw-amber)';
+
+  highlightStep(1, 'done');
+  highlightStep(2, 'done');
+  highlightStep(3, 'active');
+  document.getElementById('tier-sys').className = 'tier-box active';
+
+  document.getElementById('payloadBox').textContent = JSON.stringify({
+    "scatterGatherResults": {
+      "route_0": { "system": "SAP S/4HANA (Inventory)", "status": "STOCK_AVAILABLE", "units": 450 },
+      "route_1": { "system": "Oracle Financial DB", "status": "CREDIT_APPROVED", "limit": 50000 }
+    }
+  }, null, 2);
+}
+
+function runErrorSimulation(){
+  resetEngine();
+  document.getElementById('flowState').textContent = '⚠️ ERROR CAPTURADO POR ON-ERROR-PROPAGATE';
+  document.getElementById('flowState').style.color = 'var(--danger)';
+
+  highlightStep(1, 'done');
+  highlightStep(2, 'done');
+  highlightStep(3, 'error');
+  highlightStep(5, 'error');
+
+  document.getElementById('payloadBox').textContent = JSON.stringify({
+    "error": {
+      "description": "SAP Connection Timeout (504 Gateway Timeout)",
+      "errorType": "SAP:CONNECTIVITY_ERROR",
+      "correlationId": "c0a801-9842-mule",
+      "timestamp": new Date().toISOString()
+    }
+  }, null, 2);
+}
+
+function resetEngine(){
+  [1,2,3,4,5].forEach(i => {
+    document.getElementById(`sn-${i}`).className = 'step-node';
+  });
+  document.getElementById('tier-exp').className = 'tier-box active';
+  document.getElementById('tier-proc').className = 'tier-box';
+  document.getElementById('tier-sys').className = 'tier-box';
+  document.getElementById('flowState').textContent = 'STANDBY · LISTO PARA PETICIÓN';
+  document.getElementById('flowState').style.color = 'var(--safe)';
+}
+</script>
+</body>
+</html>
