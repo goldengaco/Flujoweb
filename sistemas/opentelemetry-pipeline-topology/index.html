@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenTelemetry & MuleSoft APM Pipeline — inspectIT Ocelot Topology</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#090d16;--bg-card:#101524;--bg-node:#171e33;--border:#222c44;
+  --accent-blue:#00a2df;--accent-cyan:#00f0ff;--accent-orange:#f59e0b;--accent-green:#10b981;--accent-red:#f43f5e;
+  --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#5a6885;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:28px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:22px}
+
+/* Header */
+.hdr{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:18px;border-bottom:1px solid var(--border);
+}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-logo{
+  width:42px;height:42px;border-radius:10px;background:var(--accent-blue);
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#fff;
+  box-shadow:0 0 20px rgba(0,162,223,0.4);
+}
+.hdr-title{font-size:1.35rem;font-weight:700;letter-spacing:-0.02em}
+.hdr-tag{
+  font-size:0.75rem;padding:5px 14px;border-radius:20px;background:rgba(0,240,255,0.1);
+  border:1px solid rgba(0,240,255,0.3);color:var(--accent-cyan);font-family:var(--mono);font-weight:600;
+}
+
+/* Canvas Topology Map Container */
+.topo-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  padding:24px;display:flex;flex-direction:column;gap:18px;position:relative;
+}
+.topo-hdr{display:flex;justify-content:space-between;align-items:center}
+.topo-title{font-size:0.95rem;font-weight:700;color:#fff}
+
+/* SVG / Canvas Pipeline Stage */
+.stage-wrap{
+  position:relative;width:100%;height:380px;background:rgba(0,0,0,0.3);
+  border:1px solid var(--border);border-radius:12px;overflow:hidden;
+}
+#topo-canvas{
+  position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;
+}
+
+/* HTML Nodes overlayed on Canvas */
+.nodes-layer{
+  position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;pointer-events:none;
+}
+.topo-node{
+  position:absolute;pointer-events:auto;cursor:pointer;
+  transform:translate(-50%, -50%);
+  background:var(--bg-node);border:1px solid var(--border);border-radius:12px;
+  padding:10px 14px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  transition:all 0.25s;min-width:120px;text-align:center;
+}
+.topo-node:hover{
+  transform:translate(-50%, -50%) scale(1.06);
+  border-color:var(--accent-cyan);box-shadow:0 0 20px rgba(0,240,255,0.3);
+}
+.topo-node.active{
+  border-color:var(--accent-green);box-shadow:0 0 20px rgba(16,185,129,0.4);
+}
+.node-icon{font-size:1.6rem;margin-bottom:2px}
+.node-title{font-size:0.78rem;font-weight:700;color:#fff}
+.node-sub{font-size:0.65rem;color:var(--text-sub);font-family:var(--mono)}
+
+/* Controls Bar */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  padding:10px 18px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.2s;
+}
+.btn-blue{background:var(--accent-blue);color:#fff}
+.btn-blue:hover{background:#0284c7}
+.btn-amber{background:var(--accent-orange);color:#000}
+.btn-amber:hover{background:#d97706}
+.btn-red{background:var(--accent-red);color:#fff}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+
+/* Lower Inspector Grid */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:800px){.detail-grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:18px;display:flex;flex-direction:column;gap:10px;
+}
+.card-title{font-size:0.85rem;font-weight:700;color:#fff;display:flex;justify-content:space-between}
+
+.code-box{
+  background:#060a14;border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+  padding:12px;font-family:var(--mono);font-size:0.72rem;color:#7dd3fc;
+  overflow-x:auto;max-height:160px;line-height:1.4;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-logo">🔭</div>
+      <div>
+        <div class="hdr-title">OpenTelemetry & MuleSoft APM Pipeline Topology</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Arquitectura de Telemetría Distribuida · inspectIT Ocelot, OTel Collector, Jaeger, Prometheus & Zipkin</div>
+      </div>
+    </div>
+    <div class="hdr-tag">MuleSoft RTF vCore Agent · OTel Protocol (OTLP)</div>
+  </header>
+
+  <!-- Topology Canvas Card -->
+  <div class="topo-card">
+    <div class="topo-hdr">
+      <span class="topo-title">🗺️ Topología de Flujo de Telemetría (3 Ramas en Vivo)</span>
+      <span style="font-size:0.75rem;color:var(--accent-green);font-family:var(--mono)" id="topoStatus">● PIPELINE ACTIVO · TRANSMITIENDO TRACE SPANS</span>
+    </div>
+
+    <!-- Visual Interactive Stage -->
+    <div class="stage-wrap" id="stageWrap">
+      <canvas id="topo-canvas"></canvas>
+
+      <div class="nodes-layer">
+        <!-- Source Node: inspectIT Ocelot -->
+        <div class="topo-node active" style="top:50%;left:12%" onclick="inspectNode('ocelot')">
+          <div class="node-icon">🐆</div>
+          <div class="node-title">inspectIT Ocelot</div>
+          <div class="node-sub">Java Bytecode Agent</div>
+        </div>
+
+        <!-- Branch 1: Tracing (Jaeger) -->
+        <div class="topo-node" style="top:20%;left:40%" onclick="inspectNode('otel-collector')">
+          <div class="node-icon">🔭</div>
+          <div class="node-title">OTel Collector</div>
+          <div class="node-sub">OTLP Receiver :4317</div>
+        </div>
+
+        <div class="topo-node" style="top:20%;left:68%" onclick="inspectNode('jaeger-collector')">
+          <div class="node-icon">🐹</div>
+          <div class="node-title">Jaeger Collector</div>
+          <div class="node-sub">gRPC Ingest Spans</div>
+        </div>
+
+        <div class="topo-node" style="top:20%;left:90%" onclick="inspectNode('jaeger-ui')">
+          <div class="node-icon">🖥️</div>
+          <div class="node-title">Jaeger Query UI</div>
+          <div class="node-sub">Trace Waterfall</div>
+        </div>
+
+        <!-- Branch 2: Metrics (Prometheus & Grafana) -->
+        <div class="topo-node" style="top:50%;left:48%" onclick="inspectNode('prometheus')">
+          <div class="node-icon">🔥</div>
+          <div class="node-title">Prometheus Server</div>
+          <div class="node-sub">Scrape JVM Metrics :9090</div>
+        </div>
+
+        <div class="topo-node" style="top:50%;left:80%" onclick="inspectNode('grafana')">
+          <div class="node-icon">📈</div>
+          <div class="node-title">Grafana Dashboards</div>
+          <div class="node-sub">Time-Series SRE HUD</div>
+        </div>
+
+        <!-- Branch 3: Zipkin Legacy Tracing -->
+        <div class="topo-node" style="top:80%;left:48%" onclick="inspectNode('zipkin')">
+          <div class="node-icon">⚡</div>
+          <div class="node-title">Zipkin Server</div>
+          <div class="node-sub">B3 Propagation :9411</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="btn-row">
+      <button class="btn btn-blue" onclick="emitTrace()">▶ Emitir Transacción MuleSoft (Trace ID: #c0a801-9842)</button>
+      <button class="btn btn-amber" onclick="simulateLatencySpike()">⚠️ Inyectar Latencia en Spans (p99 850ms en SAP)</button>
+      <button class="btn btn-red" onclick="simulateJVMMemoryLeak()">📉 Simular Saturación de Memoria Heap JVM</button>
+      <button class="btn btn-sec" onclick="resetPipeline()">🔄 Restablecer Flujo</button>
+    </div>
+  </div>
+
+  <!-- Lower Detail Grid -->
+  <div class="detail-grid">
+    <!-- Configuration Inspector -->
+    <div class="card">
+      <div class="card-title">
+        <span id="cfgTitle">📄 Configuración Técnica del Nodo (otel-collector-config.yaml)</span>
+        <span style="font-size:0.7rem;color:var(--accent-cyan);font-family:var(--mono)">YAML Config</span>
+      </div>
+      <div class="code-box" id="cfgBox">receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 256
+
+exporters:
+  jaeger:
+    endpoint: "jaeger-collector:14250"
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [jaeger]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]</div>
+    </div>
+
+    <!-- Live Event Stream -->
+    <div class="card">
+      <div class="card-title">
+        <span>📜 Registro de Eventos OTLP en Vivo</span>
+        <span style="font-size:0.7rem;color:var(--accent-green)">gRPC Streaming</span>
+      </div>
+      <div id="logArea" style="font-family:var(--mono);font-size:0.72rem;display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto">
+        <div style="color:var(--accent-green)">[23:35:00] inspectIT Ocelot conectado a Mule Runtime JVM (PID: 10428).</div>
+        <div style="color:var(--text-sub)">[23:35:02] Exportando 12 spans OTLP hacia OpenTelemetry Collector :4317.</div>
+        <div style="color:var(--accent-blue)">[23:35:05] Prometheus ejecutó scrape de métricas JVM (vCore CPU 24.2%).</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Canvas Packet Animation
+const canvas = document.getElementById('topo-canvas');
+const stage = document.getElementById('stageWrap');
+let ctx = canvas.getContext('2d');
+
+function resizeCanvas(){
+  canvas.width = stage.offsetWidth;
+  canvas.height = stage.offsetHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Node coordinates on stage
+function getCoords(){
+  const w = canvas.width, h = canvas.height;
+  return {
+    ocelot: { x: w * 0.12, y: h * 0.50 },
+    otel:   { x: w * 0.40, y: h * 0.20 },
+    jaegerC:{ x: w * 0.68, y: h * 0.20 },
+    jaegerU:{ x: w * 0.90, y: h * 0.20 },
+    prom:   { x: w * 0.48, y: h * 0.50 },
+    graf:   { x: w * 0.80, y: h * 0.50 },
+    zipkin: { x: w * 0.48, y: h * 0.80 }
+  };
+}
+
+let packets = [];
+function addPacket(path, color='#00f0ff'){
+  packets.push({ path: path, progress: 0, speed: 0.015, color: color });
+}
+
+function initPackets(){
+  // Regular background flow
+  if(Math.random() < 0.08){
+    addPacket(['ocelot', 'otel', 'jaegerC', 'jaegerU'], '#00f0ff');
+    addPacket(['ocelot', 'prom', 'graf'], '#f59e0b');
+    addPacket(['ocelot', 'zipkin'], '#10b981');
+  }
+}
+
+function drawPipeline(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const c = getCoords();
+
+  // Draw Dotted Branch Connections (as in reference diagram)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 6]);
+
+  // Branch 1: Ocelot -> OTel -> Jaeger C -> Jaeger UI
+  ctx.beginPath(); ctx.moveTo(c.ocelot.x, c.ocelot.y); ctx.lineTo(c.otel.x, c.otel.y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(c.otel.x, c.otel.y); ctx.lineTo(c.jaegerC.x, c.jaegerC.y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(c.jaegerC.x, c.jaegerC.y); ctx.lineTo(c.jaegerU.x, c.jaegerU.y); ctx.stroke();
+
+  // Branch 2: Ocelot -> Prometheus -> Grafana
+  ctx.beginPath(); ctx.moveTo(c.ocelot.x, c.ocelot.y); ctx.lineTo(c.prom.x, c.prom.y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(c.prom.x, c.prom.y); ctx.lineTo(c.graf.x, c.graf.y); ctx.stroke();
+
+  // Branch 3: Ocelot -> Zipkin
+  ctx.beginPath(); ctx.moveTo(c.ocelot.x, c.ocelot.y); ctx.lineTo(c.zipkin.x, c.zipkin.y); ctx.stroke();
+
+  ctx.setLineDash([]);
+
+  // Animate Packets
+  initPackets();
+  for(let i = packets.length - 1; i >= 0; i--){
+    const p = packets[i];
+    p.progress += p.speed;
+
+    const path = p.path;
+    const totalLegs = path.length - 1;
+    const currentLeg = Math.min(Math.floor(p.progress * totalLegs), totalLegs - 1);
+    const legProgress = (p.progress * totalLegs) - currentLeg;
+
+    const from = c[path[currentLeg]];
+    const to = c[path[currentLeg + 1]];
+
+    if(from && to){
+      const x = from.x + (to.x - from.x) * legProgress;
+      const y = from.y + (to.y - from.y) * legProgress;
+
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    if(p.progress >= 1.0){
+      packets.splice(i, 1);
+    }
+  }
+
+  requestAnimationFrame(drawPipeline);
+}
+drawPipeline();
+
+// Node Inspection
+const CONFIGS = {
+  'ocelot': {
+    title: '🐆 inspectIT Ocelot Java Agent Config (inspectit-ocelot.yml)',
+    code: `inspectit:
+  service-name: "mulesoft-runtime-4x"
+  instrumentation:
+    special:
+      http-client: true
+    scopes:
+      mule-flows:
+        interfaces:
+          - "org.mule.runtime.core.api.event.Event"
+  exporters:
+    metrics:
+      prometheus:
+        enabled: true
+        port: 8888
+    tracing:
+      open-telemetry:
+        enabled: true
+        endpoint: "http://otel-collector:4317"`
+  },
+  'otel-collector': {
+    title: '🔭 OpenTelemetry Collector Config (otel-collector-config.yaml)',
+    code: `receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+exporters:
+  jaeger:
+    endpoint: "jaeger-collector:14250"
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [jaeger]`
+  },
+  'jaeger-ui': {
+    title: '🐹 Jaeger Trace Waterfall (TraceID: c0a801-9842)',
+    code: `{
+  "traceID": "c0a8019842f1a",
+  "spans": [
+    { "operationName": "POST /api/v1/orders", "duration": "42.4ms", "service": "exp-api" },
+    { "operationName": "DataWeave 2.0 Transform", "duration": "3.8ms", "service": "proc-api" },
+    { "operationName": "SAP S/4HANA BAPI_ORDER", "duration": "24.1ms", "service": "sys-sap" }
+  ]
+}`
+  },
+  'prometheus': {
+    title: '🔥 Prometheus Scrape Config (prometheus.yml)',
+    code: `scrape_configs:
+  - job_name: 'mulesoft-jvm'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['mule-rtf-worker:8888']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'jvm_memory_bytes_used|mule_flow_execution_time'`
+  },
+  'grafana': {
+    title: '📈 Grafana Dashboard SRE PromQL Queries',
+    code: `# Latencia p99 de Flujos MuleSoft
+histogram_quantile(0.99, sum(rate(mule_flow_duration_seconds_bucket[5m])) by (le, flow_name))
+
+# Uso de Memoria Heap JVM
+sum(jvm_memory_bytes_used{area="heap"}) by (instance) / sum(jvm_memory_bytes_max{area="heap"}) * 100`
+  },
+  'zipkin': {
+    title: '⚡ Zipkin B3 Propagation Config',
+    code: `b3:
+  sampling:
+    probability: 1.0
+  headers:
+    trace-id: X-B3-TraceId
+    span-id: X-B3-SpanId
+    sampled: X-B3-Sampled`
+  }
+};
+
+function inspectNode(key){
+  const item = CONFIGS[key] || CONFIGS['ocelot'];
+  document.getElementById('cfgTitle').textContent = item.title;
+  document.getElementById('cfgBox').textContent = item.code;
+}
+
+// Scenarios
+function emitTrace(){
+  for(let i=0; i<8; i++){
+    setTimeout(() => {
+      addPacket(['ocelot', 'otel', 'jaegerC', 'jaegerU'], '#00f0ff');
+      addPacket(['ocelot', 'prom', 'graf'], '#f59e0b');
+    }, i * 150);
+  }
+  const log = document.getElementById('logArea');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--accent-cyan)">[${now}] 🚀 Transacción MuleSoft emitida: TraceID #c0a801-9842 propagado a Jaeger y Prometheus.</div>` + log.innerHTML;
+}
+
+function simulateLatencySpike(){
+  document.getElementById('topoStatus').textContent = '⚠️ ALERTA: PICO DE LATENCIA p99 (850ms en SAP)';
+  document.getElementById('topoStatus').style.color = 'var(--accent-orange)';
+  for(let i=0; i<12; i++){
+    addPacket(['ocelot', 'otel', 'jaegerC', 'jaegerU'], '#f43f5e');
+  }
+  const log = document.getElementById('logArea');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--accent-orange)">[${now}] ⚠️ Jaeger reporta span 'sys-sap-bapi' en 850ms. SLA p99 en riesgo.</div>` + log.innerHTML;
+}
+
+function simulateJVMMemoryLeak(){
+  document.getElementById('topoStatus').textContent = '🚨 ALERTA CRÍTICA: HEAP DE MULESOFT AL 92%';
+  document.getElementById('topoStatus').style.color = 'var(--accent-red)';
+  for(let i=0; i<12; i++){
+    addPacket(['ocelot', 'prom', 'graf'], '#f43f5e');
+  }
+  const log = document.getElementById('logArea');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--accent-red)">[${now}] 🛑 Prometheus dispara alerta 'JVM_Heap_Saturation_90%'. Activando volcado de memoria (Heap Dump).</div>` + log.innerHTML;
+}
+
+function resetPipeline(){
+  document.getElementById('topoStatus').textContent = '● PIPELINE ACTIVO · TRANSMITIENDO TRACE SPANS';
+  document.getElementById('topoStatus').style.color = 'var(--accent-green)';
+  inspectNode('ocelot');
+}
+</script>
+</body>
+</html>

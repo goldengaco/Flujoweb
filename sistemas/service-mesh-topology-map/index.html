@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Service Mesh — Dependency Topology & Traffic FlowMap</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#0e1017;--bg-card:#151924;--border:#262d3d;
+  --accent-purple:#7c3aed;--accent-cyan:#06b6d4;--accent-emerald:#10b981;--accent-amber:#f59e0b;--accent-rose:#f43f5e;
+  --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#64748b;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:28px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1180px;display:flex;flex-direction:column;gap:20px}
+
+/* Header */
+.hdr{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:18px;border-bottom:1px solid var(--border);
+}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-icon{
+  width:40px;height:40px;border-radius:10px;background:var(--accent-purple);
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+}
+.hdr-title{font-size:1.35rem;font-weight:700;letter-spacing:-0.02em}
+.hdr-tag{
+  font-size:0.75rem;padding:5px 12px;border-radius:20px;background:rgba(124,58,237,0.15);
+  border:1px solid rgba(124,58,237,0.3);color:#c084fc;font-family:var(--mono);font-weight:600;
+}
+
+/* Service Mesh Stage */
+.mesh-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  padding:20px;display:flex;flex-direction:column;gap:14px;
+}
+.mesh-hdr{display:flex;justify-content:space-between;align-items:center}
+.mesh-stage{
+  position:relative;width:100%;height:380px;background:#080b12;border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;
+}
+#mesh-canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+
+/* Controls */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.btn{
+  padding:9px 18px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.2s;
+}
+.btn-purple{background:var(--accent-purple);color:#fff}
+.btn-amber{background:var(--accent-amber);color:#000}
+.btn-red{background:var(--accent-rose);color:#fff}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+
+/* Lower Inspector */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.detail-grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:16px;display:flex;flex-direction:column;gap:8px;
+}
+.card-title{font-size:0.85rem;font-weight:700;color:#fff}
+.tele-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.75rem}
+.tele-val{font-family:var(--mono);font-weight:700;color:#fff}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-icon">🕸️</div>
+      <div>
+        <div class="hdr-title">Enterprise Service Mesh · Dependency Map (FlowMap 2.0)</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Mapa Dinámico de Dependencias entre Microservicios, MuleSoft RTF y Backends Corporativos</div>
+      </div>
+    </div>
+    <div class="hdr-tag">10 Servicios Conectados · 18.4k RPS</div>
+  </header>
+
+  <!-- Visual Mesh Stage -->
+  <div class="mesh-card">
+    <div class="mesh-hdr">
+      <span style="font-size:0.95rem;font-weight:700;color:#fff">📍 Mapa Topológico en Vivo (Service Topology & Call Rates)</span>
+      <span style="font-size:0.75rem;color:var(--accent-emerald);font-family:var(--mono)" id="meshState">● MESH SALUDABLE · 0 ERRORES</span>
+    </div>
+
+    <div class="mesh-stage" id="stage">
+      <canvas id="mesh-canvas"></canvas>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-purple" onclick="burstTraffic()">⚡ Aumentar Tráfico (+25k RPS)</button>
+      <button class="btn btn-red" onclick="tripDatabaseCircuitBreaker()">🛑 Simular Caída de Base de Datos (Circuit Breaker Tripped)</button>
+      <button class="btn btn-sec" onclick="resetMesh()">🔄 Restablecer Topología</button>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="card">
+      <div class="card-title">🔍 Telemetría del Nodo Seleccionado: <span id="selNodeName" style="color:var(--accent-cyan)">MuleSoft Process API</span></div>
+      <div class="tele-row"><span style="color:var(--text-sub)">Throughput actual:</span><span class="tele-val" id="nThroughput">14,200 req/s</span></div>
+      <div class="tele-row"><span style="color:var(--text-sub)">Latencia media p95:</span><span class="tele-val" id="nLat">18.4 ms</span></div>
+      <div class="tele-row"><span style="color:var(--text-sub)">Tasa de Error:</span><span class="tele-val" style="color:var(--accent-emerald)" id="nErr">0.00%</span></div>
+      <div class="tele-row"><span style="color:var(--text-sub)">Circuit Breaker Status:</span><span class="tele-val" style="color:var(--accent-emerald)" id="nCb">CLOSED (Normal)</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📜 Registro de Flujos de Service Mesh</div>
+      <div id="meshLog" style="font-family:var(--mono);font-size:0.72rem;display:flex;flex-direction:column;gap:5px;max-height:140px;overflow-y:auto">
+        <div style="color:var(--accent-emerald)">[23:36:00] Ingress Gateway enrutando tráfico a MuleSoft Experience API.</div>
+        <div style="color:var(--text-sub)">[23:36:02] Scatter-Gather resolviendo en paralelo a SAP y PostgreSQL.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const canvas = document.getElementById('mesh-canvas');
+const stage = document.getElementById('stage');
+const ctx = canvas.getContext('2d');
+
+function resize(){
+  canvas.width = stage.offsetWidth;
+  canvas.height = stage.offsetHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// 10 Topology Nodes
+const nodes = [
+  { id: 'gateway', label: 'Edge Ingress', x: 0.12, y: 0.50, color: '#7c3aed', icon: '🌐' },
+  { id: 'auth',    label: 'Auth OAuth2', x: 0.28, y: 0.25, color: '#06b6d4', icon: '🔑' },
+  { id: 'muleExp', label: 'Mule Exp API', x: 0.32, y: 0.65, color: '#00a2df', icon: '📱' },
+  { id: 'muleProc',label: 'Mule Proc API',x: 0.54, y: 0.50, color: '#00a2df', icon: '⚙️' },
+  { id: 'muleSys', label: 'Mule Sys API', x: 0.72, y: 0.50, color: '#00a2df', icon: '🗄️' },
+  { id: 'sap',     label: 'SAP S/4HANA', x: 0.88, y: 0.25, color: '#f59e0b', icon: '🏭' },
+  { id: 'db',      label: 'PostgreSQL HA',x: 0.88, y: 0.50, color: '#10b981', icon: '💾' },
+  { id: 'redis',   label: 'Redis Cache', x: 0.72, y: 0.80, color: '#f43f5e', icon: '⚡' },
+  { id: 'kafka',   label: 'Kafka Stream',x: 0.54, y: 0.85, color: '#c084fc', icon: '📬' }
+];
+
+const links = [
+  { from: 'gateway', to: 'auth' },
+  { from: 'gateway', to: 'muleExp' },
+  { from: 'auth', to: 'muleProc' },
+  { from: 'muleExp', to: 'muleProc' },
+  { from: 'muleProc', to: 'muleSys' },
+  { from: 'muleProc', to: 'kafka' },
+  { from: 'muleSys', to: 'sap' },
+  { from: 'muleSys', to: 'db' },
+  { from: 'muleSys', to: 'redis' }
+];
+
+let particles = [];
+let dbDown = false;
+
+function drawMesh(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const w = canvas.width, h = canvas.height;
+
+  // Draw Connections
+  links.forEach(l => {
+    const n1 = nodes.find(n => n.id === l.from);
+    const n2 = nodes.find(n => n.id === l.to);
+    if(n1 && n2){
+      ctx.strokeStyle = (dbDown && (l.to === 'db' || l.from === 'db')) ? 'rgba(244,63,94,0.4)' : 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(n1.x * w, n1.y * h);
+      ctx.lineTo(n2.x * w, n2.y * h);
+      ctx.stroke();
+    }
+  });
+
+  // Spawn dynamic traffic particles
+  if(Math.random() < 0.25){
+    const l = links[Math.floor(Math.random()*links.length)];
+    if(!dbDown || (l.to !== 'db' && l.from !== 'db')){
+      particles.push({ link: l, progress: 0, speed: 0.02 });
+    }
+  }
+
+  // Draw Particles
+  for(let i = particles.length - 1; i >= 0; i--){
+    const p = particles[i];
+    p.progress += p.speed;
+    const n1 = nodes.find(n => n.id === p.link.from);
+    const n2 = nodes.find(n => n.id === p.link.to);
+    if(n1 && n2){
+      const px = (n1.x * w) + ((n2.x - n1.x) * w) * p.progress;
+      const py = (n1.y * h) + ((n2.y - n1.y) * h) * p.progress;
+
+      ctx.fillStyle = '#00f0ff';
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(px, py, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    if(p.progress >= 1.0) particles.splice(i, 1);
+  }
+
+  // Draw Nodes
+  nodes.forEach(n => {
+    const nx = n.x * w, ny = n.y * h;
+
+    // Glowing circle
+    ctx.fillStyle = '#151924';
+    ctx.strokeStyle = (dbDown && n.id === 'db') ? '#f43f5e' : n.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(nx, ny, 22, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Node icon
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText((dbDown && n.id === 'db') ? '💥' : n.icon, nx, ny);
+
+    // Node label
+    ctx.font = '10px Inter, sans-serif';
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillText(n.label, nx, ny + 32);
+  });
+
+  requestAnimationFrame(drawMesh);
+}
+drawMesh();
+
+function tripDatabaseCircuitBreaker(){
+  dbDown = true;
+  document.getElementById('meshState').textContent = '⚠️ ALERTA: CIRCUIT BREAKER POSTGRES TRIPPED (OPEN)';
+  document.getElementById('meshState').style.color = 'var(--accent-rose)';
+  document.getElementById('nErr').textContent = '28.4% (Falla en DB)';
+  document.getElementById('nErr').style.color = 'var(--accent-rose)';
+  document.getElementById('nCb').textContent = 'OPEN (Tráfico Redirigido a Redis Cache)';
+  document.getElementById('nCb').style.color = 'var(--accent-rose)';
+  
+  const log = document.getElementById('meshLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--accent-rose)">[${now}] 🛑 CIRCUIT BREAKER: PostgreSQL no responde tras 3 intentos. MuleSoft redirige lecturas al caché Redis.</div>` + log.innerHTML;
+}
+
+function burstTraffic(){
+  for(let i=0; i<30; i++){
+    const l = links[Math.floor(Math.random()*links.length)];
+    particles.push({ link: l, progress: Math.random()*0.5, speed: 0.035 });
+  }
+}
+
+function resetMesh(){
+  dbDown = false;
+  document.getElementById('meshState').textContent = '● MESH SALUDABLE · 0 ERRORES';
+  document.getElementById('meshState').style.color = 'var(--accent-emerald)';
+  document.getElementById('nErr').textContent = '0.00%';
+  document.getElementById('nErr').style.color = 'var(--accent-emerald)';
+  document.getElementById('nCb').textContent = 'CLOSED (Normal)';
+  document.getElementById('nCb').style.color = 'var(--accent-emerald)';
+}
+</script>
+</body>
+</html>

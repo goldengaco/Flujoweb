@@ -996,11 +996,11 @@
       <div class="filter-pills-row">
         <button class="filter-btn category-pill active" data-category="all" data-filter="all">
           <span>🌐 All Systems</span>
-          <span class="pill-count" id="count-all">27</span>
+          <span class="pill-count" id="count-all">29</span>
         </button>
         <button class="filter-btn category-pill" data-category="datadog-grafana" data-filter="datadog-grafana">
           <span>📊 Datadog, Grafana & ELK</span>
-          <span class="pill-count" id="count-apm">3</span>
+          <span class="pill-count" id="count-apm">4</span>
         </button>
         <button class="filter-btn category-pill" data-category="showroom" data-filter="showroom">
           <span>🎨 Showroom & Diseños</span>
@@ -1016,7 +1016,7 @@
         </button>
         <button class="filter-btn category-pill" data-category="mulesoft" data-filter="mulesoft">
           <span>🌐 MuleSoft & Apigee</span>
-          <span class="pill-count" id="count-mulesoft">3</span>
+          <span class="pill-count" id="count-mulesoft">4</span>
         </button>
         <button class="filter-btn category-pill" data-category="gcp-sre" data-filter="gcp-sre">
           <span>☁️ Google Cloud SRE</span>
@@ -1423,6 +1423,30 @@
         href: './mulesoft-engine-simulator/index.html',
         metrics: { latency: '42ms', sla: '99.99%', rps: 'Core Flow' },
         visType: 'mesh'
+      },
+      {
+        id: 'opentelemetry-pipeline-topology',
+        name: 'OpenTelemetry & MuleSoft APM Pipeline',
+        subtitle: 'inspectIT Ocelot to OTel, Jaeger, Prometheus & Zipkin',
+        category: 'datadog-grafana',
+        categoryLabel: '📊 Datadog, Grafana & ELK',
+        badges: ['OTel Collector', 'Jaeger Spans', 'Prometheus JVM', 'Zipkin B3'],
+        description: 'Live 3-branch OpenTelemetry distributed tracing & metrics architecture simulator with animated packet streams, YAML configs, and JVM memory alerts.',
+        href: './opentelemetry-pipeline-topology/index.html',
+        metrics: { latency: '24ms', sla: '99.99%', rps: 'OTLP Stream' },
+        visType: 'mesh'
+      },
+      {
+        id: 'service-mesh-topology-map',
+        name: 'Enterprise Service Mesh Dependency Map',
+        subtitle: 'Microservices FlowMap 2.0 & Circuit Breaker',
+        category: 'mulesoft',
+        categoryLabel: '🌐 MuleSoft & Apigee',
+        badges: ['10 Microservices', 'Force Graph', 'Circuit Breaker', 'Live Traffic'],
+        description: 'Interactive topological service mesh connecting 10 microservices, MuleSoft RTF tiers, and databases with live traffic bursts and database failover simulation.',
+        href: './service-mesh-topology-map/index.html',
+        metrics: { latency: '18ms', sla: '99.98%', rps: '18.4k RPS' },
+        visType: 'radar'
       }
     ];
 
