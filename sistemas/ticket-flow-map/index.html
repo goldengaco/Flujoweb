@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartDesk FlowMap — Visualizador de Ciclo de Vida de Tickets & SLAs</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#0e1017;--bg-card:#151924;--border:#262d3d;
+  --accent-purple:#7c3aed;--accent-cyan:#06b6d4;--accent-emerald:#10b981;--accent-amber:#f59e0b;--accent-rose:#f43f5e;
+  --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#64748b;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:28px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1180px;display:flex;flex-direction:column;gap:20px}
+
+/* Header */
+.hdr{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:18px;border-bottom:1px solid var(--border);
+}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-icon{
+  width:40px;height:40px;border-radius:10px;background:var(--accent-purple);
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+}
+.hdr-title{font-size:1.35rem;font-weight:700;letter-spacing:-0.02em}
+.hdr-tag{
+  font-size:0.75rem;padding:5px 12px;border-radius:20px;background:rgba(124,58,237,0.15);
+  border:1px solid rgba(124,58,237,0.3);color:#c084fc;font-family:var(--mono);font-weight:600;
+}
+
+/* KPI Summary */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+.kpi-lbl{font-size:0.68rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)}
+.kpi-val{font-size:1.5rem;font-weight:700;font-family:var(--mono);margin:2px 0;color:#fff}
+.kpi-sub{font-size:0.72rem;color:var(--text-sub)}
+
+/* Flow Map Canvas Card */
+.flow-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  padding:22px;display:flex;flex-direction:column;gap:16px;
+}
+.flow-hdr{display:flex;justify-content:space-between;align-items:center}
+.flow-title{font-size:0.95rem;font-weight:700;color:#fff}
+
+/* Flow Nodes Row (DAG Style) */
+.flow-nodes{
+  display:grid;grid-template-columns:repeat(5, 1fr);gap:12px;position:relative;
+}
+@media(max-width:880px){.flow-nodes{grid-template-columns:1fr}}
+
+.node{
+  background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px;
+  padding:16px;display:flex;flex-direction:column;gap:8px;transition:all 0.3s;
+}
+.node.active{
+  border-color:var(--accent-purple);box-shadow:0 0 20px rgba(124,58,237,0.25);
+  background:rgba(124,58,237,0.06);
+}
+.node.warning{
+  border-color:var(--accent-amber);background:rgba(245,158,11,0.08);box-shadow:0 0 16px rgba(245,158,11,0.2);
+}
+.node.done{
+  border-color:var(--accent-emerald);background:rgba(16,185,129,0.04);
+}
+.node-num{font-size:0.65rem;font-weight:700;font-family:var(--mono);color:var(--text-dim)}
+.node-name{font-size:0.85rem;font-weight:700;color:#fff}
+.node-desc{font-size:0.7rem;color:var(--text-sub);line-height:1.3}
+.node-queue{font-size:0.7rem;font-family:var(--mono);font-weight:700;color:var(--accent-cyan);margin-top:auto}
+
+/* Lower Inspection Grid */
+.detail-grid{display:grid;grid-template-columns:1.2fr 0.8fr;gap:20px}
+@media(max-width:800px){.detail-grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:18px;display:flex;flex-direction:column;gap:12px;
+}
+.card-title{font-size:0.85rem;font-weight:700;color:#fff}
+
+/* Live Ticket Inspector */
+.ticket-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.78rem}
+.ticket-val{font-family:var(--mono);font-weight:700;color:#fff}
+
+/* Action Controls */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  padding:10px 18px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.2s;
+}
+.btn-purple{background:var(--accent-purple);color:#fff}
+.btn-purple:hover{background:#6d28d9}
+.btn-amber{background:var(--accent-amber);color:#000}
+.btn-amber:hover{background:#d97706}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-icon">🎫</div>
+      <div>
+        <div class="hdr-title">SmartDesk FlowMap · Mapa de Ciclo de Vida de Tickets & SLAs</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Pipeline de Gestión de Incidentes ITIL · Triage IA, Enrutamiento N1/N2/N3 & Control de Tiempos</div>
+      </div>
+    </div>
+    <div class="hdr-tag">MuleSoft Integration Desk · SLA 99.8%</div>
+  </header>
+
+  <!-- Key Metrics -->
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-lbl">Tickets Activos en Pipeline</div>
+      <div class="kpi-val" style="color:var(--accent-cyan)" id="valActive">34</div>
+      <div class="kpi-sub">En 5 etapas de resolución</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Cumplimiento de SLA Global</div>
+      <div class="kpi-val" style="color:var(--accent-emerald)" id="valSla">99.4%</div>
+      <div class="kpi-sub">Penalización contractual: $0.00</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Tiempo Medio de Resolución (MTTR)</div>
+      <div class="kpi-val" style="color:var(--accent-purple)">1h 42m</div>
+      <div class="kpi-sub">Benchmark industria: &lt; 4h 00m</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Tickets Críticos (P1 Blocker)</div>
+      <div class="kpi-val" style="color:var(--accent-rose)" id="valCrit">0</div>
+      <div class="kpi-sub">War Room en standby</div>
+    </div>
+  </div>
+
+  <!-- Flow Map Visualizer -->
+  <div class="flow-card">
+    <div class="flow-hdr">
+      <span class="flow-title">📍 Mapa de Flujo de Estados (State Machine DAG)</span>
+      <span style="font-size:0.75rem;color:var(--accent-emerald);font-family:var(--mono)">● Flow Engine Sincronizado</span>
+    </div>
+
+    <div class="flow-nodes">
+      <!-- Node 1 -->
+      <div class="node done" id="n-1">
+        <span class="node-num">FASE 01</span>
+        <span class="node-name">📥 Ingesta Multicanal</span>
+        <span class="node-desc">Captura via API, Correo o Slack</span>
+        <span class="node-queue">Cola: 0 tickets</span>
+      </div>
+
+      <!-- Node 2 -->
+      <div class="node done" id="n-2">
+        <span class="node-num">FASE 02</span>
+        <span class="node-name">🤖 Triage con IA / NLP</span>
+        <span class="node-desc">Clasificación P1/P2/P3 & Detección de vCores</span>
+        <span class="node-queue">Tiempo: 1.2s</span>
+      </div>
+
+      <!-- Node 3 -->
+      <div class="node active" id="n-3">
+        <span class="node-num">FASE 03</span>
+        <span class="node-name">👨‍💻 Asignación Nivel 2</span>
+        <span class="node-desc">Especialista MuleSoft RTF asignado</span>
+        <span class="node-queue" id="q-3">Cola: 4 en progreso</span>
+      </div>
+
+      <!-- Node 4 -->
+      <div class="node" id="n-4">
+        <span class="node-num">FASE 04</span>
+        <span class="node-name">⏱️ SLA Clock & Solución</span>
+        <span class="node-desc">Despliegue de parche o rollback</span>
+        <span class="node-queue">Meta: &lt; 2h</span>
+      </div>
+
+      <!-- Node 5 -->
+      <div class="node" id="n-5">
+        <span class="node-num">FASE 05</span>
+        <span class="node-name">✅ Aprobación & Cierre</span>
+        <span class="node-desc">Validación con cliente y encuesta CSAT</span>
+        <span class="node-queue">CSAT: 4.9/5.0</span>
+      </div>
+    </div>
+
+    <div class="btn-row" style="margin-top:6px">
+      <button class="btn btn-purple" onclick="simulateNewP1Ticket()">🚨 Inyectar Ticket Crítico P1 ("MuleSoft vCore Out of Memory")</button>
+      <button class="btn btn-amber" onclick="simulateBottleneck()">⚠️ Simular Cuello de Botella en Fase 3 (Asignación N2)</button>
+      <button class="btn btn-sec" onclick="resolveAll()">🔄 Resolver Ticket & Descongestionar Pipeline</button>
+    </div>
+  </div>
+
+  <!-- Detail Grid -->
+  <div class="detail-grid">
+    <!-- Live Ticket Telemetry -->
+    <div class="card">
+      <div class="card-title">🔍 Inspección del Ticket Activo en Pipeline</div>
+      <div class="ticket-row">
+        <span style="color:var(--text-sub)">ID de Ticket:</span>
+        <span class="ticket-val" id="tId">#TICK-9842</span>
+      </div>
+      <div class="ticket-row">
+        <span style="color:var(--text-sub)">Severidad:</span>
+        <span class="ticket-val" style="color:var(--accent-emerald)" id="tSev">P3 - Media</span>
+      </div>
+      <div class="ticket-row">
+        <span style="color:var(--text-sub)">Sistema Afectado:</span>
+        <span class="ticket-val" id="tSys">MuleSoft Experience API (Customer Portal)</span>
+      </div>
+      <div class="ticket-row">
+        <span style="color:var(--text-sub)">Tiempo Restante de SLA:</span>
+        <span class="ticket-val" style="color:var(--accent-cyan)" id="tTimer">03h 18m</span>
+      </div>
+      <div class="ticket-row">
+        <span style="color:var(--text-sub)">Ingeniero Responsable:</span>
+        <span class="ticket-val" id="tDev">gaco (Senior Integration Architect)</span>
+      </div>
+    </div>
+
+    <!-- Event Audit Log -->
+    <div class="card">
+      <div class="card-title">📜 Registro de Auditoría de Transición de Estados</div>
+      <div id="flowLog" style="font-family:var(--mono);font-size:0.72rem;display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto">
+        <div style="color:var(--accent-emerald)">[23:25:00] Ticket #TICK-9842 capturado via Webhook MuleSoft.</div>
+        <div style="color:var(--text-sub)">[23:25:02] IA NLP asignó categoría 'vCore Allocation' con 98% confianza.</div>
+        <div style="color:var(--accent-purple)">[23:25:10] Enrutado a especialista N2 (gaco). Reloj SLA iniciado.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function simulateNewP1Ticket(){
+  document.getElementById('valCrit').textContent = '1 (URGENTE)';
+  document.getElementById('valCrit').style.color = 'var(--accent-rose)';
+  document.getElementById('tId').textContent = '#TICK-9901-CRITICAL';
+  document.getElementById('tSev').textContent = 'P1 - BLOCKER (War Room)';
+  document.getElementById('tSev').style.color = 'var(--accent-rose)';
+  document.getElementById('tSys').textContent = 'MuleSoft Core Process API (Cluster Down)';
+  document.getElementById('tTimer').textContent = '00h 44m (CRÍTICO)';
+  document.getElementById('tTimer').style.color = 'var(--accent-rose)';
+  
+  const n3 = document.getElementById('n-3');
+  n3.className = 'node warning';
+  document.getElementById('q-3').textContent = '🚨 Escalado a Nivel 3 (Arquitectura)';
+  document.getElementById('q-3').style.color = 'var(--accent-rose)';
+
+  const log = document.getElementById('flowLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `
+    <div style="color:var(--accent-rose)">[${now}] 🛑 TICKET CRÍTICO P1: Caída de memoria en nodo RTF. Escalación automática a War Room.</div>
+  ` + log.innerHTML;
+}
+
+function simulateBottleneck(){
+  const n3 = document.getElementById('n-3');
+  n3.className = 'node warning';
+  document.getElementById('q-3').textContent = '⚠️ 18 tickets en cola (Sobrecarga)';
+  document.getElementById('q-3').style.color = 'var(--accent-amber)';
+  document.getElementById('valSla').textContent = '94.2% (Riesgo)';
+  document.getElementById('valSla').style.color = 'var(--accent-amber)';
+
+  const log = document.getElementById('flowLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `
+    <div style="color:var(--accent-amber)">[${now}] ⚠️ CUELLO DE BOTELLA: Tiempo de espera en Fase 3 supera 45 min. Auto-balanceando carga.</div>
+  ` + log.innerHTML;
+}
+
+function resolveAll(){
+  const n3 = document.getElementById('n-3');
+  n3.className = 'node done';
+  document.getElementById('q-3').textContent = 'Cola: 0 tickets (Al día)';
+  document.getElementById('q-3').style.color = 'var(--accent-cyan)';
+  
+  const n4 = document.getElementById('n-4');
+  n4.className = 'node done';
+  const n5 = document.getElementById('n-5');
+  n5.className = 'node done';
+
+  document.getElementById('valCrit').textContent = '0';
+  document.getElementById('valCrit').style.color = 'var(--accent-emerald)';
+  document.getElementById('valSla').textContent = '99.8%';
+  document.getElementById('valSla').style.color = 'var(--accent-emerald)';
+  document.getElementById('tSev').textContent = 'Resuelto / Cerrado';
+  document.getElementById('tSev').style.color = 'var(--accent-emerald)';
+  document.getElementById('tTimer').textContent = '00:00 (SLA Cumplido)';
+  document.getElementById('tTimer').style.color = 'var(--accent-emerald)';
+
+  const log = document.getElementById('flowLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `
+    <div style="color:var(--accent-emerald)">[${now}] ✅ Ticket resuelto satisfactoriamente. Parche aplicado y validado por cliente.</div>
+  ` + log.innerHTML;
+}
+</script>
+</body>
+</html>

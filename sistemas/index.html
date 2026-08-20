@@ -996,7 +996,7 @@
       <div class="filter-pills-row">
         <button class="filter-btn category-pill active" data-category="all" data-filter="all">
           <span>🌐 All Systems</span>
-          <span class="pill-count" id="count-all">25</span>
+          <span class="pill-count" id="count-all">26</span>
         </button>
         <button class="filter-btn category-pill" data-category="datadog-grafana" data-filter="datadog-grafana">
           <span>📊 Datadog, Grafana & ELK</span>
@@ -1399,6 +1399,18 @@
         href: './elk-security-siem/index.html',
         metrics: { latency: '9ms', sla: '99.99%', rps: '48.2k logs/s' },
         visType: 'alarm'
+      },
+      {
+        id: 'ticket-flow-map',
+        name: 'SmartDesk FlowMap · Ticket Lifecycle',
+        subtitle: 'Incident State Machine DAG & SLA Risk Tracker',
+        category: 'seguridad-fintech',
+        categoryLabel: '🛡️ Seguridad & Fintech',
+        badges: ['ITIL Pipeline', 'SLA 4h Clock', 'AI NLP Triage', 'N1/N2/N3 DAG'],
+        description: 'Visual process flow map tracking IT support tickets, automated NLP triage, MuleSoft specialist routing, SLA countdowns, and bottleneck detection.',
+        href: './ticket-flow-map/index.html',
+        metrics: { latency: '1.2s', sla: '99.4%', rps: '34 tickets' },
+        visType: 'tx'
       }
     ];
 
