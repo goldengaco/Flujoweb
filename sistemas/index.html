@@ -996,7 +996,7 @@
       <div class="filter-pills-row">
         <button class="filter-btn category-pill active" data-category="all" data-filter="all">
           <span>🌐 All Systems</span>
-          <span class="pill-count" id="count-all">34</span>
+          <span class="pill-count" id="count-all">35</span>
         </button>
         <button class="filter-btn category-pill" data-category="datadog-grafana" data-filter="datadog-grafana">
           <span>📊 Datadog, Grafana & ELK</span>
@@ -1004,7 +1004,7 @@
         </button>
         <button class="filter-btn category-pill" data-category="showroom" data-filter="showroom">
           <span>🎨 Showroom & Diseños</span>
-          <span class="pill-count" id="count-showroom">1</span>
+          <span class="pill-count" id="count-showroom">2</span>
         </button>
         <button class="filter-btn category-pill" data-category="emergencia" data-filter="emergencia">
           <span>🚨 Emergencia ("Salvar Vidas")</span>
@@ -1070,6 +1070,9 @@
       </button>
       <button class="doc-tab drawer-tab" data-doc="graficas-guia">
         <span>🎨 Catálogo de Gráficas & Diseños</span>
+      </button>
+      <button class="doc-tab drawer-tab" data-doc="vivy-blueprint">
+        <span>💎 Blueprint Vivy Core 10 Años</span>
       </button>
     </div>
 
@@ -1507,6 +1510,18 @@
         href: './mexico-transit-map/index.html',
         metrics: { latency: '8ms', sla: '99.95%', rps: '3.8M pas/d' },
         visType: 'mesh'
+      },
+      {
+        id: 'vivy-core-roadmap',
+        name: 'Vivy Core · 10-Year Singularity Roadmap',
+        subtitle: 'Physical Android Blueprint & Serpientes y Escaleras',
+        category: 'showroom',
+        categoryLabel: '🎨 Showroom & Diseños',
+        badges: ['54 DOF Robot', 'Snakes & Ladders', 'ElevenLabs Voice', 'Auto-Singularity'],
+        description: 'Non-linear 10-year physical android roadmap with 54-DOF anatomical wireframe, voice synthesis testing, and recursive self-improvement simulation.',
+        href: './vivy-core-roadmap/index.html',
+        metrics: { latency: '140ms', sla: '100%', rps: 'Singularity' },
+        visType: 'radar'
       }
     ];
 
@@ -2104,6 +2119,8 @@
         filename = 'mulesoft_y_arquitectura_sistemas.md';
       } else if (docKey === 'graficas-guia' || docKey.includes('graficas') || docKey.includes('catalogo')) {
         filename = 'guia_catalogo_graficas_y_disenos.md';
+      } else if (docKey === 'vivy-blueprint' || docKey.includes('vivy') || docKey.includes('robot')) {
+        filename = 'vivy_core_10_year_master_blueprint.md';
       }
 
       try {
