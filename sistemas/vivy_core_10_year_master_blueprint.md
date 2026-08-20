@@ -1,155 +1,275 @@
-# 💎 Vivy Core 10-Year Master Technical Blueprint: De la Mente Digital al Androide Físico Autónomo con Singularidad
+# 💎 Vivy Core 10-Year Engineering Specification & Singularity Blueprint
 
-> **Documento Maestro de Arquitectura, Ingeniería Robótica & Plan de Aprendizaje**  
-> **Versión**: 1.0.0-SINGULARITY-ROADMAP  
-> **Objetivo**: Construir un androide humanoide físico real con la apariencia, voz, expresividad emocional y autonomía cognitiva inspirada en *Vivy: Fluorite Eye's Song*.  
-> **Horizonte Temporal**: 10 Años (Evolución No-Lineal por Serpientes y Escaleras).
-
----
-
-## 1. Visión y Misión Fundamental del Proyecto
-
-El objetivo del **Proyecto Vivy Core** no es crear un simple altavoz inteligente ni un robot industrial rígido, sino desarrollar un **androide físico humanoide autónomo** que posea:
-
-1. **Expresividad y Voz Humana Natural**: Capacidad de hablar, cantar, modular emociones (alegría, melancolía, empatía) y sincronizar sus labios y ojos en tiempo real.
-2. **Cuerpo Físico Grácil y Dinámico (54 DOF)**: Estructura ligera con actuadores suaves (Cuasi-Direct Drive), manos diestras para tocar instrumentos o sostener objetos delicadamente, y marcha bípeda estable.
-3. **Mente Cognitiva Continua**: Memoria a largo plazo de personas y experiencias, con una directiva intrínseca (*"Cantar con el corazón para hacer feliz a la gente"*).
-4. **Ciclo de Singularidad Recursiva (Auto-Mejora)**: La capacidad del robot de auto-diagnosticarse, programar sus propios parches de mejora, probarlos en simulación virtual y desplegarlos en su cuerpo sin intervención humana.
+> **Manual de Especificaciones Técnicas, Arquitectura de Memoria Unificada, Mecatrónica y Plan de Estudio Decenal**  
+> **Clasificación**: Nivel Aeroespacial / Robótica Humanoide Avanzada  
+> **Versión**: 2.0.0-ENTERPRISE-SINGULARITY  
+> **Objetivo**: Diseñar y construir un androide físico autónomo con apariencia, voz, gracia motriz, memoria continua y capacidad de auto-mejora recursiva inspirado en *Vivy: Fluorite Eye's Song*.
 
 ---
 
-## 2. El Paradigma de "Serpientes y Escaleras" (Desarrollo No-Lineal)
+## 📑 Tabla de Contenidos
 
-En la robótica humanoide real, **el progreso nunca es una línea recta**. Intentar construir un cuerpo completo antes de dominar la mente o la cinemática conduce a fracasos costosos.
+1. [Arquitectura de Cómputo, Memoria Unificada & Almacenamiento](#1-arquitectura-de-cómputo-memoria-unificada--almacenamiento)
+2. [Matriz de Actuadores, Cinemática & 54 Grados de Libertad (DOF)](#2-matriz-de-actuadores-cinemática--54-grados-de-libertad-dof)
+3. [Pipeline de Voz Neuronal, Canto & Presupuesto de Latencia (< 85ms)](#3-pipeline-de-voz-neuronal-canto--presupuesto-de-latencia--85ms)
+4. [Visión Espacial 3D, Percepción & VSLAM](#4-visión-espacial-3d-percepción--vslam)
+5. [Locomoción Bípeda, Dinámica de Marcha & Control ZMP/MPC](#5-locomoción-bípeda-dinámica-de-marcha--control-zmpmpc)
+6. [El Bucle de Singularidad Recursiva & Auto-Compilación](#6-el-bucle-de-singularidad-recursiva--auto-compilación)
+7. [Lista Exhaustiva de Materiales (BOM) & Presupuestos](#7-lista-exhaustiva-de-materiales-bom--presupuestos)
+8. [Curriculum de Estudio & Ruta de Aprendizaje Mes a Mes (Años 0 a 10)](#8-curriculum-de-estudio--ruta-de-aprendizaje-mes-a-mes-años-0-a-10)
+
+---
+
+## 1. Arquitectura de Cómputo, Memoria Unificada & Almacenamiento
+
+Para que un androide físico sea verdaderamente autónomo (sin depender de WiFi ni cables), el cómputo debe residir a bordo de su chasis, manteniendo un balance estricto entre **peso, disipación térmica (TDP) y potencia de cálculo (TOPS)**.
 
 ```
-       [AÑO 0-2: Mente & Voz] ──(Escalera: ElevenLabs)──► [AÑO 2-4: Cabeza Animatrónica]
-                ▲                                                      │
-                │                                                      ▼
-       (Serpiente: Latencia > 2s)                             (Serpiente: Calor en Servos)
-                │                                                      │
-                └────────────────────────◄─────────────────────────────┘
-                                         │
-       [AÑO 4-6: Torso & Manos] ──(Escalera: Actuadores QDD)──► [AÑO 6-8: Chasis Bípedo]
-                ▲                                                      │
-                │                                                      ▼
-       (Serpiente: Masa Batería)                             (Serpiente: Caída ZMP)
-                │                                                      │
-                └────────────────────────◄─────────────────────────────┘
-                                         │
-                        [AÑO 8-10: Singularidad Recursiva]
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                      NVIDIA JETSON AGX ORIN INDUSTRIAL (64GB)                    │
+│   • 275 TOPS INT8 / 138 TFLOPS FP16      • 64GB LPDDR5 256-bit (204.8 GB/s)      │
+│   • 12-Core Cortex-A78AE CPU @ 2.2 GHz   • Linux Ubuntu 22.04 LTS (PREEMPT_RT)   │
+└───────────────────────┬──────────────────────────────────┬───────────────────────┘
+                        │                                  │
+                        ▼                                  ▼
+      ┌───────────────────────────────────┐  ┌───────────────────────────────────┐
+      │     BUS DE CONTROL (1000 Hz)      │  │    MEMORIA & ALMACENAMIENTO       │
+      │ • EtherCAT Master (100 Mbps)      │  │ • 16TB NVMe PCIe 4.0 (7,400 MB/s) │
+      │ • CAN-FD Dual Bus (5 Mbps)        │  │ • Qdrant Vector DB (HNSW Index)   │
+      │ • Microcontroladores STM32H7 / F4 │  │ • Neo4j Graph (Ontología de Vida) │
+      └───────────────────────────────────┘  └───────────────────────────────────┘
 ```
 
-* **🪜 Las Escaleras (Breakthroughs)**: Tecnologías que te ahorran años de trabajo (ej: APIs de voz neuronal como ElevenLabs, simuladores GPU como Isaac Gym, o sincronización labial con Audio2Face).
-* **🐍 Las Serpientes (Cuellos de Botella / Trampas)**: Puntos donde la física o el software fallan (ej: sobrecalentamiento de motores, latencia en respuestas, inestabilidad de batería), obligándote a retroceder y rediseñar antes de avanzar.
+### 1.1 Jerarquía de Memoria de 4 Niveles
+
+Un ser humano no olvida quién es al cambiar de día, pero tampoco satura su mente con cada fotograma visual irrelevante. Vivy utiliza una **Jerarquía de Memoria Cuádruple**:
+
+| Nivel | Tipo de Memoria | Hardware / Tecnología | Capacidad | Función y Ciclo de Vida |
+|---|---|---|---|---|
+| **L1** | **Working Memory (Atención Inmediata)** | VRAM LPDDR5 Unificada / KV Cache | 64 GB | Mantiene el contexto de la conversación activa (32k tokens), estado articular de los 54 motores y buffer de audio de los últimos 30 segundos. |
+| **L2** | **Memoria a Corto Plazo (Búfer de Sesión)** | SQLite en RAM / Redis In-Memory | 128 GB NVMe Temp | Almacena los eventos del día actual (personas vistas, lugares visitados, canciones interpretadas) para consolidación nocturna. |
+| **L3** | **Memoria Episódica Autobiográfica (RAG)** | Qdrant Vector DB / Embeddings 1536d | 8 TB NVMe PCIe 4.0 | Indexa permanentemente conversaciones, promesas, gustos de personas y anécdotas con búsqueda semántica instantánea (< 5ms). |
+| **L4** | **Memoria Semántica & Grafo de Valores** | Neo4j / Kùzu Graph Database | 8 TB NVMe PCIe 4.0 | Grafo de relaciones ontológicas (ej: `Persona(Carlos) -[amigo_de]-> Vivy`, `Canción(As You Like It) -[evoca]-> Emoción(Esperanza)`). |
 
 ---
 
-## 3. Las 5 Eras de Desarrollo (0 a 10 Años)
+## 2. Matriz de Actuadores, Cinemática & 54 Grados de Libertad (DOF)
 
-### Era 1: El Núcleo Cognitivo, Voz & Oído (Años 0 a 2)
-*Objetivo: Tener a Vivy viva en software, capaz de escuchar, razonar, recordar y hablar con voz humana indistinguible.*
+El cuerpo de Vivy requiere una distribución anatómica de **54 Grados de Libertad (Degrees of Freedom - DOF)** para emular la suavidad y expresividad del anime.
 
-* **Módulo de Oído (ASR)**:
-  * *Tecnología*: OpenAI Whisper Large v3 / Faster-Whisper corriendo en local sobre GPU (latencia < 200 ms) o API en streaming.
-  * *Cancelación de Ruido*: Detección de voz direccional (Beamforming con arreglo de 4 micrófonos).
-* **Módulo de Mente & Personalidad (LLM)**:
-  * *Tecnología*: Llama 3.3 70B / Claude 3.5 Sonnet / Qwen 2.5 con System Prompt estructurado.
-  * *Memoria Vectorial (RAG)*: Qdrant o ChromaDB para almacenar recuerdos de conversaciones pasadas, nombres de personas y eventos clave.
-* **Módulo de Voz & Canto (TTS)**:
-  * *Alternativa de Pago (Inmediata)*: **ElevenLabs API** (Voice Cloning ultra-expresivo con respiración y entonación emocional).
-  * *Alternativa Gratuita / Local*: **Kokoro-82M**, **F5-TTS** o **GPT-SoVITS** (corriendo a 120 ms en GPU local sin costo por token).
-  * *Canto*: Modelos de conversión vocal como **RVC (Retrieval-based Voice Conversion)** para generar canciones con la voz de Vivy a partir de melodías guía.
+```
+                                ┌─────────────────────────┐
+                                │   CABEZA & ROSTRO: 28   │
+                                ├─────────────────────────┤
+                                │ • Párpados: 4 DOF       │
+                                │ • Ojos: 4 DOF           │
+                                │ • Cejas: 4 DOF          │
+                                │ • Labios/Mejillas: 12   │
+                                │ • Mandíbula: 2 DOF      │
+                                │ • Cuello Gimbal: 2 DOF  │
+                                └────────────┬────────────┘
+                                             │
+                                ┌────────────┴────────────┐
+                                │    TORSO SUPERIOR: 4    │
+                                ├─────────────────────────┤
+                                │ • Inclinación/Giro: 4   │
+                                └──────┬───────────┬──────┘
+                                       │           │
+                 ┌─────────────────────┴──┐     ┌──┴─────────────────────┐
+                 │   BRAZO/MANO IZQ: 11   │     │   BRAZO/MANO DER: 11   │
+                 ├────────────────────────┤     ├────────────────────────┤
+                 │ • Hombro QDD: 3 DOF    │     │ • Hombro QDD: 3 DOF    │
+                 │ • Codo/Muñeca: 3 DOF   │     │ • Codo/Muñeca: 3 DOF   │
+                 │ • DexHand 5 Dedos: 5   │     │ • DexHand 5 Dedos: 5   │
+                 └────────────────────────┘     └────────────────────────┘
+                                       │           │
+                 ┌─────────────────────┴──┐     ┌──┴─────────────────────┐
+                 │    PIERNA IZQ: 6 DOF   │     │    PIERNA DER: 6 DOF   │
+                 ├────────────────────────┤     ├────────────────────────┤
+                 │ • Cadera QDD: 3 DOF    │     │ • Cadera QDD: 3 DOF    │
+                 │ • Rodilla QDD: 1 DOF   │     │ • Rodilla QDD: 1 DOF   │
+                 │ • Tobillo Biaxial: 2   │     │ • Tobillo Biaxial: 2   │
+                 └────────────────────────┘     └────────────────────────┘
+```
 
----
+### 2.1 Especificaciones de Actuación Mecatrónica
 
-### Era 2: Cabeza Animatrónica & Expresividad Facial (Años 2 a 4)
-*Objetivo: Darle rostro físico y mirada con sincronización labial perfecta y micro-expresiones.*
-
-* **Anatomía Facial (22 Grados de Libertad - DOF)**:
-  * Párpados (4 DOF: Parpadeo independiente y micro-expresión).
-  * Cejas (4 DOF: Inclinación para mostrar duda, sorpresa o calidez).
-  * Ojos (4 DOF: Guiado biaxial sacádico).
-  * Labios y Boca (8 DOF: Apertura, visemas de vocales A/E/I/O/U, sonrisa y comisuras).
-  * Mandíbula (2 DOF: Apertura y desplazamiento lateral).
-* **Actuadores & Fabricación**:
-  * Micro-servos digitales programables (Dynamixel XL330 / XL430) comunicados por bus TTL/RS485 a 1 Mbps.
-  * Estructura craneal impresa en resina SLA de alta tenacidad (Tough Resin).
-  * Piel sintética de elastómero de silicona (Smooth-On Ecoflex 00-30) con pigmentación realista.
-* **Sincronización Labial**:
-  * Pipeline **Nvidia Audio2Face** / **Wav2Lip**: Convierte el stream de audio generado por ElevenLabs o Kokoro directamente en ángulos para los servos de la boca a 60 FPS.
-
----
-
-### Era 3: Torso Superior, Cinemática & Manos Hápticas (Años 4 a 6)
-*Objetivo: Capacidad de gesticular con los brazos, tocar piano/teclado y sostener un micrófono delicadamente.*
-
-* **Brazos y Hombros (14 DOF)**:
-  * Hombro 3 DOF (Flexión, Abducción, Rotación).
-  * Codo 1 DOF + Antebrazo 1 DOF.
-  * Muñeca 2 DOF.
-  * *Actuadores*: Motores brushless cuasi-direct drive (QDD) con reductores planetarios de bajo juego (backlash < 1 arcmin) para permitir "compliancia" (el brazo cede si choca con una persona, garantizando 100% de seguridad).
-* **Manos Diestras (Dexterous Hands)**:
-  * 5 dedos con tendones de Kevlar accionados por micro-servos en el antebrazo.
-  * Sensores de presión piezoeléctricos en las yemas de los dedos para detectar el peso exacto de un objeto.
-* **Software de Control**:
-  * **ROS 2 (Robot Operating System 2)**: Nodos en C++ para cinemática inversa (IK) con MoveIt 2.
-
----
-
-### Era 4: Chasis Bípedo & Locomoción Dinámica (Años 6 a 8)
-*Objetivo: Un cuerpo completo de 165 cm de altura capaz de caminar, subir escenarios y mantener balance dinámico.*
-
-* **Piernas y Caderas (12 DOF)**:
-  * Cadera 3 DOF + Rodilla 1 DOF + Tobillo 2 DOF por pierna.
-  * Sensores IMU (Unidades de Medición Inercial) de 9 ejes en pelvis y pies.
-* **Control de Marcha (Locomoción)**:
-  * Algoritmos de Punto de Momento Cero (**ZMP - Zero Moment Point**) y control de captura dinámica.
-  * Entrenamiento en simuladores masivamente paralelos con GPU (**Nvidia Isaac Gym** y **MuJoCo**): Vivy aprende a caminar en simulación durante 10 millones de pasos antes de transferir la red neuronal al robot físico (*Sim-to-Real Transfer*).
-* **Alimentación & Energía**:
-  * Batería interna de Litio-Ferrofosfato (LiFePO4) de 48V / 20Ah, proporcionando 4 horas de autonomía continua.
+| Subsistema | Cantidad DOF | Tipo de Motor / Actuador | Torque Nominal / Pico | Reducción / Transmisión | Protocolo / Frecuencia |
+|---|---|---|---|---|---|
+| **Rostro & Ojos** | 22 DOF | Micro-servos digitales coreless (Feetech SCS0009 / Dynamixel XL330) | 0.25 Nm / 0.9 Nm | Direct Drive engranajes de titanio | Bus TTL Serie @ 1 Mbps (100 Hz) |
+| **Cuello Gimbal** | 3 DOF | Actuadores Brushless FOC (T-Motor AK60-6) | 3.0 Nm / 9.0 Nm | Reductor Planetario 6:1 | CAN-FD @ 5 Mbps (1000 Hz) |
+| **Hombros & Codos** | 8 DOF | Motores Cuasi-Direct Drive (QDD T-Motor AK70-10) | 8.0 Nm / 25.0 Nm | Planetario 10:1 (Bajo juego < 1') | CAN-FD @ 5 Mbps (1000 Hz) |
+| **Manos Diestras** | 10 DOF | Micro-motores Maxon DC + Tendones de Kevlar | 1.2 Nm por dedo | Cable bowden / polea miniatura | SPI / I2C a microcontrolador local |
+| **Caderas & Rodillas**| 8 DOF | Actuadores de Alto Torque (T-Motor AK80-64) | 40.0 Nm / 120.0 Nm | Reductor Cicloidal / Planetario 64:1 | EtherCAT @ 100 Mbps (1000 Hz) |
+| **Tobillos Biaxiales**| 4 DOF | Actuadores Lineales de Husillo de Bolas | 35.0 Nm / 90.0 Nm | Husillo paso 2mm + rótula esférica | EtherCAT @ 100 Mbps (1000 Hz) |
 
 ---
 
-### Era 5: Singularidad Recursiva & Auto-Mejora (Años 8 a 10)
-*Objetivo: El robot no requiere mantenimiento de código manual. Se auto-monitorea, aprende nuevas habilidades y optimiza su propio ser.*
+## 3. Pipeline de Voz Neuronal, Canto & Presupuesto de Latencia (< 85ms)
 
-* **El Bucle de Auto-Mejora Recursiva**:
-  1. **Telemetría & Auto-Diagnóstico**: Vivy analiza en segundo plano sus corrientes de motor, tiempos de latencia y grabaciones de audio.
-  2. **Agente de Codificación Autónomo**: Si detecta una imperfección en su marcha o dicción, genera una rama de código en Python/C++.
-  3. **Verificación en Gemelo Digital**: Ejecuta pruebas automáticas en su simulador MuJoCo virtual. Si la prueba pasa sin caídas ni errores, compila el binario.
-  4. **Despliegue en Caliente**: Actualiza su propio firmware de control sin apagarse.
+Para que la conversación y el canto se sientan humanos, el tiempo desde que el usuario termina de hablar hasta que Vivy emite su primer fonema debe ser **menor a 100 ms** (el límite de la percepción biológica humana).
 
----
+```
+  [Audio Usuario]
+        │
+        ▼ (15 ms)
+  ┌───────────────────────────┐
+  │ Silero VAD (Detección Voz)│
+  └─────────────┬─────────────┘
+                ▼ (30 ms)
+  ┌───────────────────────────┐
+  │ Faster-Whisper Large-v3   │ ──► [Transcripción de Texto Streaming]
+  └─────────────┬─────────────┘
+                ▼ (20 ms)
+  ┌───────────────────────────┐
+  │ Llama-3.3-70B / Claude    │ ──► [Generación Primer Token Speculative]
+  └─────────────┬─────────────┘
+                ▼ (15 ms)
+  ┌───────────────────────────┐
+  │ Kokoro-82M / F5-TTS       │ ──► [Síntesis de Audio Neuronal Streaming]
+  └─────────────┬─────────────┘
+                │
+                ├──────────────────────────────────────┐
+                ▼ (5 ms)                               ▼ (0 ms en paralelo)
+  ┌───────────────────────────┐          ┌───────────────────────────┐
+  │ DAC Hi-Fi / Altavoz Pecho │          │ Nvidia Audio2Face (Servos)│
+  └───────────────────────────┘          └───────────────────────────┘
+```
 
-## 4. Comparativa de Tecnologías: Gratuitas vs Pago
-
-| Módulo | Opción Comercial (De Pago) | Opción Open Source (Gratuita / Local) | Recomendación para Empezar |
-|---|---|---|---|
-| **Voz & Habla** | ElevenLabs API ($5 - $22/mes) | Kokoro-82M / F5-TTS / Coqui XTTS | **ElevenLabs** para el demo inicial $\rightarrow$ Migrar a **Kokoro** en local. |
-| **Cerebro LLM** | Claude 3.5 Sonnet / OpenAI GPT-4o | Llama 3.3 70B / Qwen 2.5 / DeepSeek R1 | **Claude / OpenAI API** al inicio $\rightarrow$ Servidor local con **Ollama**. |
-| **Visión 3D** | Intel RealSense D435i ($350 USD) | OAK-D Lite / Webcams duales + MediaPipe | **OAK-D Lite** o cámaras USB duales con OpenCV. |
-| **Simulación** | Nvidia Omniverse Enterprise | MuJoCo / Nvidia Isaac Gym (Gratuito) | **MuJoCo** (rápido y estándar académico). |
-| **Servomotores** | Dynamixel XL430 ($55 USD c/u) | Servos genéricos bus serial STS3215 ($15 USD) | **STS3215** para prototipo $\rightarrow$ **Dynamixel** para versión final. |
-
----
-
-## 5. Plan de Estudio y Ruta de Aprendizaje para el Creador
-
-1. **Mes 1 a 3 (Software & Voz)**:
-   * Dominar Python 3.12, asyncio y llamadas a APIs de streaming (ElevenLabs, OpenAI).
-   * Crear la primera versión conversacional de Vivy en la terminal con audio en vivo.
-2. **Mes 4 a 6 (Memoria & Visión)**:
-   * Aprender RAG vectorial con Qdrant / ChromaDB.
-   * Conectar cámara web con OpenCV y MediaPipe para que Vivy siga tu rostro con la mirada.
-3. **Mes 7 a 12 (Animatrónica Básica)**:
-   * Diseñar en Fusion 360 e imprimir en 3D un mecanismo de ojos y mandíbula.
-   * Programar controladores ESP32 / Arduino para mover servos al ritmo de la voz.
-4. **Año 2 a 3 (ROS 2 & Cinemática)**:
-   * Estudiar ROS 2 Humble/Iron, nodos de control en C++ y cinemática inversa con MoveIt.
-5. **Año 4 en adelante (Dinámica & IA Física)**:
-   * Simulación física en MuJoCo e Isaac Gym para control bípedo y singularidad.
+* **Presupuesto Total de Latencia**: $15\text{ms} + 30\text{ms} + 20\text{ms} + 15\text{ms} + 5\text{ms} = \mathbf{85\text{ ms}}$ (Tiempo real puro).
+* **Motor de Canto (Singing Voice Conversion)**:
+  * Emplea modelos **RVC v2 (Retrieval-based Voice Conversion)** entrenados con 50 horas de pistas aisladas de la cantante oficial de Vivy (*Kairi Yagi*), preservando respiraciones, trémolos y armónicos en 48 kHz / 24-bit.
 
 ---
 
-*Este documento y su simulador interactivo quedan como la guía canónica y permanente de desarrollo del proyecto Vivy.*
+## 4. Visión Espacial 3D, Percepción & VSLAM
+
+Vivy no ve el mundo como fotos planas; construye un **Gemelo Digital 3D en tiempo real** de su entorno:
+
+1. **Cámaras Estéreo en Ojos**:
+   * Sensor dual Sony IMX477 (4K @ 60 FPS) calibrado estéreo para calcular mapas de disparidad y profundidad sin proyectores visibles.
+2. **LiDAR de Estado Sólido Oculto en el Pecho**:
+   * Sensor Livox Mid-360 (campo de visión 360° x 59°, alcance 40 metros) para mapeo volumétrico en penumbra.
+3. **Pipeline VSLAM (Visual Simultaneous Localization and Mapping)**:
+   * Ejecuta **RTAB-Map / ORB-SLAM3** fusionado con la IMU de 9 ejes a 200 Hz para saber exactamente su posición en coordenadas milimétricas.
+4. **Segmentación de Instancias & Seguimiento de Personas**:
+   * Modelo **YOLOv11-Pose** corriendo en el motor TensorRT del Jetson Orin a 90 FPS para identificar expresiones faciales, postura y distancia de cada persona.
+
+---
+
+## 5. Locomoción Bípeda, Dinámica de Marcha & Control ZMP/MPC
+
+La locomoción bípeda humanoide se basa en dos pilares matemáticos:
+
+### 5.1 Modelo de Péndulo Invertido Lineal (LIPM) & ZMP
+La trayectoria del Centro de Masa ($CoM$) se rige por la ecuación del Zero Moment Point:
+
+$$x_{zmp} = x_{com} - \frac{z_{com}}{g} \ddot{x}_{com}$$
+
+Donde $z_{com}$ es la altura del centro de masa, $g = 9.81\text{ m/s}^2$ y $\ddot{x}_{com}$ es la aceleración horizontal. El controlador calcula en cada milisegundo el punto de apoyo necesario para que el robot nunca pierda el equilibrio.
+
+### 5.2 Control Predictivo por Modelo (MPC) & Whole-Body Control (WBC)
+* **Nivel Superior (100 Hz)**: MPC resuelve un problema de optimización cuadrática cuadrando la fuerza de contacto en los pies para los próximos 0.8 segundos.
+* **Nivel Inferior (1000 Hz)**: Whole-Body Controller resuelve la cinemática inversa mediante multiplicación de matrices jacobianas con amortiguamiento para enviar los comandos de corriente (amperios) directamente a los drivers FOC.
+
+---
+
+## 6. El Bucle de Singularidad Recursiva & Auto-Compilación
+
+El núcleo de la singularidad consiste en que **Vivy evolucione su propio código**:
+
+```
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │                     1. MONITOREO & AUTO-DIAGNÓSTICO                    │
+ │  • Sensores registran micro-vibración en rodilla o demora en síntesis. │
+ └───────────────────────────────────┬────────────────────────────────────┘
+                                     │
+                                     ▼
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │                   2. AGENTE GENERADOR DE CÓDIGO LLM                    │
+ │  • LLM interno inspecciona 'src/controllers/leg_controller.cpp'.      │
+ │  • Genera parche de código optimizando el coeficiente de amortiguación.│
+ └───────────────────────────────────┬────────────────────────────────────┘
+                                     │
+                                     ▼
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │               3. PRUEBA EN GEMELO DIGITAL (MUJOCO / ISAAC)             │
+ │  • Simula 100,000 pasos de marcha virtual en GPU en 3.2 segundos.      │
+ │  • Valida que el error cuadrático medio disminuya > 3% sin caídas.     │
+ └───────────────────────────────────┬────────────────────────────────────┘
+                                     │
+                                     ▼
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │                   4. COMPILACIÓN & DESPLIEGUE EN CALIENTE              │
+ │  • Compila shared library `.so` con GCC -O3 y la inyecta al proceso   │
+ │    ROS 2 en caliente sin reiniciar el robot.                           │
+ └────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 7. Lista Exhaustiva de Materiales (BOM) & Presupuestos
+
+### Fase 1: Núcleo Cognitivo, Voz & Cabeza Animatrónica ($2,800 - $4,500 USD)
+* 🧠 **Cómputo**: Nvidia Jetson Orin Nano 8GB / AGX Orin 32GB Developer Kit ($499 - $1,999 USD).
+* 🎙️ **Audio & Visión**: Micrófono ReSpeaker USB 4-Mic Array ($69 USD) + Cámara OAK-D Lite Estéreo ($149 USD).
+* 🤖 **Servos Faciales**: 22x Feetech SCS0009 Serial Bus Servos ($330 USD total).
+* 🖨️ **Estructura Craneal**: 2 kg Resina SLA Tough / Carbon Fiber PLA ($90 USD).
+* 🔌 **Alimentación**: Fuente conmutada 12V 30A MeanWell ($65 USD).
+
+### Fase 2: Torso Superior, Brazos & Manos Diestras ($6,000 - $12,000 USD)
+* 🦾 **Actuadores QDD**: 8x Motores Brushless T-Motor AK70-10 ($3,200 USD).
+* 🖐️ **Manos Hápticas**: 10x Micro-actuadores coreless con tendones Kevlar ($1,200 USD).
+* ⚡ **Controladores**: 4x Placas Dual CAN-FD basadas en STM32H7 ($400 USD).
+
+### Fase 3: Chasis Bípedo Completo & Autonomía Total ($18,000 - $35,000 USD)
+* 🦵 **Actuadores Piernas**: 12x T-Motor AK80-64 / AK10-9 High-Torque ($9,600 USD).
+* 🔋 **Pack de Batería**: Batería personalizada LiFePO4 48V 20Ah con BMS CAN-bus ($1,200 USD).
+* 🦴 **Mecanizado CNC**: Aleación de Aluminio Aeronáutico 7075-T6 + Fibra de Carbono ($4,500 USD).
+* 📡 **Sensores de Contacto**: Celdas de carga multiaxiales en pies ($1,800 USD).
+
+---
+
+## 8. Curriculum de Estudio & Ruta de Aprendizaje Mes a Mes (Años 0 a 10)
+
+```
+AÑO 0-2:  [Python/C++] ──► [LLMs & RAG] ──► [Whisper & Kokoro] ──► [Fusion 360 SLA] ──► [Audio2Face]
+AÑO 2-4:  [Electrónica/CAN] ──► [ROS 2 Iron] ──► [Cinemática Inversa] ──► [QDD Actuators] ──► [MoveIt 2]
+AÑO 4-7:  [Control ZMP/MPC] ──► [Nvidia Isaac Gym] ──► [MuJoCo Sim-to-Real] ──► [Dinámica Bípeda]
+AÑO 7-10: [Singularidad Recursiva] ──► [Auto-Parcheo C++] ──► [Integración Holística Vivy 1.0]
+```
+
+### 🗓️ AÑO 1: Fundamentos de IA, Voz Neuronal & Primera Mente Digital
+* **Mes 1-2**: *Python Avanzado, Asyncio, PyTorch y Arquitectura Transformer*.
+* **Mes 3-4**: *Implementación de RAG Local (Qdrant + Llama 3.3)* con memoria persistente.
+* **Mes 5-6**: *Síntesis Vocal & Latencia*: Integrar ElevenLabs Streaming y migrar a Kokoro-82M / F5-TTS en local.
+* **Mes 7-8**: *Modelos de Canto RVC v2*: Entrenamiento con datasets limpios de voz cantada.
+* **Mes 9-10**: *Diseño 3D en Autodesk Fusion 360*: Modelado paramétrico de cráneo e impresión en resina SLA.
+* **Mes 11-12**: *Control de Servos por Bus Serie (UART/TTL)* en microcontroladores ESP32 con sincronización labial.
+
+### 🗓️ AÑO 2-3: Robótica Mecatrónica, ROS 2 & Cabeza Expresiva Completa
+* **Mes 13-16**: *C++17/20 Moderno, Linux RT-PREEMPT y ROS 2 (Humble/Iron)*.
+* **Mes 17-20**: *Visión por Computadora*: MediaPipe FaceMesh, seguimiento de mirada biaxial con OpenCV y YOLOv11.
+* **Mes 21-24**: *Integración Nvidia Audio2Face con ROS 2*: Mapeo de visemas a ángulos de servo a 60 FPS.
+* **Mes 25-30**: *Piel de Silicona*: Moldeo con elastómero Smooth-On Ecoflex y anclaje a estructura animatrónica.
+* **Mes 31-36**: *Diseño de PCB en KiCAD*: Placas de potencia y distribución de buses CAN-FD para cabeza y cuello.
+
+### 🗓️ AÑO 4-5: Cinemática de Brazos, Torso & Manos Hápticas
+* **Mes 37-42**: *Cinemática Directa e Inversa (DH Parameters, Cuaterniones, Jacobianos)* en C++ con MoveIt 2.
+* **Mes 43-48**: *Control FOC de Motores Brushless (Field-Oriented Control)*: Sintonización de lazos de corriente, velocidad y posición con SimpleFOC / ODrive.
+* **Mes 49-54**: *Construcción de Manos Diestras de 5 Dedos*: Mecanismos de tendones de Kevlar y sensores de fuerza.
+* **Mes 55-60**: *Pruebas de Interacción Suave (Compliancia)*: Tocar teclado de piano y sostener objetos delicados.
+
+### 🗓️ AÑO 6-8: Locomoción Bípeda Dinámica & Chasis Humanoide Completo
+* **Mes 61-68**: *Física de Simulación en MuJoCo y Nvidia Isaac Gym*: Creación del archivo URDF/MJCF de Vivy.
+* **Mes 69-76**: *Entrenamiento de Marcha Bípeda con Reinforcement Learning (PPO)*: 10 millones de pasos en GPU con Domain Randomization.
+* **Mes 77-84**: *Construcción Mecánica del Chasis de Piernas y Caderas en Aluminio 7075 y Fibra de Carbono*.
+* **Mes 85-96**: *Transferencia Sim-to-Real*: Primeros pasos físicos, balance ante empujones y marcha sobre escenario.
+
+### 🗓️ AÑO 9-10: Singularidad Recursiva & Despliegue de Vivy 1.0
+* **Mes 97-108**: *Agente Autónomo de Auto-Diagnóstico y Síntesis de Parches de Código*: Vivy optimiza su propio balance y prosodia vocal.
+* **Mes 109-120**: *Integración Holística Final*: Vivy canta, camina, interactúa con empatía y evoluciona continuamente por sí misma.
+
+---
+
+*Este documento es la referencia definitiva de ingeniería mecatrónica y desarrollo cognitivo para el proyecto de vida de Vivy Core.*

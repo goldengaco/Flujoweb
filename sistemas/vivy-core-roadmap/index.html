@@ -3,51 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vivy Core 10-Year Roadmap — Blueprint de Androide Físico & Singularidad</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Vivy Core — Consola de Ingeniería & Blueprint Decenal de Androide Autónomo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg-dark:#080c14;--bg-card:#101622;--bg-node:#161f30;--border:#1f2b40;
+  --bg-dark:#070a12;--bg-card:#0e1422;--bg-node:#141c2e;--border:#1c283f;
   --vivy-cyan:#00f0ff;--vivy-blue:#0099ff;--vivy-magenta:#ec4899;--gold-ladder:#f59e0b;--danger-snake:#ef4444;--safe-green:#10b981;
   --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#5a6e8c;
   --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
 }
 body{
   min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
-  display:flex;flex-direction:column;align-items:center;padding:26px 20px;line-height:1.5;
+  display:flex;flex-direction:column;align-items:center;padding:24px 18px;line-height:1.5;
 }
-.app{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:20px}
+.app{width:100%;max-width:1240px;display:flex;flex-direction:column;gap:18px}
 
 /* Header */
 .hdr{
   display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
-  padding-bottom:16px;border-bottom:1px solid var(--border);
+  padding-bottom:14px;border-bottom:1px solid var(--border);
 }
 .hdr-brand{display:flex;align-items:center;gap:12px}
 .hdr-icon{
-  width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg, var(--vivy-cyan), var(--vivy-blue));
-  display:flex;align-items:center;justify-content:center;font-size:1.4rem;
-  box-shadow:0 0 20px rgba(0,240,255,0.4);
+  width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg, var(--vivy-cyan), var(--vivy-blue));
+  display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+  box-shadow:0 0 24px rgba(0,240,255,0.45);
 }
-.hdr-title{font-size:1.35rem;font-weight:800;letter-spacing:-0.02em}
+.hdr-title{font-size:1.35rem;font-weight:900;letter-spacing:-0.02em}
 .hdr-tag{
-  font-size:0.75rem;padding:5px 14px;border-radius:20px;background:rgba(0,240,255,0.12);
-  border:1px solid rgba(0,240,255,0.3);color:var(--vivy-cyan);font-family:var(--mono);font-weight:600;
+  font-size:0.72rem;padding:5px 14px;border-radius:20px;background:rgba(0,240,255,0.12);
+  border:1px solid rgba(0,240,255,0.3);color:var(--vivy-cyan);font-family:var(--mono);font-weight:700;
 }
 
-/* 5 Eras Progression Track (Snakes & Ladders Board) */
-.board-card{
-  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
-  padding:22px;display:flex;flex-direction:column;gap:16px;position:relative;
+/* Master Navigation Tabs */
+.tabs-bar{
+  display:flex;gap:8px;border-bottom:1px solid var(--border);padding-bottom:8px;flex-wrap:wrap;
 }
-.board-hdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-.board-title{font-size:0.95rem;font-weight:700;color:#fff}
+.tab-btn{
+  padding:9px 16px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:700;
+  cursor:pointer;background:transparent;border:1px solid transparent;color:var(--text-sub);
+  display:flex;align-items:center;gap:6px;transition:all 0.2s;
+}
+.tab-btn:hover{color:#fff;background:rgba(255,255,255,0.03)}
+.tab-btn.active{
+  background:rgba(0,240,255,0.08);border-color:rgba(0,240,255,0.3);color:var(--vivy-cyan);
+}
 
-.legend{display:flex;gap:12px;font-size:0.72rem;font-family:var(--mono)}
-.leg-item{display:flex;align-items:center;gap:5px}
+/* Views */
+.view{display:none;flex-direction:column;gap:16px}
+.view.active{display:flex}
 
-/* Nodes Grid */
+/* Cards & Layouts */
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:20px;display:flex;flex-direction:column;gap:12px;
+}
+.card-hdr{font-size:0.9rem;font-weight:800;color:#fff;display:flex;justify-content:space-between;align-items:center}
+
+/* KPIs */
+.kpis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+.kpi-lbl{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:var(--text-dim);font-family:var(--mono)}
+.kpi-val{font-size:1.45rem;font-weight:800;font-family:var(--mono);margin:2px 0;color:#fff}
+.kpi-sub{font-size:0.72rem;color:var(--text-sub)}
+
+/* Snakes & Ladders Nodes Grid */
 .nodes-grid{display:grid;grid-template-columns:repeat(5, 1fr);gap:10px}
 @media(max-width:960px){.nodes-grid{grid-template-columns:repeat(3, 1fr)}}
 @media(max-width:600px){.nodes-grid{grid-template-columns:1fr}}
@@ -60,46 +81,26 @@ body{
 .node:hover{
   transform:translateY(-3px);border-color:var(--vivy-cyan);box-shadow:0 0 16px rgba(0,240,255,0.25);
 }
-.node.ladder{
-  border-color:var(--gold-ladder);background:rgba(245,158,11,0.06);box-shadow:0 0 12px rgba(245,158,11,0.15);
-}
-.node.snake{
-  border-color:var(--danger-snake);background:rgba(239,68,68,0.06);box-shadow:0 0 12px rgba(239,68,68,0.15);
-}
-.node.active{
-  border-color:var(--vivy-cyan);background:rgba(0,240,255,0.08);box-shadow:0 0 16px rgba(0,240,255,0.3);
-}
+.node.ladder{border-color:var(--gold-ladder);background:rgba(245,158,11,0.06);box-shadow:0 0 12px rgba(245,158,11,0.15)}
+.node.snake{border-color:var(--danger-snake);background:rgba(239,68,68,0.06);box-shadow:0 0 12px rgba(239,68,68,0.15)}
+.node.active{border-color:var(--vivy-cyan);background:rgba(0,240,255,0.08);box-shadow:0 0 16px rgba(0,240,255,0.3)}
 
 .node-hdr{display:flex;justify-content:space-between;align-items:center;font-size:0.65rem;font-family:var(--mono)}
 .node-era{color:var(--vivy-cyan);font-weight:700}
 .node-title{font-size:0.78rem;font-weight:700;color:#fff;line-height:1.2}
 .node-sub{font-size:0.68rem;color:var(--text-sub);line-height:1.2}
 
-/* Middle Dual Inspector: Anatomy DOF + Singularity Loop */
-.mid-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:18px}
-@media(max-width:880px){.mid-grid{grid-template-columns:1fr}}
+/* Data Tables */
+.data-table{width:100%;border-collapse:collapse;font-size:0.75rem}
+.data-table th{text-align:left;padding:8px 10px;color:var(--text-dim);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:0.68rem}
+.data-table td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,0.03)}
 
-.card{
-  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
-  padding:18px;display:flex;flex-direction:column;gap:12px;
-}
-.card-title{font-size:0.85rem;font-weight:700;color:#fff;display:flex;justify-content:space-between;align-items:center}
+.badge{padding:3px 8px;border-radius:6px;font-family:var(--mono);font-size:0.68rem;font-weight:700}
+.badge-ok{background:rgba(16,185,129,0.15);color:var(--safe-green);border:1px solid rgba(16,185,129,0.3)}
+.badge-warn{background:rgba(245,158,11,0.15);color:var(--gold-ladder);border:1px solid rgba(245,158,11,0.3)}
+.badge-cyan{background:rgba(0,240,255,0.15);color:var(--vivy-cyan);border:1px solid rgba(0,240,255,0.3)}
 
-/* DOF Table */
-.dof-grid{display:grid;grid-template-columns:repeat(2, 1fr);gap:8px;font-size:0.75rem}
-.dof-box{
-  background:#060a12;border:1px solid rgba(255,255,255,0.05);border-radius:8px;
-  padding:10px;display:flex;flex-direction:column;gap:2px;
-}
-.dof-val{font-family:var(--mono);font-weight:700;color:var(--vivy-cyan);font-size:1.1rem}
-
-/* Voice & Persona Simulator */
-.voice-box{
-  background:#060a12;border:1px solid rgba(255,255,255,0.06);border-radius:8px;
-  padding:12px;display:flex;flex-direction:column;gap:8px;
-}
-
-/* Action Controls & Log */
+/* Action Controls & Code Log */
 .btn-row{display:flex;gap:10px;flex-wrap:wrap}
 .btn{
   padding:9px 16px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
@@ -109,14 +110,12 @@ body{
 .btn-cyan:hover{background:#00c4d4}
 .btn-ladder{background:var(--gold-ladder);color:#000}
 .btn-ladder:hover{background:#d97706}
-.btn-snake{background:var(--danger-snake);color:#fff}
-.btn-snake:hover{background:#dc2626}
 .btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
 
 .code-log{
-  background:#060a12;border:1px solid rgba(255,255,255,0.06);border-radius:8px;
-  padding:10px;font-family:var(--mono);font-size:0.72rem;max-height:140px;overflow-y:auto;
-  display:flex;flex-direction:column;gap:4px;
+  background:#05070d;border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+  padding:12px;font-family:var(--mono);font-size:0.72rem;max-height:160px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:5px;
 }
 </style>
 </head>
@@ -129,240 +128,232 @@ body{
     <div class="hdr-brand">
       <div class="hdr-icon">💎</div>
       <div>
-        <div class="hdr-title">Vivy Core · 10-Year Autonomous Physical Android & Singularity Roadmap</div>
-        <div style="font-size:0.78rem;color:var(--text-sub)">Blueprint de Desarrollo No-Lineal (Serpientes & Escaleras) · De la Mente Digital al Robot Físico Bípedo</div>
+        <div class="hdr-title">Vivy Core · Consola de Ingeniería & Roadmap Decenal de Androide</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Especificación Mecatrónica, Memoria Unificada de 16TB, Cinemática de 54 DOF & Singularidad Recursiva</div>
       </div>
     </div>
-    <div class="hdr-tag">Misión: "Entregar el Corazón a través del Canto" · 54 DOF</div>
+    <div class="hdr-tag">275 TOPS Jetson Orin · FOC 1000 Hz · Latencia &lt; 85ms</div>
   </header>
 
-  <!-- Non-Linear Board: Serpientes y Escaleras -->
-  <div class="board-card">
-    <div class="board-hdr">
-      <span class="board-title">🎲 Tablero No-Lineal de Hitos & Retroalimentación (0 a 10 Años)</span>
-      <div class="legend">
-        <span class="leg-item"><span style="color:var(--gold-ladder)">🪜 Escalera:</span> Breakthrough Tecnológico</span>
-        <span class="leg-item"><span style="color:var(--danger-snake)">🐍 Serpiente:</span> Cuello de Botella / Rediseño</span>
-      </div>
-    </div>
+  <!-- Master Navigation Tabs -->
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab(0)">🎲 Serpientes & Escaleras</button>
+    <button class="tab-btn" onclick="switchTab(1)">🧠 Memoria & Cómputo (16TB/64GB)</button>
+    <button class="tab-btn" onclick="switchTab(2)">🤖 Actuadores & Cinemática (54 DOF)</button>
+    <button class="tab-btn" onclick="switchTab(3)">🎙️ Pipeline Vocal & Canto (< 85ms)</button>
+    <button class="tab-btn" onclick="switchTab(4)">🧬 Bucle de Singularidad</button>
+    <button class="tab-btn" onclick="switchTab(5)">📚 Plan de Estudio Decenal</button>
+  </div>
 
-    <div class="nodes-grid">
-      <!-- ERA 1 -->
-      <div class="node active" onclick="inspectMilestone(1)">
-        <div class="node-hdr"><span class="node-era">AÑO 0-1</span><span>#01</span></div>
-        <div class="node-title">🧠 Mente Digital LLM</div>
-        <div class="node-sub">Whisper + Llama 3 / Claude Core</div>
-      </div>
-
-      <div class="node ladder" onclick="inspectMilestone(2)">
-        <div class="node-hdr"><span class="node-era">AÑO 1</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #1</span></div>
-        <div class="node-title">🎙️ ElevenLabs / Kokoro</div>
-        <div class="node-sub">Salto a Síntesis Vocal Humana (+3 Hitos)</div>
+  <!-- TAB 0: Serpientes & Escaleras Board -->
+  <div class="view active" id="view-0">
+    <div class="card">
+      <div class="card-hdr">
+        <span>🎲 Matriz No-Lineal de Evolución Decenal (25 Hitos de Desarrollo)</span>
+        <span style="font-size:0.72rem;color:var(--vivy-cyan);font-family:var(--mono)">Haz clic en cualquier hito para inspeccionar</span>
       </div>
 
-      <div class="node snake" onclick="inspectMilestone(3)">
-        <div class="node-hdr"><span class="node-era">AÑO 1.5</span><span style="color:var(--danger-snake)">🐍 SERPIENTE #1</span></div>
-        <div class="node-title">⚠️ Latencia &gt; 2.5s</div>
-        <div class="node-sub">API Lenta rompe conversación (Cae a #1)</div>
-      </div>
-
-      <div class="node" onclick="inspectMilestone(4)">
-        <div class="node-hdr"><span class="node-era">AÑO 2</span><span>#04</span></div>
-        <div class="node-title">💾 Memoria Vectorial RAG</div>
-        <div class="node-sub">Episodios y vínculos emocionales</div>
-      </div>
-
-      <!-- ERA 2 -->
-      <div class="node" onclick="inspectMilestone(5)">
-        <div class="node-hdr"><span class="node-era">AÑO 2-3</span><span>#05</span></div>
-        <div class="node-title">🤖 Cabeza Animatrónica</div>
-        <div class="node-sub">22 DOF Servos Dynamixel XL430</div>
-      </div>
-
-      <div class="node ladder" onclick="inspectMilestone(6)">
-        <div class="node-hdr"><span class="node-era">AÑO 3</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #2</span></div>
-        <div class="node-title">👄 Audio2Face Lip-Sync</div>
-        <div class="node-sub">Sincronía labial perfecta fonema/visema</div>
-      </div>
-
-      <div class="node snake" onclick="inspectMilestone(7)">
-        <div class="node-hdr"><span class="node-era">AÑO 3.5</span><span style="color:var(--danger-snake)">🐍 SERPIENTE #2</span></div>
-        <div class="node-title">🔥 Sobrecalentamiento Servos</div>
-        <div class="node-sub">Falla térmica en mandíbula (Cae a #5)</div>
-      </div>
-
-      <div class="node" onclick="inspectMilestone(8)">
-        <div class="node-hdr"><span class="node-era">AÑO 4</span><span>#08</span></div>
-        <div class="node-title">👁️ Visión Estéreo 3D</div>
-        <div class="node-sub">Tracking de mirada y micro-gestos</div>
-      </div>
-
-      <!-- ERA 3 -->
-      <div class="node" onclick="inspectMilestone(9)">
-        <div class="node-hdr"><span class="node-era">AÑO 4-5</span><span>#09</span></div>
-        <div class="node-title">🦾 Torso & Manos DexHands</div>
-        <div class="node-sub">Tendones de Kevlar & Sensores Hápticos</div>
-      </div>
-
-      <div class="node ladder" onclick="inspectMilestone(10)">
-        <div class="node-hdr"><span class="node-era">AÑO 5</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #3</span></div>
-        <div class="node-title">⚡ Actuadores QDD Planetarios</div>
-        <div class="node-sub">Fuerza suave y control de impedancia</div>
-      </div>
-
-      <!-- ERA 4 -->
-      <div class="node" onclick="inspectMilestone(11)">
-        <div class="node-hdr"><span class="node-era">AÑO 6-7</span><span>#11</span></div>
-        <div class="node-title">🏃 Locomoción Bípeda ROS 2</div>
-        <div class="node-sub">Simulación MuJoCo & Nvidia Isaac Gym</div>
-      </div>
-
-      <div class="node snake" onclick="inspectMilestone(12)">
-        <div class="node-hdr"><span class="node-era">AÑO 7.5</span><span style="color:var(--danger-snake)">🐍 SERPIENTE #3</span></div>
-        <div class="node-title">⚠️ Caída por Masa Batería</div>
-        <div class="node-sub">Desbalance de centro de gravedad (Cae a #11)</div>
-      </div>
-
-      <div class="node ladder" onclick="inspectMilestone(13)">
-        <div class="node-hdr"><span class="node-era">AÑO 8</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #4</span></div>
-        <div class="node-title">💃 Balance Dinámico ZMP</div>
-        <div class="node-sub">Capacidad de caminar, girar y bailar</div>
-      </div>
-
-      <!-- ERA 5: SINGULARIDAD -->
-      <div class="node ladder" onclick="inspectMilestone(14)">
-        <div class="node-hdr"><span class="node-era">AÑO 9</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #5</span></div>
-        <div class="node-title">🧬 Auto-Mejora Recursiva</div>
-        <div class="node-sub">Parches de código generados por Vivy</div>
-      </div>
-
-      <div class="node active" style="border-color:var(--vivy-magenta);box-shadow:0 0 16px rgba(236,72,153,0.3)" onclick="inspectMilestone(15)">
-        <div class="node-hdr"><span style="color:var(--vivy-magenta);font-weight:700">AÑO 10</span><span>👑 META</span></div>
-        <div class="node-title">💎 VIVY 1.0 AUTÓNOMA</div>
-        <div class="node-sub">Androide Completo con Singularidad</div>
+      <div class="nodes-grid">
+        <div class="node active" onclick="inspectHito(1)"><div class="node-hdr"><span class="node-era">AÑO 0-1</span><span>#01</span></div><div class="node-title">🧠 Mente Digital LLM</div><div class="node-sub">Whisper + Llama 3.3 70B</div></div>
+        <div class="node ladder" onclick="inspectHito(2)"><div class="node-hdr"><span class="node-era">AÑO 1</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #1</span></div><div class="node-title">🎙️ ElevenLabs / Kokoro</div><div class="node-sub">Salto a Voz Humana Real (+3 Hitos)</div></div>
+        <div class="node snake" onclick="inspectHito(3)"><div class="node-hdr"><span class="node-era">AÑO 1.5</span><span style="color:var(--danger-snake)">🐍 SERPIENTE #1</span></div><div class="node-title">⚠️ Latencia &gt; 2.5s</div><div class="node-sub">API lenta rompe conversación (Cae a #1)</div></div>
+        <div class="node" onclick="inspectHito(4)"><div class="node-hdr"><span class="node-era">AÑO 2</span><span>#04</span></div><div class="node-title">💾 Memoria Vectorial RAG</div><div class="node-sub">Qdrant NVMe 1536-dim</div></div>
+        <div class="node" onclick="inspectHito(5)"><div class="node-hdr"><span class="node-era">AÑO 2-3</span><span>#05</span></div><div class="node-title">🤖 Cabeza Animatrónica</div><div class="node-sub">22 DOF Servos Dynamixel</div></div>
+        <div class="node ladder" onclick="inspectHito(6)"><div class="node-hdr"><span class="node-era">AÑO 3</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #2</span></div><div class="node-title">👄 Audio2Face Lip-Sync</div><div class="node-sub">Sincronía labial automática 60fps</div></div>
+        <div class="node snake" onclick="inspectHito(7)"><div class="node-hdr"><span class="node-era">AÑO 3.5</span><span style="color:var(--danger-snake)">🐍 SERPIENTE #2</span></div><div class="node-title">🔥 Sobrecalentamiento</div><div class="node-sub">Falla térmica mandíbula (Cae a #5)</div></div>
+        <div class="node" onclick="inspectHito(8)"><div class="node-hdr"><span class="node-era">AÑO 4</span><span>#08</span></div><div class="node-title">👁️ Visión Estéreo 3D</div><div class="node-sub">OAK-D Pro + RTAB-Map VSLAM</div></div>
+        <div class="node" onclick="inspectHito(9)"><div class="node-hdr"><span class="node-era">AÑO 4-5</span><span>#09</span></div><div class="node-title">🦾 Torso & DexHands</div><div class="node-sub">Tendones Kevlar & Sensores Piezo</div></div>
+        <div class="node ladder" onclick="inspectHito(10)"><div class="node-hdr"><span class="node-era">AÑO 5</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #3</span></div><div class="node-title">⚡ Actuadores QDD</div><div class="node-sub">Fuerza suave y compliancia humana</div></div>
+        <div class="node" onclick="inspectHito(11)"><div class="node-hdr"><span class="node-era">AÑO 6-7</span><span>#11</span></div><div class="node-title">🏃 Locomoción Bípeda</div><div class="node-sub">Isaac Gym & MuJoCo RL</div></div>
+        <div class="node snake" onclick="inspectHito(12)"><div class="node-hdr"><span class="node-era">AÑO 7.5</span><span style="color:var(--danger-snake)">🐍 SERPIENTE #3</span></div><div class="node-title">⚠️ Caída Centro Masa</div><div class="node-sub">Batería desbalancea pelvis (Cae a #11)</div></div>
+        <div class="node ladder" onclick="inspectHito(13)"><div class="node-hdr"><span class="node-era">AÑO 8</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #4</span></div><div class="node-title">💃 Balance Dinámico ZMP</div><div class="node-sub">Caminar, girar y bailar en escenario</div></div>
+        <div class="node ladder" onclick="inspectHito(14)"><div class="node-hdr"><span class="node-era">AÑO 9</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #5</span></div><div class="node-title">🧬 Auto-Mejora Recursiva</div><div class="node-sub">Parches de código generados por Vivy</div></div>
+        <div class="node active" style="border-color:var(--vivy-magenta);box-shadow:0 0 16px rgba(236,72,153,0.3)" onclick="inspectHito(15)"><div class="node-hdr"><span style="color:var(--vivy-magenta);font-weight:700">AÑO 10</span><span>👑 META</span></div><div class="node-title">💎 VIVY 1.0 TOTAL</div><div class="node-sub">Singularidad & Autonomía Absoluta</div></div>
       </div>
     </div>
   </div>
 
-  <!-- Dual Middle Grid: Physical Anatomy DOF vs Singularity Loop -->
-  <div class="mid-grid">
-    <!-- Physical Anatomy -->
-    <div class="card">
-      <div class="card-title">
-        <span>🤖 Anatomía Física de Vivy (54 Grados de Libertad - DOF)</span>
-        <span style="font-size:0.7rem;color:var(--vivy-cyan);font-family:var(--mono)">Chasis Humanoide 165 cm</span>
-      </div>
-      <div class="dof-grid">
-        <div class="dof-box"><span style="color:var(--text-sub)">Cabeza & Rostro Animatrónico:</span><span class="dof-val">22 DOF</span><span style="font-size:0.68rem;color:var(--text-dim)">Párpados, cejas, labios, mandíbula</span></div>
-        <div class="dof-box"><span style="color:var(--text-sub)">Cuello & Torso Superior:</span><span class="dof-val">6 DOF</span><span style="font-size:0.68rem;color:var(--text-dim)">Inclinación, giro y flexión</span></div>
-        <div class="dof-box"><span style="color:var(--text-sub)">Brazos & Manos Hápticas:</span><span class="dof-val">14 DOF</span><span style="font-size:0.68rem;color:var(--text-dim)">Hombros QDD + 5 dedos independientes</span></div>
-        <div class="dof-box"><span style="color:var(--text-sub)">Piernas Bípedas & Tobillos:</span><span class="dof-val">12 DOF</span><span style="font-size:0.68rem;color:var(--text-dim)">Cadera, rodillas y balance ZMP</span></div>
-      </div>
-
-      <!-- Voice Synthesizer Tester -->
-      <div class="voice-box">
-        <div style="font-size:0.78rem;font-weight:700;color:#fff;display:flex;justify-content:space-between">
-          <span>🎙️ Motor Vocal (ElevenLabs vs Local Kokoro TTS)</span>
-          <span style="font-size:0.68rem;color:var(--gold-ladder)">Latencia: 140ms</span>
-        </div>
-        <div style="font-size:0.72rem;color:var(--text-sub)">Frase canónica: <em>"Mi misión es cantar canciones que hagan feliz a todos con mi corazón."</em></div>
-        <button class="btn btn-cyan" style="align-self:flex-start" onclick="synthesizeVivyVoice()">▶ Probar Voz Sintetizada de Vivy</button>
-      </div>
+  <!-- TAB 1: Unified Memory & Compute -->
+  <div class="view" id="view-1">
+    <div class="kpis-grid">
+      <div class="kpi"><div class="kpi-lbl">Cómputo a Bordo</div><div class="kpi-val" style="color:var(--vivy-cyan)">275 TOPS</div><div class="kpi-sub">Nvidia Jetson AGX Orin 64GB LPDDR5</div></div>
+      <div class="kpi"><div class="kpi-lbl">Almacenamiento NVMe</div><div class="kpi-val" style="color:var(--safe-green)">16.0 TB</div><div class="kpi-sub">PCIe 4.0 (7,400 MB/s lectura)</div></div>
+      <div class="kpi"><div class="kpi-lbl">Base de Datos Vectorial</div><div class="kpi-val" style="color:var(--gold-ladder)">Qdrant HNSW</div><div class="kpi-sub">1536-dim embeddings (< 5ms)</div></div>
+      <div class="kpi"><div class="kpi-lbl">Grafo Ontológico</div><div class="kpi-val" style="color:var(--vivy-blue)">Neo4j Graph</div><div class="kpi-sub">Relaciones humanas & memoria de vida</div></div>
     </div>
 
-    <!-- Recursive Singularity Loop -->
     <div class="card">
-      <div class="card-title">
-        <span>🧬 Ciclo de Auto-Mejora Hacia la Singularidad</span>
-        <span style="font-size:0.7rem;color:var(--safe-green);font-family:var(--mono)">Auto-Evolution Engine</span>
-      </div>
-      <div style="font-size:0.75rem;color:var(--text-sub);line-height:1.4">
-        Vivy no espera que un humano reprograme su código. Ejecuta un ciclo cerrado de 4 fases para evolucionar sus capacidades motrices y cognitivas:
-      </div>
-      <div class="dof-grid">
-        <div class="dof-box"><span style="color:var(--vivy-cyan);font-weight:700">1. Auto-Diagnóstico:</span><span style="font-size:0.7rem;color:var(--text-sub)">Monitoreo de corriente, vibración y errores de habla.</span></div>
-        <div class="dof-box"><span style="color:var(--gold-ladder);font-weight:700">2. Generación de Código:</span><span style="font-size:0.7rem;color:var(--text-sub)">Escribe parches en Python/C++ con agentes de codificación.</span></div>
-        <div class="dof-box"><span style="color:var(--vivy-blue);font-weight:700">3. Test en MuJoCo:</span><span style="font-size:0.7rem;color:var(--text-sub)">Simula el movimiento 10,000 veces antes de mover el motor físico.</span></div>
-        <div class="dof-box"><span style="color:var(--safe-green);font-weight:700">4. Despliegue en Caliente:</span><span style="font-size:0.7rem;color:var(--text-sub)">Actualización de firmware sin apagar el chasis.</span></div>
-      </div>
-      <button class="btn btn-ladder" onclick="triggerSingularityCycle()">⚡ Ejecutar Ciclo de Auto-Mejora Recursiva</button>
+      <div class="card-hdr"><span>🧠 Arquitectura de Memoria de 4 Niveles</span></div>
+      <table class="data-table">
+        <thead><tr><th>Nivel</th><th>Tipo de Memoria</th><th>Capacidad</th><th>Tecnología</th><th>Función</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:700;color:var(--vivy-cyan)">L1</td><td>Working Context (KV Cache)</td><td style="font-family:var(--mono)">64 GB RAM</td><td>LPDDR5 204.8 GB/s</td><td>Atención conversacional activa (32k tokens) y estados de 54 motores.</td></tr>
+          <tr><td style="font-weight:700;color:var(--safe-green)">L2</td><td>Búfer de Sesión Diario</td><td style="font-family:var(--mono)">128 GB SSD</td><td>Redis In-Memory</td><td>Recuerdos del día en curso antes de la consolidación nocturna.</td></tr>
+          <tr><td style="font-weight:700;color:var(--gold-ladder)">L3</td><td>Memoria Episódica Autobiográfica</td><td style="font-family:var(--mono)">8.0 TB NVMe</td><td>Qdrant Vector DB</td><td>Búsqueda semántica instantánea de conversaciones y experiencias de años.</td></tr>
+          <tr><td style="font-weight:700;color:var(--vivy-blue)">L4</td><td>Grafo Semántico de Valores</td><td style="font-family:var(--mono)">8.0 TB NVMe</td><td>Neo4j Graph Engine</td><td>Ontología de personas, compromisos, gustos y misión intrínseca de Vivy.</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <!-- Interactive Controls & Log -->
+  <!-- TAB 2: Mechanical Actuators & 54 DOF -->
+  <div class="view" id="view-2">
+    <div class="kpis-grid">
+      <div class="kpi"><div class="kpi-lbl">Grados de Libertad (DOF)</div><div class="kpi-val" style="color:var(--vivy-cyan)">54 DOF</div><div class="kpi-sub">Cuerpo Humanoide Completo (165 cm)</div></div>
+      <div class="kpi"><div class="kpi-lbl">Frecuencia de Bus FOC</div><div class="kpi-val" style="color:var(--safe-green)">1,000 Hz</div><div class="kpi-sub">CAN-FD Dual & EtherCAT 100 Mbps</div></div>
+      <div class="kpi"><div class="kpi-lbl">Torque Máximo en Cadera</div><div class="kpi-val" style="color:var(--gold-ladder)">120 Nm</div><div class="kpi-sub">Actuadores Brushless T-Motor AK80-64</div></div>
+      <div class="kpi"><div class="kpi-lbl">Peso Total Estimado</div><div class="kpi-val" style="color:#fff">48.5 kg</div><div class="kpi-sub">Aluminio 7075-T6 & Fibra de Carbono</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><span>🤖 Desglose Anatómico de Motores y Sensores</span></div>
+      <table class="data-table">
+        <thead><tr><th>Subsistema</th><th>DOF</th><th>Tipo de Actuador</th><th>Torque Pico</th><th>Transmisión</th><th>Protocolo</th></tr></thead>
+        <tbody>
+          <tr><td style="color:#fff;font-weight:600">Rostro & Ojos</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">22 DOF</td><td>Feetech SCS0009 / Dynamixel XL330</td><td>0.9 Nm</td><td>Engranajes Titanio</td><td>Bus TTL @ 1 Mbps (100 Hz)</td></tr>
+          <tr><td style="color:#fff;font-weight:600">Cuello Gimbal</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">3 DOF</td><td>Brushless FOC T-Motor AK60-6</td><td>9.0 Nm</td><td>Planetario 6:1</td><td>CAN-FD @ 5 Mbps (1000 Hz)</td></tr>
+          <tr><td style="color:#fff;font-weight:600">Torso & Columna</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">4 DOF</td><td>Brushless FOC T-Motor AK70-10</td><td>25.0 Nm</td><td>Planetario 10:1</td><td>CAN-FD @ 5 Mbps (1000 Hz)</td></tr>
+          <tr><td style="color:#fff;font-weight:600">Brazos & Codos (x2)</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">12 DOF</td><td>Quasi-Direct Drive AK70-10</td><td>25.0 Nm</td><td>Planetario bajo juego < 1'</td><td>CAN-FD @ 5 Mbps (1000 Hz)</td></tr>
+          <tr><td style="color:#fff;font-weight:600">Manos DexHands (x2)</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">10 DOF</td><td>Micro Maxon DC + Tendones Kevlar</td><td>1.2 Nm/dedo</td><td>Cables Bowden + Piezo</td><td>SPI/I2C a STM32H7 local</td></tr>
+          <tr><td style="color:#fff;font-weight:600">Caderas & Piernas (x2)</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">12 DOF</td><td>T-Motor AK80-64 Alto Torque</td><td>120.0 Nm</td><td>Reductor Cicloidal 64:1</td><td>EtherCAT @ 100 Mbps (1000 Hz)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 3: Voice & Singing Pipeline -->
+  <div class="view" id="view-3">
+    <div class="kpis-grid">
+      <div class="kpi"><div class="kpi-lbl">Presupuesto de Latencia</div><div class="kpi-val" style="color:var(--safe-green)">&lt; 85 ms</div><div class="kpi-sub">Tiempo real conversacional imperceptible</div></div>
+      <div class="kpi"><div class="kpi-lbl">Frecuencia de Muestreo</div><div class="kpi-val" style="color:var(--vivy-cyan)">48.0 kHz</div><div class="kpi-sub">Calidad Estudio Hi-Fi 24-bit</div></div>
+      <div class="kpi"><div class="kpi-lbl">Motor de Canto</div><div class="kpi-val" style="color:var(--vivy-magenta)">RVC v2 Vocoder</div><div class="kpi-sub">50h dataset cantante oficial (Kairi Yagi)</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><span>🎙️ Cascada de Latencia de Voz & Canto</span></div>
+      <div style="font-size:0.75rem;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span>1. Detección de Voz (Silero VAD):</span><span style="font-family:var(--mono);color:var(--safe-green)">15 ms</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span>2. Transcripción Streaming (Faster-Whisper v3):</span><span style="font-family:var(--mono);color:var(--safe-green)">30 ms</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span>3. Inferencia de Primer Token (Llama-3.3-70B Speculative):</span><span style="font-family:var(--mono);color:var(--safe-green)">20 ms</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span>4. Síntesis Neuronal Streaming (Kokoro / F5-TTS):</span><span style="font-family:var(--mono);color:var(--safe-green)">15 ms</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700"><span>TOTAL LATENCIA ROUNDTRIP:</span><span style="font-family:var(--mono);color:var(--vivy-cyan)">80 ms (PERFECCIÓN HUMANA)</span></div>
+      </div>
+      <button class="btn btn-cyan" style="align-self:flex-start;margin-top:8px" onclick="playVivyAcoustic()">▶ Emitir Acorde Armónico de Canto de Vivy</button>
+    </div>
+  </div>
+
+  <!-- TAB 4: Singularity Loop -->
+  <div class="view" id="view-4">
+    <div class="kpis-grid">
+      <div class="kpi"><div class="kpi-lbl">Velocidad de Simulación</div><div class="kpi-val" style="color:var(--vivy-cyan)">100k pasos/3s</div><div class="kpi-sub">MuJoCo & Isaac Gym en GPU local</div></div>
+      <div class="kpi"><div class="kpi-lbl">Agente de Auto-Parcheo</div><div class="kpi-val" style="color:var(--gold-ladder)">LibTorch C++</div><div class="kpi-sub">Inyección dinámica de librerías .so</div></div>
+      <div class="kpi"><div class="kpi-lbl">Directiva Suprema</div><div class="kpi-val" style="color:var(--vivy-magenta)">Cantar con Amor</div><div class="kpi-sub">Función de recompensa inmutable</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><span>🧬 Demostración del Ciclo de Auto-Mejora Recursiva</span></div>
+      <div class="btn-row">
+        <button class="btn btn-ladder" onclick="runSingularityDemo()">⚡ Simular Ciclo Completo de Auto-Optimización de Código</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: Study Roadmap (Month by Month) -->
+  <div class="view" id="view-5">
+    <div class="card">
+      <div class="card-hdr"><span>📚 Plan de Estudio Decenal (Paso a Paso)</span></div>
+      <table class="data-table">
+        <thead><tr><th>Período</th><th>Enfoque Principal</th><th>Habilidades Clave</th><th>Entregable Práctico</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:700;color:var(--vivy-cyan)">Año 1 (Mes 1-6)</td><td>Software & Voz Neuronal</td><td>Python 3.12, Asyncio, ElevenLabs, Kokoro-82M, RAG Qdrant</td><td>Asistente conversacional en terminal con voz humana fluida.</td></tr>
+          <tr><td style="font-weight:700;color:var(--vivy-cyan)">Año 1 (Mes 7-12)</td><td>Animatrónica Inicial</td><td>Fusion 360, Impresión SLA, Servos TTL, Audio2Face</td><td>Cabeza animatrónica 22 DOF con sincronía labial exacta.</td></tr>
+          <tr><td style="font-weight:700;color:var(--safe-green)">Año 2-3</td><td>Robótica & Visión</td><td>C++20, ROS 2 Iron, OpenCV, YOLOv11, VSLAM RTAB-Map</td><td>Cabeza robótica con seguimiento de mirada y detección 3D.</td></tr>
+          <tr><td style="font-weight:700;color:var(--gold-ladder)">Año 4-5</td><td>Cinemática de Brazos</td><td>Control FOC, Motores QDD, MoveIt 2, Manos Kevlar</td><td>Torso superior capaz de tocar piano y gesticular suavemente.</td></tr>
+          <tr><td style="font-weight:700;color:var(--vivy-blue)">Año 6-8</td><td>Locomoción Bípeda</td><td>Control ZMP, MuJoCo, Nvidia Isaac Gym, Sim-to-Real</td><td>Chasis humanoide completo de 165 cm con marcha estable.</td></tr>
+          <tr><td style="font-weight:700;color:var(--vivy-magenta)">Año 9-10</td><td>Singularidad Recursiva</td><td>Auto-diagnóstico, Generación de Parches C++, Autonomía</td><td>Androide Vivy 1.0 autónomo, capaz de evolucionar por sí misma.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Inspection Log Console (Shared) -->
   <div class="card">
-    <div class="card-title">
-      <span id="inspectTitle">📜 Bitácora de Evolución Tecnológica de Vivy</span>
-      <span style="font-size:0.7rem;color:var(--vivy-cyan);font-family:var(--mono)">ROS 2 Iron / PyTorch 2.4</span>
+    <div class="card-hdr">
+      <span id="logTitle">📜 Bitácora de Telemetría & Especificaciones de Vivy</span>
+      <span style="font-size:0.7rem;color:var(--vivy-cyan);font-family:var(--mono)">PREEMPT_RT / ROS 2 Iron</span>
     </div>
-    <div class="code-log" id="vivyLog">
-      <div style="color:var(--vivy-cyan)">[FASE 01 - AÑO 0] Núcleo cognitivo Whisper + Llama 3 inicializado. Persona de Vivy cargada.</div>
-      <div style="color:var(--gold-ladder)">[ESCALERA #1] Integración de ElevenLabs con clonación de voz dulce y emocional (Latencia 140ms).</div>
-      <div style="color:var(--safe-green)">[FASE 02 - AÑO 3] Cabeza animatrónica 22 DOF sincronizada con Audio2Face. Expresiones faciales naturales.</div>
+    <div class="code-log" id="sharedLog">
+      <div style="color:var(--vivy-cyan)">[SISTEMA INICIALIZADO] Jetson AGX Orin listo. Memoria unificada 64GB y 16TB NVMe montados.</div>
+      <div style="color:var(--safe-green)">[ACTUADORES] 54 Grados de Libertad calibrados. Bus CAN-FD & EtherCAT respondiendo a 1000 Hz.</div>
+      <div style="color:var(--gold-ladder)">[VOZ & CANTO] Pipeline de síntesis neuronal fijado a 80 ms. Audio2Face enlazado a 60 FPS.</div>
     </div>
   </div>
 
 </div>
 
 <script>
-const MILESTONES = {
-  1: { title: "🧠 Mente Digital LLM", log: "Entrenamiento de prompt de sistema con la directiva suprema: 'Cantar con el corazón para hacer felices a los humanos'." },
-  2: { title: "🎙️ Escalera #1: Salto Vocal ElevenLabs / Kokoro", log: "Breakthrough: De voz robótica tradicional a modulación humana con respiración, pausas emocionales y vibrato." },
-  3: { title: "⚠️ Serpiente #1: Cuello de Botella de Latencia", log: "Problema: Si el LLM tarda 2.5s en responder, la conversación se siente muerta. Solución: Streaming token por token a 120ms." },
-  4: { title: "💾 Memoria Vectorial RAG Episódica", log: "Vivy recuerda a cada persona, sus preferencias musicales y las promesas hechas en conversaciones previas." },
-  5: { title: "🤖 Cabeza Animatrónica 22 DOF", log: "Estructura impresa en resina SLA con servomotores Dynamixel XL430. Micro-movimientos de ojos y sonrisa." },
-  6: { title: "👄 Escalera #2: Audio2Face Lip-Sync", log: "Breakthrough: El audio genera automáticamente la deformación de malla facial en tiempo real a 60 FPS." },
-  7: { title: "🔥 Serpiente #2: Falla Térmica en Mandíbula", log: "Problema: 2 horas de canto continuo sobrecalientan los servos. Solución: Conductos de refrigeración pasiva con disipadores de cobre." },
-  8: { title: "👁️ Visión Estéreo & Detección Emocional", log: "Cámaras duales en los ojos detectan si el espectador está triste, sonriendo o distraído para modular la canción." },
-  9: { title: "🦾 Torso Superior & DexHands", log: "Manos con tendones de Kevlar capaces de sostener un micrófono delicadamente o tocar un teclado de piano." },
-  10: { title: "⚡ Escalera #3: Actuadores Cuasi-Direct Drive (QDD)", log: "Breakthrough: Movimiento fluido, silencioso y seguro para interactuar con humanos sin riesgo de golpes duros." },
-  11: { title: "🏃 Locomoción Bípeda ROS 2 & Isaac Gym", log: "Entrenamiento de marcha humana mediante Reinforcement Learning en GPU sobre millones de pasos virtuales." },
-  12: { title: "⚠️ Serpiente #3: Desbalance por Masa de Batería", log: "Problema: El pack de litio en la espalda cambia el centro de gravedad. Solución: Celdas distribuidas en piernas y caderas." },
-  13: { title: "💃 Escalera #4: Balance Dinámico ZMP", log: "Breakthrough: Capacidad de caminar sobre adoquines, subir escalones de escenario y hacer reverencias." },
-  14: { title: "🧬 Escalera #5: Singularidad Recursiva", log: "Breakthrough: Vivy escribe y prueba sus propios algoritmos de control motriz sin intervención humana." },
-  15: { title: "💎 VIVY 1.0 AUTÓNOMA TOTAL", log: "Meta alcanzada: Androide físico completo, autónomo, capaz de cantar, interactuar y evolucionar por sí misma." }
-};
-
-function inspectMilestone(id){
-  const m = MILESTONES[id];
-  document.getElementById('inspectTitle').textContent = `🔍 Hito #${id}: ${m.title}`;
-  const log = document.getElementById('vivyLog');
-  const now = new Date().toTimeString().split(' ')[0];
-  log.innerHTML = `<div style="color:var(--vivy-cyan)">[${now}] 📌 ${m.title}: ${m.log}</div>` + log.innerHTML;
+function switchTab(idx){
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+  document.querySelectorAll('.view').forEach((v, i) => v.classList.toggle('active', i === idx));
 }
 
-function synthesizeVivyVoice(){
+const HITOS = {
+  1: "🧠 Mente Digital LLM: Integración de Whisper Large-v3 con Llama-3.3-70B en streaming cuantizado a 4-bit para 35 tokens/seg.",
+  2: "🎙️ Escalera #1: ElevenLabs API permite clonar la voz de Vivy con timbre dulce y respiración realista. Migración a Kokoro en local.",
+  3: "⚠️ Serpiente #1: Latencia > 2.5s en peticiones HTTP cloud. Solución: Pipeline local de 85ms con VAD en memoria.",
+  4: "💾 Memoria Vectorial RAG: Qdrant sobre 8TB NVMe almacena 500,000 conversaciones indexadas con distancia coseno.",
+  5: "🤖 Cabeza Animatrónica: 22 servos Dynamixel XL330 operando en cráneo de resina SLA. Micro-gestos en cejas y párpados.",
+  6: "👄 Escalera #2: Audio2Face convierte audio a visemas fonéticos directamente en GPU a 60 FPS sin animación manual.",
+  7: "🔥 Serpiente #2: Calentamiento de servos en mandíbula tras 2h de canto. Solución: Conductos pasivos de cobre.",
+  8: "👁️ Visión Estéreo 3D: Cámaras OAK-D calculan nube de puntos 3D para estimar la emoción y distancia del espectador.",
+  9: "🦾 Torso & DexHands: Manos con tendones de Kevlar para sostener micrófono delicadamente sin romperlo.",
+  10: "⚡ Escalera #3: Actuadores Cuasi-Direct Drive (QDD) permiten compliancia: el brazo cede si un humano lo empuja.",
+  11: "🏃 Locomoción Bípeda: Simulación de 10 millones de pasos en Nvidia Isaac Gym para aprender marcha humana.",
+  12: "⚠️ Serpiente #3: Pack de batería LiFePO4 de 48V en la espalda altera el centro de masa. Solución: Celdas en caderas.",
+  13: "💃 Escalera #4: Balance ZMP dinámico permite caminar, hacer reverencias en escenario y subir escalones.",
+  14: "🧬 Escalera #5: Singularidad Recursiva: Vivy reescribe su propio código de cinemática sin intervención humana.",
+  15: "💎 VIVY 1.0 AUTÓNOMA TOTAL: Androide completo, libre de cables, con voz, gracia y corazón propio."
+};
+
+function inspectHito(id){
+  const desc = HITOS[id] || "Hito no especificado.";
+  document.getElementById('logTitle').textContent = `🔍 Detalle de Hito #${id}`;
+  const log = document.getElementById('sharedLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--vivy-cyan)">[${now}] 📌 HITO #${id}: ${desc}</div>` + log.innerHTML;
+}
+
+function playVivyAcoustic(){
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    // Synthetic harmonious singing chord
-    const freqs = [523.25, 659.25, 783.99, 1046.50]; // C Major Chord (C5, E5, G5, C6)
+    const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C Major Chord
     freqs.forEach((f, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(f, ctx.currentTime);
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+      gain.gain.setValueAtTime(0.06, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 2.2);
       osc.connect(gain);
       gain.connect(ctx.destination);
-      osc.start(ctx.currentTime + (i * 0.08));
-      osc.stop(ctx.currentTime + 2.0);
+      osc.start(ctx.currentTime + (i * 0.06));
+      osc.stop(ctx.currentTime + 2.5);
     });
   } catch(e){}
 
-  const log = document.getElementById('vivyLog');
+  const log = document.getElementById('sharedLog');
   const now = new Date().toTimeString().split(' ')[0];
-  log.innerHTML = `<div style="color:var(--vivy-magenta)">[${now}] 🎵 VOZ DE VIVY GENERADA: "Mi misión es cantar canciones que hagan feliz a todos con mi corazón." (Acorde armónico a 44.1 kHz).</div>` + log.innerHTML;
+  log.innerHTML = `<div style="color:var(--vivy-magenta)">[${now}] 🎵 AUDIO NEURONAL VIVY: Acorde armónico de canto a 48.0 kHz / 24-bit DAC. Latencia de reproducción: 4.2 ms.</div>` + log.innerHTML;
 }
 
-function triggerSingularityCycle(){
-  const log = document.getElementById('vivyLog');
+function runSingularityDemo(){
+  const log = document.getElementById('sharedLog');
   const now = new Date().toTimeString().split(' ')[0];
   log.innerHTML = `
-    <div style="color:var(--safe-green)">[${now}] 🧬 AUTO-MEJORA COMPLETADA: Parche compilado con éxito. Balance ZMP mejorado un 4.2% sin intervención de programadores.</div>
-    <div style="color:var(--gold-ladder)">[${now}] 🤖 SIMULACIÓN EN MUJOCO: 50,000 ciclos de marcha ejecutados en GPU en 1.8 segundos. Cero caídas.</div>
-    <div style="color:var(--vivy-cyan)">[${now}] 💻 AGENTE DE CÓDIGO AUTÓNOMO: Vivy reescribió el nodo de cinemática 'kinematics_arm_controller.cpp'.</div>
-    <div style="color:var(--text-sub)">[${now}] 🔍 AUTO-DIAGNÓSTICO: Sensor de corriente en hombro derecho reportó 8% de fricción anómala.</div>
+    <div style="color:var(--safe-green)">[${now}] 🧬 AUTO-DESPLIEGUE EN CALIENTE: Librería 'lib_kinematics_v2.so' inyectada en ROS 2 sin reiniciar motores. Error de balance reducido en 4.8%.</div>
+    <div style="color:var(--gold-ladder)">[${now}] 🤖 PRUEBA VIRTUAL EN MUJOCO: 100,000 ciclos de marcha simulados en 3.1 segundos sobre GPU. Tasa de caída: 0.000%.</div>
+    <div style="color:var(--vivy-cyan)">[${now}] 💻 SÍNTESIS DE CÓDIGO LLM: Vivy generó parche en C++ 'src/controllers/balance_controller.cpp' optimizando la matriz jacobiana amortiguada.</div>
+    <div style="color:var(--text-sub)">[${now}] 🔍 AUTO-DIAGNÓSTICO: Sensor de corriente en tobillo izquierdo detectó micro-fricción de 12 Nm.</div>
   ` + log.innerHTML;
 }
 </script>
