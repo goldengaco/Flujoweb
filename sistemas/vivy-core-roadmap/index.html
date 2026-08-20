@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vivy Core — Consola de Ingeniería & Blueprint Decenal de Androide Autónomo</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Vivy Core — Master Blueprint & Consola de Ingeniería Paso a Paso (0 a 10 Años)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg-dark:#070a12;--bg-card:#0e1422;--bg-node:#141c2e;--border:#1c283f;
+  --bg-dark:#060911;--bg-card:#0c121e;--bg-node:#121a2b;--border:#1b273d;
   --vivy-cyan:#00f0ff;--vivy-blue:#0099ff;--vivy-magenta:#ec4899;--gold-ladder:#f59e0b;--danger-snake:#ef4444;--safe-green:#10b981;
   --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#5a6e8c;
   --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
 }
 body{
   min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
-  display:flex;flex-direction:column;align-items:center;padding:24px 18px;line-height:1.5;
+  display:flex;flex-direction:column;align-items:center;padding:20px 16px;line-height:1.5;
 }
-.app{width:100%;max-width:1240px;display:flex;flex-direction:column;gap:18px}
+.app{width:100%;max-width:1320px;display:flex;flex-direction:column;gap:16px}
 
 /* Header */
 .hdr{
@@ -26,22 +26,22 @@ body{
 }
 .hdr-brand{display:flex;align-items:center;gap:12px}
 .hdr-icon{
-  width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg, var(--vivy-cyan), var(--vivy-blue));
-  display:flex;align-items:center;justify-content:center;font-size:1.5rem;
-  box-shadow:0 0 24px rgba(0,240,255,0.45);
+  width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg, var(--vivy-cyan), var(--vivy-blue));
+  display:flex;align-items:center;justify-content:center;font-size:1.6rem;
+  box-shadow:0 0 26px rgba(0,240,255,0.45);
 }
 .hdr-title{font-size:1.35rem;font-weight:900;letter-spacing:-0.02em}
 .hdr-tag{
-  font-size:0.72rem;padding:5px 14px;border-radius:20px;background:rgba(0,240,255,0.12);
+  font-size:0.72rem;padding:6px 14px;border-radius:20px;background:rgba(0,240,255,0.12);
   border:1px solid rgba(0,240,255,0.3);color:var(--vivy-cyan);font-family:var(--mono);font-weight:700;
 }
 
 /* Master Navigation Tabs */
 .tabs-bar{
-  display:flex;gap:8px;border-bottom:1px solid var(--border);padding-bottom:8px;flex-wrap:wrap;
+  display:flex;gap:6px;border-bottom:1px solid var(--border);padding-bottom:8px;flex-wrap:wrap;
 }
 .tab-btn{
-  padding:9px 16px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:700;
+  padding:9px 15px;border-radius:8px;font-family:var(--font);font-size:0.78rem;font-weight:700;
   cursor:pointer;background:transparent;border:1px solid transparent;color:var(--text-sub);
   display:flex;align-items:center;gap:6px;transition:all 0.2s;
 }
@@ -57,53 +57,88 @@ body{
 /* Cards & Layouts */
 .card{
   background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
-  padding:20px;display:flex;flex-direction:column;gap:12px;
+  padding:18px;display:flex;flex-direction:column;gap:12px;
 }
-.card-hdr{font-size:0.9rem;font-weight:800;color:#fff;display:flex;justify-content:space-between;align-items:center}
+.card-hdr{font-size:0.9rem;font-weight:800;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+
+/* Budget Mode Switcher Pill */
+.budget-toggle-row{
+  display:flex;gap:8px;background:rgba(0,0,0,0.4);padding:4px;border-radius:8px;border:1px solid var(--border);
+}
+.budget-btn{
+  padding:6px 14px;border-radius:6px;font-size:0.72rem;font-family:var(--mono);font-weight:700;
+  cursor:pointer;background:transparent;border:none;color:var(--text-sub);transition:all 0.2s;
+}
+.budget-btn.active-free{background:var(--safe-green);color:#000}
+.budget-btn.active-pro{background:var(--gold-ladder);color:#000}
 
 /* KPIs */
-.kpis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
-.kpi-lbl{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:var(--text-dim);font-family:var(--mono)}
-.kpi-val{font-size:1.45rem;font-weight:800;font-family:var(--mono);margin:2px 0;color:#fff}
-.kpi-sub{font-size:0.72rem;color:var(--text-sub)}
+.kpis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px 16px}
+.kpi-lbl{font-size:0.62rem;font-weight:700;text-transform:uppercase;color:var(--text-dim);font-family:var(--mono)}
+.kpi-val{font-size:1.35rem;font-weight:800;font-family:var(--mono);margin:2px 0;color:#fff}
+.kpi-sub{font-size:0.7rem;color:var(--text-sub)}
 
-/* Snakes & Ladders Nodes Grid */
-.nodes-grid{display:grid;grid-template-columns:repeat(5, 1fr);gap:10px}
-@media(max-width:960px){.nodes-grid{grid-template-columns:repeat(3, 1fr)}}
-@media(max-width:600px){.nodes-grid{grid-template-columns:1fr}}
+/* 10 Phases Step-by-Step Snakes & Ladders */
+.phases-container{display:flex;flex-direction:column;gap:14px}
+.phase-section{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.phase-hdr{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+  border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:8px;
+}
+.phase-title{font-size:0.85rem;font-weight:800;color:var(--vivy-cyan);display:flex;align-items:center;gap:8px}
+.phase-badge{font-size:0.68rem;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,0.05);color:var(--text-sub);font-family:var(--mono)}
 
-.node{
-  background:var(--bg-node);border:1px solid var(--border);border-radius:10px;
+/* Steps Grid */
+.steps-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));gap:10px}
+
+.step-node{
+  background:var(--bg-node);border:1px solid var(--border);border-radius:8px;
   padding:12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;
-  transition:all 0.25s;position:relative;
+  transition:all 0.2s;position:relative;
 }
-.node:hover{
-  transform:translateY(-3px);border-color:var(--vivy-cyan);box-shadow:0 0 16px rgba(0,240,255,0.25);
+.step-node:hover{
+  transform:translateY(-2px);border-color:var(--vivy-cyan);box-shadow:0 0 16px rgba(0,240,255,0.2);
 }
-.node.ladder{border-color:var(--gold-ladder);background:rgba(245,158,11,0.06);box-shadow:0 0 12px rgba(245,158,11,0.15)}
-.node.snake{border-color:var(--danger-snake);background:rgba(239,68,68,0.06);box-shadow:0 0 12px rgba(239,68,68,0.15)}
-.node.active{border-color:var(--vivy-cyan);background:rgba(0,240,255,0.08);box-shadow:0 0 16px rgba(0,240,255,0.3)}
+.step-node.ladder{border-color:var(--gold-ladder);background:rgba(245,158,11,0.05);box-shadow:0 0 10px rgba(245,158,11,0.1)}
+.step-node.snake{border-color:var(--danger-snake);background:rgba(239,68,68,0.05);box-shadow:0 0 10px rgba(239,68,68,0.1)}
+.step-node.active{border-color:var(--vivy-cyan);background:rgba(0,240,255,0.09);box-shadow:0 0 16px rgba(0,240,255,0.3)}
 
-.node-hdr{display:flex;justify-content:space-between;align-items:center;font-size:0.65rem;font-family:var(--mono)}
-.node-era{color:var(--vivy-cyan);font-weight:700}
-.node-title{font-size:0.78rem;font-weight:700;color:#fff;line-height:1.2}
-.node-sub{font-size:0.68rem;color:var(--text-sub);line-height:1.2}
+.step-hdr{display:flex;justify-content:space-between;align-items:center;font-size:0.65rem;font-family:var(--mono)}
+.step-title{font-size:0.78rem;font-weight:700;color:#fff;line-height:1.2}
+.step-sub{font-size:0.68rem;color:var(--text-sub);line-height:1.2}
+
+/* Interactive Inspector Drawer (Deep Details) */
+.inspector-card{
+  background:#090e18;border:1px solid var(--vivy-cyan);border-radius:12px;padding:20px;
+  display:flex;flex-direction:column;gap:14px;box-shadow:0 0 30px rgba(0,240,255,0.15);
+}
+.insp-grid{display:grid;grid-template-columns:repeat(2, 1fr);gap:12px}
+@media(max-width:768px){.insp-grid{grid-template-columns:1fr}}
+
+.insp-box{
+  background:#060a12;border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:12px;
+  display:flex;flex-direction:column;gap:6px;
+}
+.insp-box-title{font-size:0.72rem;font-weight:700;font-family:var(--mono);text-transform:uppercase}
+
+.code-snippet{
+  background:#030509;border:1px solid rgba(0,240,255,0.2);border-radius:6px;padding:10px;
+  font-family:var(--mono);font-size:0.72rem;color:var(--vivy-cyan);overflow-x:auto;white-space:pre-wrap;
+}
 
 /* Data Tables */
 .data-table{width:100%;border-collapse:collapse;font-size:0.75rem}
 .data-table th{text-align:left;padding:8px 10px;color:var(--text-dim);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:0.68rem}
 .data-table td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,0.03)}
 
-.badge{padding:3px 8px;border-radius:6px;font-family:var(--mono);font-size:0.68rem;font-weight:700}
-.badge-ok{background:rgba(16,185,129,0.15);color:var(--safe-green);border:1px solid rgba(16,185,129,0.3)}
-.badge-warn{background:rgba(245,158,11,0.15);color:var(--gold-ladder);border:1px solid rgba(245,158,11,0.3)}
-.badge-cyan{background:rgba(0,240,255,0.15);color:var(--vivy-cyan);border:1px solid rgba(0,240,255,0.3)}
-
-/* Action Controls & Code Log */
+/* Action Buttons */
 .btn-row{display:flex;gap:10px;flex-wrap:wrap}
 .btn{
-  padding:9px 16px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
+  padding:9px 16px;border-radius:8px;font-family:var(--font);font-size:0.78rem;font-weight:700;
   cursor:pointer;border:none;transition:all 0.2s;
 }
 .btn-cyan{background:var(--vivy-cyan);color:#000}
@@ -111,12 +146,6 @@ body{
 .btn-ladder{background:var(--gold-ladder);color:#000}
 .btn-ladder:hover{background:#d97706}
 .btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
-
-.code-log{
-  background:#05070d;border:1px solid rgba(255,255,255,0.06);border-radius:8px;
-  padding:12px;font-family:var(--mono);font-size:0.72rem;max-height:160px;overflow-y:auto;
-  display:flex;flex-direction:column;gap:5px;
-}
 </style>
 </head>
 <body>
@@ -128,164 +157,349 @@ body{
     <div class="hdr-brand">
       <div class="hdr-icon">💎</div>
       <div>
-        <div class="hdr-title">Vivy Core · Consola de Ingeniería & Roadmap Decenal de Androide</div>
-        <div style="font-size:0.78rem;color:var(--text-sub)">Especificación Mecatrónica, Memoria Unificada de 16TB, Cinemática de 54 DOF & Singularidad Recursiva</div>
+        <div class="hdr-title">Vivy Core · Master Blueprint & Plan de Acción Paso a Paso (0 a 10 Años)</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Guía de Ingeniería Mecatrónica · Desde el Día 1 en tu PC ($0 vs Pro) hasta el Androide Físico Completo</div>
       </div>
     </div>
-    <div class="hdr-tag">275 TOPS Jetson Orin · FOC 1000 Hz · Latencia &lt; 85ms</div>
+    <div class="hdr-tag">50+ Pasos Granulares · Comparativa $0 vs Pago · Singularidad</div>
   </header>
 
   <!-- Master Navigation Tabs -->
   <div class="tabs-bar">
-    <button class="tab-btn active" onclick="switchTab(0)">🎲 Serpientes & Escaleras</button>
-    <button class="tab-btn" onclick="switchTab(1)">🧠 Memoria & Cómputo (16TB/64GB)</button>
-    <button class="tab-btn" onclick="switchTab(2)">🤖 Actuadores & Cinemática (54 DOF)</button>
-    <button class="tab-btn" onclick="switchTab(3)">🎙️ Pipeline Vocal & Canto (< 85ms)</button>
+    <button class="tab-btn active" onclick="switchTab(0)">🗺️ Tablero Granular (50+ Pasos)</button>
+    <button class="tab-btn" onclick="switchTab(1)">🧠 Memoria & Cómputo ($0 vs Pro)</button>
+    <button class="tab-btn" onclick="switchTab(2)">🤖 Actuadores ($2 vs $55 vs $300)</button>
+    <button class="tab-btn" onclick="switchTab(3)">🎙️ Laboratorio de Voz & Canto</button>
     <button class="tab-btn" onclick="switchTab(4)">🧬 Bucle de Singularidad</button>
-    <button class="tab-btn" onclick="switchTab(5)">📚 Plan de Estudio Decenal</button>
+    <button class="tab-btn" onclick="switchTab(5)">📚 Syllabus Mes a Mes</button>
   </div>
 
-  <!-- TAB 0: Serpientes & Escaleras Board -->
+  <!-- TAB 0: Granular Step-by-Step Board -->
   <div class="view active" id="view-0">
-    <div class="card">
-      <div class="card-hdr">
-        <span>🎲 Matriz No-Lineal de Evolución Decenal (25 Hitos de Desarrollo)</span>
-        <span style="font-size:0.72rem;color:var(--vivy-cyan);font-family:var(--mono)">Haz clic en cualquier hito para inspeccionar</span>
+
+    <!-- Active Step Inspector Drawer -->
+    <div class="inspector-card" id="inspectorDrawer">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <span style="font-size:0.68rem;color:var(--vivy-cyan);font-family:var(--mono);font-weight:700" id="inspPhaseTag">FASE 0 · PASO #01</span>
+          <div style="font-size:1.1rem;font-weight:900;color:#fff" id="inspTitle">🧠 Paso 1: Configurar el Entorno Base en tu PC Actual</div>
+        </div>
+        <div class="budget-toggle-row">
+          <button class="budget-btn active-free" id="btnFilterFree" onclick="toggleBudgetFilter('free')">🟢 Modo $0 Gratis</button>
+          <button class="budget-btn" id="btnFilterPro" onclick="toggleBudgetFilter('pro')">💎 Modo Pro / Pago</button>
+        </div>
       </div>
 
-      <div class="nodes-grid">
-        <div class="node active" onclick="inspectHito(1)"><div class="node-hdr"><span class="node-era">AÑO 0-1</span><span>#01</span></div><div class="node-title">🧠 Mente Digital LLM</div><div class="node-sub">Whisper + Llama 3.3 70B</div></div>
-        <div class="node ladder" onclick="inspectHito(2)"><div class="node-hdr"><span class="node-era">AÑO 1</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #1</span></div><div class="node-title">🎙️ ElevenLabs / Kokoro</div><div class="node-sub">Salto a Voz Humana Real (+3 Hitos)</div></div>
-        <div class="node snake" onclick="inspectHito(3)"><div class="node-hdr"><span class="node-era">AÑO 1.5</span><span style="color:var(--danger-snake)">🐍 SERPIENTE #1</span></div><div class="node-title">⚠️ Latencia &gt; 2.5s</div><div class="node-sub">API lenta rompe conversación (Cae a #1)</div></div>
-        <div class="node" onclick="inspectHito(4)"><div class="node-hdr"><span class="node-era">AÑO 2</span><span>#04</span></div><div class="node-title">💾 Memoria Vectorial RAG</div><div class="node-sub">Qdrant NVMe 1536-dim</div></div>
-        <div class="node" onclick="inspectHito(5)"><div class="node-hdr"><span class="node-era">AÑO 2-3</span><span>#05</span></div><div class="node-title">🤖 Cabeza Animatrónica</div><div class="node-sub">22 DOF Servos Dynamixel</div></div>
-        <div class="node ladder" onclick="inspectHito(6)"><div class="node-hdr"><span class="node-era">AÑO 3</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #2</span></div><div class="node-title">👄 Audio2Face Lip-Sync</div><div class="node-sub">Sincronía labial automática 60fps</div></div>
-        <div class="node snake" onclick="inspectHito(7)"><div class="node-hdr"><span class="node-era">AÑO 3.5</span><span style="color:var(--danger-snake)">🐍 SERPIENTE #2</span></div><div class="node-title">🔥 Sobrecalentamiento</div><div class="node-sub">Falla térmica mandíbula (Cae a #5)</div></div>
-        <div class="node" onclick="inspectHito(8)"><div class="node-hdr"><span class="node-era">AÑO 4</span><span>#08</span></div><div class="node-title">👁️ Visión Estéreo 3D</div><div class="node-sub">OAK-D Pro + RTAB-Map VSLAM</div></div>
-        <div class="node" onclick="inspectHito(9)"><div class="node-hdr"><span class="node-era">AÑO 4-5</span><span>#09</span></div><div class="node-title">🦾 Torso & DexHands</div><div class="node-sub">Tendones Kevlar & Sensores Piezo</div></div>
-        <div class="node ladder" onclick="inspectHito(10)"><div class="node-hdr"><span class="node-era">AÑO 5</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #3</span></div><div class="node-title">⚡ Actuadores QDD</div><div class="node-sub">Fuerza suave y compliancia humana</div></div>
-        <div class="node" onclick="inspectHito(11)"><div class="node-hdr"><span class="node-era">AÑO 6-7</span><span>#11</span></div><div class="node-title">🏃 Locomoción Bípeda</div><div class="node-sub">Isaac Gym & MuJoCo RL</div></div>
-        <div class="node snake" onclick="inspectHito(12)"><div class="node-hdr"><span class="node-era">AÑO 7.5</span><span style="color:var(--danger-snake)">🐍 SERPIENTE #3</span></div><div class="node-title">⚠️ Caída Centro Masa</div><div class="node-sub">Batería desbalancea pelvis (Cae a #11)</div></div>
-        <div class="node ladder" onclick="inspectHito(13)"><div class="node-hdr"><span class="node-era">AÑO 8</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #4</span></div><div class="node-title">💃 Balance Dinámico ZMP</div><div class="node-sub">Caminar, girar y bailar en escenario</div></div>
-        <div class="node ladder" onclick="inspectHito(14)"><div class="node-hdr"><span class="node-era">AÑO 9</span><span style="color:var(--gold-ladder)">🪜 ESCALERA #5</span></div><div class="node-title">🧬 Auto-Mejora Recursiva</div><div class="node-sub">Parches de código generados por Vivy</div></div>
-        <div class="node active" style="border-color:var(--vivy-magenta);box-shadow:0 0 16px rgba(236,72,153,0.3)" onclick="inspectHito(15)"><div class="node-hdr"><span style="color:var(--vivy-magenta);font-weight:700">AÑO 10</span><span>👑 META</span></div><div class="node-title">💎 VIVY 1.0 TOTAL</div><div class="node-sub">Singularidad & Autonomía Absoluta</div></div>
+      <div style="font-size:0.8rem;color:var(--text-sub);line-height:1.4" id="inspDesc">
+        No compres hardware todavía. Instala Python 3.12, VS Code y Ollama en tu computadora actual para ejecutar tu primer modelo LLM local con el prompt de personalidad de Vivy.
       </div>
+
+      <div class="insp-grid">
+        <div class="insp-box">
+          <div class="insp-box-title" style="color:var(--safe-green)">🟢 Opción Gratuita ($0 USD / Open Source)</div>
+          <div style="font-size:0.75rem;color:#fff" id="inspFreeText">
+            • <strong>Software:</strong> VS Code + Ollama (Llama 3.2 3B o Qwen 2.5 7B).<br>
+            • <strong>Hardware:</strong> Tu PC o laptop actual (mínimo 8GB RAM).<br>
+            • <strong>Costo:</strong> $0.00 USD.
+          </div>
+        </div>
+        <div class="insp-box">
+          <div class="insp-box-title" style="color:var(--gold-ladder)">💎 Opción de Pago / Pro (Mayor Potencia)</div>
+          <div style="font-size:0.75rem;color:#fff" id="inspProText">
+            • <strong>API Cloud:</strong> Claude 3.5 Sonnet o OpenAI GPT-4o vía API ($5 - $20 USD/mes).<br>
+            • <strong>Hardware:</strong> Estación con GPU Nvidia RTX 4070 Ti / 4090 para Llama-3.3-70B.<br>
+            • <strong>Costo:</strong> $20/mes API o $2,000 USD GPU.
+          </div>
+        </div>
+      </div>
+
+      <div class="insp-box">
+        <div class="insp-box-title" style="color:var(--vivy-cyan)">💻 Comando / Código a Ejecutar Hoy:</div>
+        <div class="code-snippet" id="inspCode"># 1. Instalar Ollama y descargar modelo ligero
+curl -fsSL https://ollama.com/install.sh | sh
+ollama run qwen2.5:7b "Hola Vivy, ¿cuál es tu misión fundamental?"</div>
+      </div>
+    </div>
+
+    <!-- 10 Phases Container -->
+    <div class="phases-container">
+
+      <!-- FASE 0 -->
+      <div class="phase-section">
+        <div class="phase-hdr">
+          <span class="phase-title">🌱 FASE 0: El Génesis en tu PC Actual ($0 USD — Semana 1 a 4)</span>
+          <span class="phase-badge">Entorno, LLM Local & Primer Chat</span>
+        </div>
+        <div class="steps-grid">
+          <div class="step-node active" onclick="loadStep(1)">
+            <div class="step-hdr"><span style="color:var(--vivy-cyan)">PASO #01</span><span>$0</span></div>
+            <div class="step-title">💻 Entorno Python & Ollama</div>
+            <div class="step-sub">Instalación local y primer prompt</div>
+          </div>
+          <div class="step-node ladder" onclick="loadStep(2)">
+            <div class="step-hdr"><span style="color:var(--gold-ladder)">🪜 PASO #02</span><span>Breakthrough</span></div>
+            <div class="step-title">🎙️ Síntesis Vocal Kokoro-82M</div>
+            <div class="step-sub">Audio neuronal local gratuito a 120ms</div>
+          </div>
+          <div class="step-node snake" onclick="loadStep(3)">
+            <div class="step-hdr"><span style="color:var(--danger-snake)">🐍 PASO #03</span><span>Riesgo</span></div>
+            <div class="step-title">⚠️ Latencia en Respuestas</div>
+            <div class="step-sub">Optimizar streaming token por token</div>
+          </div>
+          <div class="step-node" onclick="loadStep(4)">
+            <div class="step-hdr"><span>PASO #04</span><span>$0</span></div>
+            <div class="step-title">👂 Faster-Whisper Local</div>
+            <div class="step-sub">Transcribe tu voz en tiempo real</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 1 -->
+      <div class="phase-section">
+        <div class="phase-hdr">
+          <span class="phase-title">🧠 FASE 1: Memoria Continua, Emociones & Canto (Mes 2 a 6)</span>
+          <span class="phase-badge">RAG Qdrant, RVC v2 & Personalidad</span>
+        </div>
+        <div class="steps-grid">
+          <div class="step-node" onclick="loadStep(5)">
+            <div class="step-hdr"><span>PASO #05</span><span>$0</span></div>
+            <div class="step-title">💾 Memoria Vectorial Qdrant</div>
+            <div class="step-sub">Recuerda conversaciones pasadas</div>
+          </div>
+          <div class="step-node ladder" onclick="loadStep(6)">
+            <div class="step-hdr"><span style="color:var(--gold-ladder)">🪜 PASO #06</span><span>Breakthrough</span></div>
+            <div class="step-title">🎵 Clonación de Canto RVC v2</div>
+            <div class="step-sub">Vivy canta con la voz oficial de Kairi Yagi</div>
+          </div>
+          <div class="step-node" onclick="loadStep(7)">
+            <div class="step-hdr"><span>PASO #07</span><span>$0</span></div>
+            <div class="step-title">🎭 Modulación de Emociones</div>
+            <div class="step-sub">Cambio de prosodia: ternura, tristeza</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 2 -->
+      <div class="phase-section">
+        <div class="phase-hdr">
+          <span class="phase-title">👁️ FASE 2: Ojos Digitales & Visión Espacial (Mes 6 a 12)</span>
+          <span class="phase-badge">OpenCV, MediaPipe & Tracking Facial</span>
+        </div>
+        <div class="steps-grid">
+          <div class="step-node" onclick="loadStep(8)">
+            <div class="step-hdr"><span>PASO #08</span><span>$0 - $30</span></div>
+            <div class="step-title">📷 Tracking de Mirada con Webcam</div>
+            <div class="step-sub">MediaPipe sigue tus ojos en pantalla</div>
+          </div>
+          <div class="step-node" onclick="loadStep(9)">
+            <div class="step-hdr"><span>PASO #09</span><span>$0</span></div>
+            <div class="step-title">👥 Reconocimiento YOLOv11</div>
+            <div class="step-sub">Identifica quién entra a la habitación</div>
+          </div>
+          <div class="step-node ladder" onclick="loadStep(10)">
+            <div class="step-hdr"><span style="color:var(--gold-ladder)">🪜 PASO #10</span><span>Breakthrough</span></div>
+            <div class="step-title">👄 Audio2Face Lip-Sync</div>
+            <div class="step-sub">Sincronía labial automática 60 FPS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 3 -->
+      <div class="phase-section">
+        <div class="phase-hdr">
+          <span class="phase-title">🤖 FASE 3: El Primer Mecanismo Físico ($15 - $60 USD — Año 1 a 2)</span>
+          <span class="phase-badge">Ojos Animatrónicos & ESP32</span>
+        </div>
+        <div class="steps-grid">
+          <div class="step-node" onclick="loadStep(11)">
+            <div class="step-hdr"><span>PASO #11</span><span>$15 USD</span></div>
+            <div class="step-title">👀 Mecanismo de Ojos 3D</div>
+            <div class="step-sub">4 Servos SG90 / MG90S + Impresión 3D</div>
+          </div>
+          <div class="step-node" onclick="loadStep(12)">
+            <div class="step-hdr"><span>PASO #12</span><span>$6 USD</span></div>
+            <div class="step-title">🔌 Microcontrolador ESP32</div>
+            <div class="step-sub">Puente serie PC-Servos por USB/WiFi</div>
+          </div>
+          <div class="step-node snake" onclick="loadStep(13)">
+            <div class="step-hdr"><span style="color:var(--danger-snake)">🐍 PASO #13</span><span>Riesgo</span></div>
+            <div class="step-title">⚠️ Jitter en Servos Baratos</div>
+            <div class="step-sub">Migrar a servos digitales de bus serie</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 4 -->
+      <div class="phase-section">
+        <div class="phase-hdr">
+          <span class="phase-title">👤 FASE 4: Cabeza Animatrónica & Expresividad (Año 2 a 4)</span>
+          <span class="phase-badge">22 DOF, Cráneo SLA & Piel Silicona</span>
+        </div>
+        <div class="steps-grid">
+          <div class="step-node" onclick="loadStep(14)">
+            <div class="step-hdr"><span>PASO #14</span><span>Pro</span></div>
+            <div class="step-title">💀 Cráneo en Resina SLA</div>
+            <div class="step-sub">Estructura ligera de alta precisión</div>
+          </div>
+          <div class="step-node ladder" onclick="loadStep(15)">
+            <div class="step-hdr"><span style="color:var(--gold-ladder)">🪜 PASO #15</span><span>Breakthrough</span></div>
+            <div class="step-title">✨ Servos Feetech / Dynamixel</div>
+            <div class="step-sub">Movimientos fluidos sin ruido ni saltos</div>
+          </div>
+          <div class="step-node" onclick="loadStep(16)">
+            <div class="step-hdr"><span>PASO #16</span><span>$80 USD</span></div>
+            <div class="step-title">🎨 Piel de Silicona Ecoflex</div>
+            <div class="step-sub">Tacto suave y flexibilidad facial</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 5 A 8 -->
+      <div class="phase-section">
+        <div class="phase-hdr">
+          <span class="phase-title">🦾 FASE 5 A 8: Cuerpo, Cinemática & Marcha Bípeda (Año 4 a 8)</span>
+          <span class="phase-badge">ROS 2, Actuadores QDD, MuJoCo & ZMP</span>
+        </div>
+        <div class="steps-grid">
+          <div class="step-node" onclick="loadStep(17)">
+            <div class="step-hdr"><span>PASO #17</span><span>ROS 2</span></div>
+            <div class="step-title">🕹️ Cinemática Inversa MoveIt 2</div>
+            <div class="step-sub">Control de brazos y cuello 3 DOF</div>
+          </div>
+          <div class="step-node ladder" onclick="loadStep(18)">
+            <div class="step-hdr"><span style="color:var(--gold-ladder)">🪜 PASO #18</span><span>Breakthrough</span></div>
+            <div class="step-title">⚡ Actuadores QDD Planetarios</div>
+            <div class="step-sub">Compliancia y seguridad humana</div>
+          </div>
+          <div class="step-node" onclick="loadStep(19)">
+            <div class="step-hdr"><span>PASO #19</span><span>$0 Sim</span></div>
+            <div class="step-title">🎮 Gemelo Digital en MuJoCo</div>
+            <div class="step-sub">Aprender a caminar en virtual</div>
+          </div>
+          <div class="step-node" onclick="loadStep(20)">
+            <div class="step-hdr"><span>PASO #20</span><span>Chasis</span></div>
+            <div class="step-title">🏃 Marcha Bípeda en Escenario</div>
+            <div class="step-sub">Control ZMP de balance dinámico</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 9: SINGULARIDAD -->
+      <div class="phase-section" style="border-color:var(--vivy-magenta)">
+        <div class="phase-hdr">
+          <span class="phase-title" style="color:var(--vivy-magenta)">💎 FASE 9: Singularidad Recursiva & Vivy 1.0 (Año 9 a 10)</span>
+          <span class="phase-badge" style="color:var(--vivy-magenta)">Auto-Mejora, Firmware Autónomo & Misión</span>
+        </div>
+        <div class="steps-grid">
+          <div class="step-node ladder" onclick="loadStep(21)">
+            <div class="step-hdr"><span style="color:var(--gold-ladder)">🪜 PASO #21</span><span>Singularidad</span></div>
+            <div class="step-title">🧬 Auto-Parcheo de Código C++</div>
+            <div class="step-sub">Vivy optimiza su propia cinemática</div>
+          </div>
+          <div class="step-node active" style="border-color:var(--vivy-magenta)" onclick="loadStep(22)">
+            <div class="step-hdr"><span style="color:var(--vivy-magenta)">👑 PASO FINAL</span><span>Meta</span></div>
+            <div class="step-title">💎 VIVY 1.0 AUTÓNOMA</div>
+            <div class="step-sub">Androide Completo con Corazón Propio</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <!-- TAB 1: Unified Memory & Compute -->
   <div class="view" id="view-1">
     <div class="kpis-grid">
-      <div class="kpi"><div class="kpi-lbl">Cómputo a Bordo</div><div class="kpi-val" style="color:var(--vivy-cyan)">275 TOPS</div><div class="kpi-sub">Nvidia Jetson AGX Orin 64GB LPDDR5</div></div>
-      <div class="kpi"><div class="kpi-lbl">Almacenamiento NVMe</div><div class="kpi-val" style="color:var(--safe-green)">16.0 TB</div><div class="kpi-sub">PCIe 4.0 (7,400 MB/s lectura)</div></div>
-      <div class="kpi"><div class="kpi-lbl">Base de Datos Vectorial</div><div class="kpi-val" style="color:var(--gold-ladder)">Qdrant HNSW</div><div class="kpi-sub">1536-dim embeddings (< 5ms)</div></div>
-      <div class="kpi"><div class="kpi-lbl">Grafo Ontológico</div><div class="kpi-val" style="color:var(--vivy-blue)">Neo4j Graph</div><div class="kpi-sub">Relaciones humanas & memoria de vida</div></div>
+      <div class="kpi"><div class="kpi-lbl">Ruta $0 Gratis</div><div class="kpi-val" style="color:var(--safe-green)">Tu PC Actual</div><div class="kpi-sub">Ollama + SQLite + Kokoro TTS</div></div>
+      <div class="kpi"><div class="kpi-lbl">Ruta Intermedia</div><div class="kpi-val" style="color:var(--vivy-cyan)">$250 USD</div><div class="kpi-sub">Raspberry Pi 5 8GB + Coral TPU</div></div>
+      <div class="kpi"><div class="kpi-lbl">Ruta Pro Industrial</div><div class="kpi-val" style="color:var(--gold-ladder)">$2,000 USD</div><div class="kpi-sub">Nvidia Jetson AGX Orin 64GB (275 TOPS)</div></div>
+      <div class="kpi"><div class="kpi-lbl">Almacenamiento Total</div><div class="kpi-val" style="color:var(--vivy-magenta)">16 TB NVMe</div><div class="kpi-sub">Memoria autobiográfica permanente</div></div>
     </div>
 
     <div class="card">
-      <div class="card-hdr"><span>🧠 Arquitectura de Memoria de 4 Niveles</span></div>
+      <div class="card-hdr"><span>🧠 Comparativa de Arquitectura de Memoria y Cómputo</span></div>
       <table class="data-table">
-        <thead><tr><th>Nivel</th><th>Tipo de Memoria</th><th>Capacidad</th><th>Tecnología</th><th>Función</th></tr></thead>
+        <thead><tr><th>Nivel</th><th>Componente</th><th>🟢 Opción $0 Gratis (Hoy)</th><th>💎 Opción Pro (Final)</th><th>Función</th></tr></thead>
         <tbody>
-          <tr><td style="font-weight:700;color:var(--vivy-cyan)">L1</td><td>Working Context (KV Cache)</td><td style="font-family:var(--mono)">64 GB RAM</td><td>LPDDR5 204.8 GB/s</td><td>Atención conversacional activa (32k tokens) y estados de 54 motores.</td></tr>
-          <tr><td style="font-weight:700;color:var(--safe-green)">L2</td><td>Búfer de Sesión Diario</td><td style="font-family:var(--mono)">128 GB SSD</td><td>Redis In-Memory</td><td>Recuerdos del día en curso antes de la consolidación nocturna.</td></tr>
-          <tr><td style="font-weight:700;color:var(--gold-ladder)">L3</td><td>Memoria Episódica Autobiográfica</td><td style="font-family:var(--mono)">8.0 TB NVMe</td><td>Qdrant Vector DB</td><td>Búsqueda semántica instantánea de conversaciones y experiencias de años.</td></tr>
-          <tr><td style="font-weight:700;color:var(--vivy-blue)">L4</td><td>Grafo Semántico de Valores</td><td style="font-family:var(--mono)">8.0 TB NVMe</td><td>Neo4j Graph Engine</td><td>Ontología de personas, compromisos, gustos y misión intrínseca de Vivy.</td></tr>
+          <tr><td style="font-weight:700;color:var(--vivy-cyan)">L1</td><td>Cerebro LLM Inmediato</td><td>Ollama (Qwen 2.5 7B / Llama 3.2) en tu CPU/GPU</td><td>Jetson AGX Orin 64GB LPDDR5 (204.8 GB/s)</td><td>Atención conversacional y lazo de control motriz.</td></tr>
+          <tr><td style="font-weight:700;color:var(--safe-green)">L2</td><td>Búfer Diario</td><td>SQLite / Redis en RAM local</td><td>Redis In-Memory en NVMe PCIe 4.0</td><td>Memoria de corto plazo del día antes de dormir.</td></tr>
+          <tr><td style="font-weight:700;color:var(--gold-ladder)">L3</td><td>Memoria Episódica RAG</td><td>Qdrant local en disco duro actual</td><td>8TB NVMe PCIe 4.0 (Embeddings 1536d)</td><td>Recuerdos de personas, conversaciones y gustos.</td></tr>
+          <tr><td style="font-weight:700;color:var(--vivy-blue)">L4</td><td>Grafo de Valores</td><td>Neo4j Desktop local gratuito</td><td>Neo4j / Kùzu Graph Engine en 8TB NVMe</td><td>Ontología humana y directiva: "Cantar con el corazón".</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- TAB 2: Mechanical Actuators & 54 DOF -->
+  <!-- TAB 2: Mechanical Actuators -->
   <div class="view" id="view-2">
-    <div class="kpis-grid">
-      <div class="kpi"><div class="kpi-lbl">Grados de Libertad (DOF)</div><div class="kpi-val" style="color:var(--vivy-cyan)">54 DOF</div><div class="kpi-sub">Cuerpo Humanoide Completo (165 cm)</div></div>
-      <div class="kpi"><div class="kpi-lbl">Frecuencia de Bus FOC</div><div class="kpi-val" style="color:var(--safe-green)">1,000 Hz</div><div class="kpi-sub">CAN-FD Dual & EtherCAT 100 Mbps</div></div>
-      <div class="kpi"><div class="kpi-lbl">Torque Máximo en Cadera</div><div class="kpi-val" style="color:var(--gold-ladder)">120 Nm</div><div class="kpi-sub">Actuadores Brushless T-Motor AK80-64</div></div>
-      <div class="kpi"><div class="kpi-lbl">Peso Total Estimado</div><div class="kpi-val" style="color:#fff">48.5 kg</div><div class="kpi-sub">Aluminio 7075-T6 & Fibra de Carbono</div></div>
-    </div>
-
     <div class="card">
-      <div class="card-hdr"><span>🤖 Desglose Anatómico de Motores y Sensores</span></div>
+      <div class="card-hdr"><span>🤖 Comparativa de Actuadores: De $2 USD a Nivel Aeroespacial</span></div>
       <table class="data-table">
-        <thead><tr><th>Subsistema</th><th>DOF</th><th>Tipo de Actuador</th><th>Torque Pico</th><th>Transmisión</th><th>Protocolo</th></tr></thead>
+        <thead><tr><th>Zona Anatómica</th><th>DOF</th><th>🟢 Prototipo Económico ($0 - $50)</th><th>💎 Versión Final Pro</th><th>Torque / Frecuencia</th></tr></thead>
         <tbody>
-          <tr><td style="color:#fff;font-weight:600">Rostro & Ojos</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">22 DOF</td><td>Feetech SCS0009 / Dynamixel XL330</td><td>0.9 Nm</td><td>Engranajes Titanio</td><td>Bus TTL @ 1 Mbps (100 Hz)</td></tr>
-          <tr><td style="color:#fff;font-weight:600">Cuello Gimbal</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">3 DOF</td><td>Brushless FOC T-Motor AK60-6</td><td>9.0 Nm</td><td>Planetario 6:1</td><td>CAN-FD @ 5 Mbps (1000 Hz)</td></tr>
-          <tr><td style="color:#fff;font-weight:600">Torso & Columna</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">4 DOF</td><td>Brushless FOC T-Motor AK70-10</td><td>25.0 Nm</td><td>Planetario 10:1</td><td>CAN-FD @ 5 Mbps (1000 Hz)</td></tr>
-          <tr><td style="color:#fff;font-weight:600">Brazos & Codos (x2)</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">12 DOF</td><td>Quasi-Direct Drive AK70-10</td><td>25.0 Nm</td><td>Planetario bajo juego < 1'</td><td>CAN-FD @ 5 Mbps (1000 Hz)</td></tr>
-          <tr><td style="color:#fff;font-weight:600">Manos DexHands (x2)</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">10 DOF</td><td>Micro Maxon DC + Tendones Kevlar</td><td>1.2 Nm/dedo</td><td>Cables Bowden + Piezo</td><td>SPI/I2C a STM32H7 local</td></tr>
-          <tr><td style="color:#fff;font-weight:600">Caderas & Piernas (x2)</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">12 DOF</td><td>T-Motor AK80-64 Alto Torque</td><td>120.0 Nm</td><td>Reductor Cicloidal 64:1</td><td>EtherCAT @ 100 Mbps (1000 Hz)</td></tr>
+          <tr><td style="font-weight:600;color:#fff">Ojos & Párpados</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">8 DOF</td><td>4x Servos SG90 ($2 USD c/u)</td><td>Feetech SCS0009 Serial Bus ($15 USD)</td><td>0.25 Nm / 100 Hz (Titanio)</td></tr>
+          <tr><td style="font-weight:600;color:#fff">Cejas, Labios, Mandíbula</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">14 DOF</td><td>Micro-servos MG90S piñonería metálica ($3 USD)</td><td>Dynamixel XL330-M288 ($35 USD)</td><td>0.9 Nm / 1 Mbps Bus TTL</td></tr>
+          <tr><td style="font-weight:600;color:#fff">Cuello Gimbal</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">3 DOF</td><td>Servos de 20kg DS3218 ($12 USD)</td><td>Brushless FOC T-Motor AK60-6</td><td>9.0 Nm / CAN-FD 1000 Hz</td></tr>
+          <tr><td style="font-weight:600;color:#fff">Brazos & Hombros</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">12 DOF</td><td>Simulación MuJoCo $0 / Motores paso a paso</td><td>Quasi-Direct Drive AK70-10 QDD ($400)</td><td>25.0 Nm / Compliancia suave</td></tr>
+          <tr><td style="font-weight:600;color:#fff">Manos DexHands</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">10 DOF</td><td>Manos mecánicas impresas en 3D con nylon</td><td>Micro Maxon DC + Tendones Kevlar + Piezo</td><td>1.2 Nm/dedo con tacto real</td></tr>
+          <tr><td style="font-weight:600;color:#fff">Caderas & Piernas</td><td style="font-family:var(--mono);color:var(--vivy-cyan)">12 DOF</td><td>Simulación MuJoCo $0 (Fase 1 a 6)</td><td>T-Motor AK80-64 Cicloidal ($800)</td><td>120.0 Nm / EtherCAT 1000 Hz</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- TAB 3: Voice & Singing Pipeline -->
+  <!-- TAB 3: Voice & Singing Laboratory -->
   <div class="view" id="view-3">
-    <div class="kpis-grid">
-      <div class="kpi"><div class="kpi-lbl">Presupuesto de Latencia</div><div class="kpi-val" style="color:var(--safe-green)">&lt; 85 ms</div><div class="kpi-sub">Tiempo real conversacional imperceptible</div></div>
-      <div class="kpi"><div class="kpi-lbl">Frecuencia de Muestreo</div><div class="kpi-val" style="color:var(--vivy-cyan)">48.0 kHz</div><div class="kpi-sub">Calidad Estudio Hi-Fi 24-bit</div></div>
-      <div class="kpi"><div class="kpi-lbl">Motor de Canto</div><div class="kpi-val" style="color:var(--vivy-magenta)">RVC v2 Vocoder</div><div class="kpi-sub">50h dataset cantante oficial (Kairi Yagi)</div></div>
-    </div>
-
     <div class="card">
-      <div class="card-hdr"><span>🎙️ Cascada de Latencia de Voz & Canto</span></div>
-      <div style="font-size:0.75rem;display:flex;flex-direction:column;gap:8px">
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span>1. Detección de Voz (Silero VAD):</span><span style="font-family:var(--mono);color:var(--safe-green)">15 ms</span></div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span>2. Transcripción Streaming (Faster-Whisper v3):</span><span style="font-family:var(--mono);color:var(--safe-green)">30 ms</span></div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span>3. Inferencia de Primer Token (Llama-3.3-70B Speculative):</span><span style="font-family:var(--mono);color:var(--safe-green)">20 ms</span></div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span>4. Síntesis Neuronal Streaming (Kokoro / F5-TTS):</span><span style="font-family:var(--mono);color:var(--safe-green)">15 ms</span></div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700"><span>TOTAL LATENCIA ROUNDTRIP:</span><span style="font-family:var(--mono);color:var(--vivy-cyan)">80 ms (PERFECCIÓN HUMANA)</span></div>
+      <div class="card-hdr"><span>🎙️ Laboratorio de Síntesis Vocal & Canto Neuronal</span></div>
+      <div style="font-size:0.78rem;color:var(--text-sub)">
+        Compara las opciones de voz: desde la solución 100% gratuita local hasta la clonación hiperrealista con RVC v2.
       </div>
-      <button class="btn btn-cyan" style="align-self:flex-start;margin-top:8px" onclick="playVivyAcoustic()">▶ Emitir Acorde Armónico de Canto de Vivy</button>
+      <table class="data-table">
+        <thead><tr><th>Motor</th><th>Costo</th><th>Latencia</th><th>Calidad</th><th>Uso Ideal</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:700;color:var(--safe-green)">Kokoro-82M Local</td><td>$0 (Open Source)</td><td style="font-family:var(--mono)">120 ms</td><td>⭐⭐⭐⭐ (Muy Natural)</td><td>Día a día en tu PC sin costo de tokens.</td></tr>
+          <tr><td style="font-weight:700;color:var(--gold-ladder)">ElevenLabs Streaming</td><td>$5 - $22/mes</td><td style="font-family:var(--mono)">140 ms</td><td>⭐⭐⭐⭐⭐ (Hiperrealista)</td><td>Demos impresionantes con respiración real.</td></tr>
+          <tr><td style="font-weight:700;color:var(--vivy-magenta)">RVC v2 (Canto)</td><td>$0 (Open Source)</td><td style="font-family:var(--mono)">Offline / Stream</td><td>⭐⭐⭐⭐⭐ (Voz de Vivy Oficial)</td><td>Interpretar canciones de Vivy con su timbre real.</td></tr>
+        </tbody>
+      </table>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn btn-cyan" onclick="playVivyChord()">▶ Probar Acorde Armónico de Canto de Vivy</button>
+      </div>
     </div>
   </div>
 
-  <!-- TAB 4: Singularity Loop -->
+  <!-- TAB 4: Singularity Loop Simulator -->
   <div class="view" id="view-4">
-    <div class="kpis-grid">
-      <div class="kpi"><div class="kpi-lbl">Velocidad de Simulación</div><div class="kpi-val" style="color:var(--vivy-cyan)">100k pasos/3s</div><div class="kpi-sub">MuJoCo & Isaac Gym en GPU local</div></div>
-      <div class="kpi"><div class="kpi-lbl">Agente de Auto-Parcheo</div><div class="kpi-val" style="color:var(--gold-ladder)">LibTorch C++</div><div class="kpi-sub">Inyección dinámica de librerías .so</div></div>
-      <div class="kpi"><div class="kpi-lbl">Directiva Suprema</div><div class="kpi-val" style="color:var(--vivy-magenta)">Cantar con Amor</div><div class="kpi-sub">Función de recompensa inmutable</div></div>
-    </div>
-
     <div class="card">
-      <div class="card-hdr"><span>🧬 Demostración del Ciclo de Auto-Mejora Recursiva</span></div>
+      <div class="card-hdr"><span>🧬 Simulador del Bucle de Singularidad Autónoma</span></div>
+      <div style="font-size:0.75rem;color:var(--text-sub)">
+        Ejecuta la demostración de cómo Vivy detecta una anomalía física, reescribe su propio código en C++, lo prueba en el simulador MuJoCo e inyecta la librería en caliente sin reiniciarse.
+      </div>
       <div class="btn-row">
-        <button class="btn btn-ladder" onclick="runSingularityDemo()">⚡ Simular Ciclo Completo de Auto-Optimización de Código</button>
+        <button class="btn btn-ladder" onclick="runSingularitySimulation()">⚡ Ejecutar Ciclo Completo de Auto-Evolución</button>
+      </div>
+      <div class="code-snippet" id="singularityLog" style="margin-top:8px">
+[STANDBY] Listo para iniciar simulación de auto-mejora recursiva...
       </div>
     </div>
   </div>
 
-  <!-- TAB 5: Study Roadmap (Month by Month) -->
+  <!-- TAB 5: Syllabus Study Roadmap -->
   <div class="view" id="view-5">
     <div class="card">
-      <div class="card-hdr"><span>📚 Plan de Estudio Decenal (Paso a Paso)</span></div>
+      <div class="card-hdr"><span>📚 Plan de Estudio Decenal Paso a Paso</span></div>
       <table class="data-table">
-        <thead><tr><th>Período</th><th>Enfoque Principal</th><th>Habilidades Clave</th><th>Entregable Práctico</th></tr></thead>
+        <thead><tr><th>Año</th><th>¿Qué Debes Aprender?</th><th>Herramientas Gratuitas</th><th>Entregable Concreto</th></tr></thead>
         <tbody>
-          <tr><td style="font-weight:700;color:var(--vivy-cyan)">Año 1 (Mes 1-6)</td><td>Software & Voz Neuronal</td><td>Python 3.12, Asyncio, ElevenLabs, Kokoro-82M, RAG Qdrant</td><td>Asistente conversacional en terminal con voz humana fluida.</td></tr>
-          <tr><td style="font-weight:700;color:var(--vivy-cyan)">Año 1 (Mes 7-12)</td><td>Animatrónica Inicial</td><td>Fusion 360, Impresión SLA, Servos TTL, Audio2Face</td><td>Cabeza animatrónica 22 DOF con sincronía labial exacta.</td></tr>
-          <tr><td style="font-weight:700;color:var(--safe-green)">Año 2-3</td><td>Robótica & Visión</td><td>C++20, ROS 2 Iron, OpenCV, YOLOv11, VSLAM RTAB-Map</td><td>Cabeza robótica con seguimiento de mirada y detección 3D.</td></tr>
-          <tr><td style="font-weight:700;color:var(--gold-ladder)">Año 4-5</td><td>Cinemática de Brazos</td><td>Control FOC, Motores QDD, MoveIt 2, Manos Kevlar</td><td>Torso superior capaz de tocar piano y gesticular suavemente.</td></tr>
-          <tr><td style="font-weight:700;color:var(--vivy-blue)">Año 6-8</td><td>Locomoción Bípeda</td><td>Control ZMP, MuJoCo, Nvidia Isaac Gym, Sim-to-Real</td><td>Chasis humanoide completo de 165 cm con marcha estable.</td></tr>
-          <tr><td style="font-weight:700;color:var(--vivy-magenta)">Año 9-10</td><td>Singularidad Recursiva</td><td>Auto-diagnóstico, Generación de Parches C++, Autonomía</td><td>Androide Vivy 1.0 autónomo, capaz de evolucionar por sí misma.</td></tr>
+          <tr><td style="font-weight:700;color:var(--vivy-cyan)">Año 1</td><td>Python 3.12, Asyncio, Ollama, Kokoro TTS, RAG</td><td>VS Code, Qdrant, Faster-Whisper</td><td>Asistente de voz Vivy en tu PC respondiendo a 100ms.</td></tr>
+          <tr><td style="font-weight:700;color:var(--vivy-cyan)">Año 1-2</td><td>Fusion 360, Impresión 3D, Servos, ESP32</td><td>FreeCAD, Cura, Arduino IDE, ESP32</td><td>Ojos animatrónicos físicos siguiendo tu mirada.</td></tr>
+          <tr><td style="font-weight:700;color:var(--safe-green)">Año 2-4</td><td>C++20, ROS 2 Iron, OpenCV, Audio2Face</td><td>Linux Ubuntu 22.04, ROS 2, MediaPipe</td><td>Cabeza completa 22 DOF con piel y sincronía labial.</td></tr>
+          <tr><td style="font-weight:700;color:var(--gold-ladder)">Año 4-6</td><td>Cinemática Inversa, Control FOC, MoveIt 2</td><td>MoveIt 2, SimpleFOC, KiCAD</td><td>Torso superior capaz de tocar piano y gesticular.</td></tr>
+          <tr><td style="font-weight:700;color:var(--vivy-blue)">Año 6-8</td><td>Control ZMP, MuJoCo, Isaac Gym, Sim-to-Real</td><td>MuJoCo, Isaac Gym, PyTorch RL</td><td>Chasis bípedo caminando de forma autónoma.</td></tr>
+          <tr><td style="font-weight:700;color:var(--vivy-magenta)">Año 9-10</td><td>Auto-diagnóstico, Compilación OTA, Singularidad</td><td>GCC/Clang, LibTorch C++, Linux RT</td><td>Androide Vivy 1.0 completamente autónomo y vivo.</td></tr>
         </tbody>
       </table>
-    </div>
-  </div>
-
-  <!-- Inspection Log Console (Shared) -->
-  <div class="card">
-    <div class="card-hdr">
-      <span id="logTitle">📜 Bitácora de Telemetría & Especificaciones de Vivy</span>
-      <span style="font-size:0.7rem;color:var(--vivy-cyan);font-family:var(--mono)">PREEMPT_RT / ROS 2 Iron</span>
-    </div>
-    <div class="code-log" id="sharedLog">
-      <div style="color:var(--vivy-cyan)">[SISTEMA INICIALIZADO] Jetson AGX Orin listo. Memoria unificada 64GB y 16TB NVMe montados.</div>
-      <div style="color:var(--safe-green)">[ACTUADORES] 54 Grados de Libertad calibrados. Bus CAN-FD & EtherCAT respondiendo a 1000 Hz.</div>
-      <div style="color:var(--gold-ladder)">[VOZ & CANTO] Pipeline de síntesis neuronal fijado a 80 ms. Audio2Face enlazado a 60 FPS.</div>
     </div>
   </div>
 
@@ -297,36 +511,212 @@ function switchTab(idx){
   document.querySelectorAll('.view').forEach((v, i) => v.classList.toggle('active', i === idx));
 }
 
-const HITOS = {
-  1: "🧠 Mente Digital LLM: Integración de Whisper Large-v3 con Llama-3.3-70B en streaming cuantizado a 4-bit para 35 tokens/seg.",
-  2: "🎙️ Escalera #1: ElevenLabs API permite clonar la voz de Vivy con timbre dulce y respiración realista. Migración a Kokoro en local.",
-  3: "⚠️ Serpiente #1: Latencia > 2.5s en peticiones HTTP cloud. Solución: Pipeline local de 85ms con VAD en memoria.",
-  4: "💾 Memoria Vectorial RAG: Qdrant sobre 8TB NVMe almacena 500,000 conversaciones indexadas con distancia coseno.",
-  5: "🤖 Cabeza Animatrónica: 22 servos Dynamixel XL330 operando en cráneo de resina SLA. Micro-gestos en cejas y párpados.",
-  6: "👄 Escalera #2: Audio2Face convierte audio a visemas fonéticos directamente en GPU a 60 FPS sin animación manual.",
-  7: "🔥 Serpiente #2: Calentamiento de servos en mandíbula tras 2h de canto. Solución: Conductos pasivos de cobre.",
-  8: "👁️ Visión Estéreo 3D: Cámaras OAK-D calculan nube de puntos 3D para estimar la emoción y distancia del espectador.",
-  9: "🦾 Torso & DexHands: Manos con tendones de Kevlar para sostener micrófono delicadamente sin romperlo.",
-  10: "⚡ Escalera #3: Actuadores Cuasi-Direct Drive (QDD) permiten compliancia: el brazo cede si un humano lo empuja.",
-  11: "🏃 Locomoción Bípeda: Simulación de 10 millones de pasos en Nvidia Isaac Gym para aprender marcha humana.",
-  12: "⚠️ Serpiente #3: Pack de batería LiFePO4 de 48V en la espalda altera el centro de masa. Solución: Celdas en caderas.",
-  13: "💃 Escalera #4: Balance ZMP dinámico permite caminar, hacer reverencias en escenario y subir escalones.",
-  14: "🧬 Escalera #5: Singularidad Recursiva: Vivy reescribe su propio código de cinemática sin intervención humana.",
-  15: "💎 VIVY 1.0 AUTÓNOMA TOTAL: Androide completo, libre de cables, con voz, gracia y corazón propio."
-};
-
-function inspectHito(id){
-  const desc = HITOS[id] || "Hito no especificado.";
-  document.getElementById('logTitle').textContent = `🔍 Detalle de Hito #${id}`;
-  const log = document.getElementById('sharedLog');
-  const now = new Date().toTimeString().split(' ')[0];
-  log.innerHTML = `<div style="color:var(--vivy-cyan)">[${now}] 📌 HITO #${id}: ${desc}</div>` + log.innerHTML;
+let currentFilter = 'free';
+function toggleBudgetFilter(mode){
+  currentFilter = mode;
+  document.getElementById('btnFilterFree').classList.toggle('active-free', mode === 'free');
+  document.getElementById('btnFilterPro').classList.toggle('active-pro', mode === 'pro');
 }
 
-function playVivyAcoustic(){
+const STEPS_DATA = {
+  1: {
+    phase: "FASE 0 · PASO #01",
+    title: "🧠 Paso 1: Configurar el Entorno Base en tu PC Actual",
+    desc: "No compres hardware todavía. Instala Python 3.12, VS Code y Ollama en tu computadora actual para ejecutar tu primer modelo LLM local con el prompt de personalidad de Vivy.",
+    free: "• Software: VS Code + Ollama (Llama 3.2 3B o Qwen 2.5 7B).\n• Hardware: Tu PC o laptop actual (mínimo 8GB RAM).\n• Costo: $0.00 USD.",
+    pro: "• API Cloud: Claude 3.5 Sonnet o OpenAI GPT-4o vía API ($5 - $20 USD/mes).\n• Hardware: Estación con GPU Nvidia RTX 4070 Ti / 4090 para Llama-3.3-70B.\n• Costo: $20/mes API o $2,000 USD GPU.",
+    code: "# 1. Instalar Ollama y descargar modelo ligero\ncurl -fsSL https://ollama.com/install.sh | sh\nollama run qwen2.5:7b \"Hola Vivy, ¿cuál es tu misión fundamental?\""
+  },
+  2: {
+    phase: "FASE 0 · PASO #02 (ESCALERA)",
+    title: "🎙️ Paso 2: Integrar Síntesis Vocal Neuronal Local (Kokoro-82M)",
+    desc: "Breakthrough: En lugar de gastar en APIs, utiliza Kokoro-82M o Edge-TTS en Python para que Vivy hable con voz humana en menos de 120ms sin gastar un solo centavo.",
+    free: "• Modelo: Kokoro-82M (Open Source en PyTorch).\n• Dependencias: pip install kokoro sounddevice\n• Costo: $0.00 USD ilimitado.",
+    pro: "• API Cloud: ElevenLabs API con modelo Turbo v2.5 ($5 - $22/mes).\n• Ventaja: Expresividad extrema con respiración.\n• Costo: ~$10 USD/mes según uso.",
+    code: "# Instalar y probar Kokoro TTS en Python\npip install kokoro-onnx sounddevice\npython -c \"from kokoro_onnx import Kokoro; k = Kokoro('kokoro-v0_19.onnx', 'voices.json'); k.create('Mi misión es cantar con el corazón.', 'af_sarah')\""
+  },
+  3: {
+    phase: "FASE 0 · PASO #03 (SERPIENTE)",
+    title: "⚠️ Paso 3: Resolver Cuello de Botella de Latencia Conversacional",
+    desc: "Trampa: Si esperas a que el LLM termine toda la respuesta para enviarla al audio, Vivy tardará 3 segundos en responder y se sentirá muerta. Solución: Streaming token por token.",
+    free: "• Solución: Generar audio a partir de la primera coma o punto en el stream de texto con asyncio en Python ($0 USD).",
+    pro: "• Solución Pro: Hardware acelerador TensorRT-LLM en GPU Nvidia con Speculative Decoding.",
+    code: "# Streaming de audio en bloques pequeños (evita esperas de 3s)\nasync for chunk in llm_stream:\n    if chunk in ['.', ',', '!']:\n        play_audio_sentence(buffer)\n        buffer = ''"
+  },
+  4: {
+    phase: "FASE 0 · PASO #04",
+    title: "👂 Paso 4: Reconocimiento de Voz Local (Faster-Whisper)",
+    desc: "Instala Faster-Whisper con VAD (Voice Activity Detection) para que Vivy te escuche desde tu micrófono sin enviar tu voz a internet.",
+    free: "• Modelo: Faster-Whisper (small / medium) en local ($0 USD).\n• Micrófono: El micrófono que ya tiene tu laptop o auriculares.",
+    pro: "• Micrófono Hardware: Arreglo de 4 micrófonos ReSpeaker USB ($69 USD) con cancelación de eco.",
+    code: "pip install faster-whisper webrtcvad\n# Detecta silencio y transcribe en 200ms en local"
+  },
+  5: {
+    phase: "FASE 1 · PASO #05",
+    title: "💾 Paso 5: Memoria Vectorial Episódica con Qdrant",
+    desc: "Crea una base de datos vectorial local para que Vivy recuerde tu nombre, tus canciones favoritas y promesas hechas en charlas pasadas.",
+    free: "• Base de Datos: Qdrant corriendo en Docker local o SQLite embebido ($0 USD).",
+    pro: "• Solución Pro: Servidor dedicado con NVMe PCIe 4.0 y embeddings BGE-Large.",
+    code: "docker run -p 6333:6333 qdrant/qdrant\n# Indexa recuerdos con distancia coseno"
+  },
+  6: {
+    phase: "FASE 1 · PASO #06 (ESCALERA)",
+    title: "🎵 Paso 6: Motor de Canto con Clonación RVC v2",
+    desc: "Breakthrough: Entrena un modelo RVC v2 con las canciones oficiales de Vivy (cantadas por Kairi Yagi) para convertir cualquier melodía en su voz con vibrato perfecto.",
+    free: "• Software: Applio / RVC v2 WebUI corriendo en local sobre Google Colab gratuito ($0 USD).",
+    pro: "• Dataset: 50 horas de pistas master de estudio aisladas.",
+    code: "# Clonación RVC v2 en GPU\npython infer-web.py --model_path weights/vivy_v2.pth"
+  },
+  7: {
+    phase: "FASE 1 · PASO #07",
+    title: "🎭 Paso 7: Modulación Emocional Dinámica",
+    desc: "Haz que Vivy module su prosodia (tono, velocidad, pitch) según el contexto emocional de la conversación.",
+    free: "• Clasificador: Modelo local DistilBERT Emotion ($0 USD).",
+    pro: "• Control acústico: Parámetros SSML y fonemas dinámicos.",
+    code: "# Ajuste de pitch y velocidad según emoción\nif emotion == 'sadness': set_pitch(-2.0); set_speed(0.85)"
+  },
+  8: {
+    phase: "FASE 2 · PASO #08",
+    title: "📷 Paso 8: Tracking Facial con Webcam & MediaPipe",
+    desc: "Usa la cámara de tu laptop para que Vivy detecte tu rostro y mueva los ojos virtuales siguiéndote a 60 FPS.",
+    free: "• Software: MediaPipe FaceMesh + OpenCV en Python ($0 USD).\n• Cámara: Webcam que ya tienes.",
+    pro: "• Cámara Pro: OAK-D Lite Estéreo ($149 USD) con procesamiento de profundidad 3D en chip.",
+    code: "pip install mediapipe opencv-python\n# 468 puntos faciales procesados a 60 FPS"
+  },
+  9: {
+    phase: "FASE 2 · PASO #09",
+    title: "👥 Paso 9: Reconocimiento Espacial con YOLOv11",
+    desc: "Detecta objetos en tu habitación (guitarra, micrófono, taza) y personas para que Vivy hable de su entorno real.",
+    free: "• Modelo: Ultralytics YOLOv11n (nano) corriendo en CPU a 40 FPS ($0 USD).",
+    pro: "• Aceleración: TensorRT en Jetson Orin a 120 FPS.",
+    code: "yolo predict model=yolo11n.pt source=0"
+  },
+  10: {
+    phase: "FASE 2 · PASO #10 (ESCALERA)",
+    title: "👄 Paso 10: Sincronía Labial Automática con Audio2Face",
+    desc: "Breakthrough: En lugar de programar los labios a mano, Audio2Face o Wav2Lip convierten el audio directamente en movimientos de boca a 60 FPS.",
+    free: "• Software: Wav2Lip / SadTalker en local ($0 USD).",
+    pro: "• Solución Pro: Nvidia Audio2Face en Omniverse.",
+    code: "# Genera visemas fonéticos desde el stream de audio WAV"
+  },
+  11: {
+    phase: "FASE 3 · PASO #11",
+    title: "👀 Paso 11: Construir el Primer Mecanismo Físico de Ojos 3D",
+    desc: "Tu primer proyecto de hardware real: Imprime en 3D un soporte de ojos y muévelos con 4 micro-servos baratos.",
+    free: "• Servos: 4x Servos SG90 ($2 USD c/u = $8 USD total).\n• Impresión 3D: Pide imprimir las piezas en un servicio local ($5 USD) o usa cartón rígido.",
+    pro: "• Hardware Pro: Mecanismo de titanio y servos Feetech SCS0009 ($60 USD).",
+    code: "// Código Arduino para mover ojos con potenciómetro o Serial\nservoX.write(map(x, 0, 640, 45, 135));"
+  },
+  12: {
+    phase: "FASE 3 · PASO #12",
+    title: "🔌 Paso 12: Conectar Microcontrolador ESP32 por USB",
+    desc: "Usa un microcontrolador ESP32 ($4-$6 USD) para recibir comandos de Python desde tu PC y mover los motores en tiempo real.",
+    free: "• Placa: ESP32 DevKit v1 ($5 USD en AliExpress o Amazon).\n• Software: Arduino IDE ($0 USD).",
+    pro: "• Placa Pro: STM32H7 con bus CAN-FD integrado ($45 USD).",
+    code: "# Python envía ángulos por Serial a 115200 baud\nimport serial; ser = serial.Serial('COM3', 115200); ser.write(b'EYE:90,45\\n')"
+  },
+  13: {
+    phase: "FASE 3 · PASO #13 (SERPIENTE)",
+    title: "⚠️ Paso 13: Eliminar Jitter y Ruido en Servomotores",
+    desc: "Trampa: Los servos de $2 USD tiemblan y hacen ruido molesto. Solución: Filtrar ángulos con promedios móviles y alimentar con fuente de 5V independiente.",
+    free: "• Solución: Filtro EMA (Exponential Moving Average) en software en el ESP32 ($0 USD).",
+    pro: "• Solución Pro: Servos de bus serie digitales con encoder magnético de 12-bit.",
+    code: "// Filtro suavizador de temblor en ESP32\ncurrentPos = (alpha * targetPos) + ((1 - alpha) * currentPos);"
+  },
+  14: {
+    phase: "FASE 4 · PASO #14",
+    title: "💀 Paso 14: Modelar el Cráneo Animatrónico en Resina SLA",
+    desc: "Diseña en Fusion 360 o descarga un modelo libre de cráneo humanoide para alojar 22 grados de libertad faciales.",
+    free: "• Software: Fusion 360 licencia personal gratuita o Blender ($0 USD).",
+    pro: "• Fabricación: Impresora 3D de Resina Elegoo Saturn / Formlabs con resina tenaz.",
+    code: "# Exportar archivos .STL para impresión 3D de alta definición"
+  },
+  15: {
+    phase: "FASE 4 · PASO #15 (ESCALERA)",
+    title: "✨ Paso 15: Migrar a Servos de Bus Serie (Dynamixel / Feetech)",
+    desc: "Breakthrough: En lugar de 22 cables PWM desordenados, un solo cable daisy-chain controla los 22 servos a 1 Mbps.",
+    free: "• Servos: Feetech SCS0009 / STS3215 ($15 USD c/u).",
+    pro: "• Servos Pro: Robotis Dynamixel XL330-M288-T ($35 USD c/u).",
+    code: "// Protocolo TTL Dynamixel: 1 cable maneja los 22 motores faciales"
+  },
+  16: {
+    phase: "FASE 4 · PASO #16",
+    title: "🎨 Paso 16: Moldeo de Piel de Silicona Flexible",
+    desc: "Fabrica la piel del rostro con silicona platino Smooth-On Ecoflex 00-30 para permitir sonrisas y gestos realistas.",
+    free: "• Material: Kit de silicona Ecoflex de prueba ($45 USD).",
+    pro: "• Pintura: Pigmentos Psycho Paint con aerógrafo para realismo anime.",
+    code: "# Mezcla 1A:1B curada a temperatura ambiente en 4 horas"
+  },
+  17: {
+    phase: "FASE 5 · PASO #17",
+    title: "🕹️ Paso 17: Cinemática de Brazos en ROS 2 & MoveIt 2",
+    desc: "Configura el entorno de robótica profesional ROS 2 Iron para planificar trayectorias suaves en brazos y cuello.",
+    free: "• Software: ROS 2 Iron en Ubuntu 22.04 LTS ($0 USD).\n• Simulación: MoveIt 2 Setup Assistant.",
+    pro: "• Hardware: Nvidia Jetson Orin como cerebro embebido.",
+    code: "sudo apt install ros-iron-moveit\nros2 launch vivy_moveit_config demo.launch.py"
+  },
+  18: {
+    phase: "FASE 6 · PASO #18 (ESCALERA)",
+    title: "⚡ Paso 18: Actuadores Cuasi-Direct Drive (QDD)",
+    desc: "Breakthrough: Motores brushless con reductores planetarios 10:1 permiten que los brazos se muevan con suavidad humana y compliancia.",
+    free: "• Simulación: Prueba dinámica en MuJoCo ($0 USD).",
+    pro: "• Hardware: Motores T-Motor AK70-10 con driver FOC.",
+    code: "// Control de impedancia: Vivy cede suavemente ante el contacto humano"
+  },
+  19: {
+    phase: "FASE 7 · PASO #19",
+    title: "🎮 Paso 19: Simulación de Marcha en MuJoCo & Isaac Gym",
+    desc: "Entrena a Vivy a caminar en simulación durante 10 millones de pasos en GPU antes de construir las piernas de metal.",
+    free: "• Simulador: MuJoCo / Nvidia Isaac Gym (Gratuito para investigación, $0 USD).",
+    pro: "• Algoritmo: Reinforcement Learning PPO con Domain Randomization.",
+    code: "python train_locomotion.py --env VivyBipedal-v1 --num_envs 4096"
+  },
+  20: {
+    phase: "FASE 8 · PASO #20",
+    title: "🏃 Paso 20: Ensamble del Chasis Bípedo & Control ZMP",
+    desc: "Construcción física de caderas y piernas en aluminio 7075 y fibra de carbono con batería LiFePO4 de 48V.",
+    free: "• Validación: Controladores ZMP en simulación.",
+    pro: "• Hardware: Actuadores AK80-64 (120 Nm) y sensores de contacto en pies.",
+    code: "# Ecuación ZMP: x_zmp = x_com - (z_com / g) * x_ddot_com"
+  },
+  21: {
+    phase: "FASE 9 · PASO #21 (SINGULARIDAD)",
+    title: "🧬 Paso 21: Bucle Autónomo de Auto-Diagnóstico & Auto-Parcheo",
+    desc: "Vivy analiza sus sensores de corriente, redacta parches en C++, los prueba en MuJoCo y compila en caliente sin apagarse.",
+    free: "• Entorno: LibTorch C++ y compilador GCC en Ubuntu ($0 USD).",
+    pro: "• Autonomía: Inyección dinámica de librerías .so en ROS 2.",
+    code: "# Vivy recompila su propio controlador de balance en caliente\ng++ -O3 -shared -fPIC balance_v2.cpp -o lib_balance.so"
+  },
+  22: {
+    phase: "FASE FINAL · PASO #22 (META)",
+    title: "👑 Paso 22: VIVY 1.0 ANDROIDE COMPLETO CON SINGULARIDAD",
+    desc: "La meta de vida alcanzada: Un androide físico completo, autónomo, capaz de caminar, cantar, gesticular con el corazón y evolucionar por sí misma.",
+    free: "• Resultado: La culminación de 10 años de estudio y maestría mecatrónica.",
+    pro: "• Misión Cumplida: 'Cantar canciones que hagan feliz a todos con mi corazón'.",
+    code: "// Vivy 1.0 Online. Estado: Consciente, Autónoma y Libre."
+  }
+};
+
+function loadStep(id){
+  const data = STEPS_DATA[id];
+  if(!data) return;
+
+  document.querySelectorAll('.step-node').forEach((n, i) => {
+    n.classList.toggle('active', (i + 1) === id);
+  });
+
+  document.getElementById('inspPhaseTag').textContent = data.phase;
+  document.getElementById('inspTitle').textContent = data.title;
+  document.getElementById('inspDesc').textContent = data.desc;
+  document.getElementById('inspFreeText').innerHTML = data.free.replace(/\n/g, '<br>');
+  document.getElementById('inspProText').innerHTML = data.pro.replace(/\n/g, '<br>');
+  document.getElementById('inspCode').textContent = data.code;
+}
+
+function playVivyChord(){
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C Major Chord
+    const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51];
     freqs.forEach((f, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -340,21 +730,15 @@ function playVivyAcoustic(){
       osc.stop(ctx.currentTime + 2.5);
     });
   } catch(e){}
-
-  const log = document.getElementById('sharedLog');
-  const now = new Date().toTimeString().split(' ')[0];
-  log.innerHTML = `<div style="color:var(--vivy-magenta)">[${now}] 🎵 AUDIO NEURONAL VIVY: Acorde armónico de canto a 48.0 kHz / 24-bit DAC. Latencia de reproducción: 4.2 ms.</div>` + log.innerHTML;
 }
 
-function runSingularityDemo(){
-  const log = document.getElementById('sharedLog');
+function runSingularitySimulation(){
+  const box = document.getElementById('singularityLog');
   const now = new Date().toTimeString().split(' ')[0];
-  log.innerHTML = `
-    <div style="color:var(--safe-green)">[${now}] 🧬 AUTO-DESPLIEGUE EN CALIENTE: Librería 'lib_kinematics_v2.so' inyectada en ROS 2 sin reiniciar motores. Error de balance reducido en 4.8%.</div>
-    <div style="color:var(--gold-ladder)">[${now}] 🤖 PRUEBA VIRTUAL EN MUJOCO: 100,000 ciclos de marcha simulados en 3.1 segundos sobre GPU. Tasa de caída: 0.000%.</div>
-    <div style="color:var(--vivy-cyan)">[${now}] 💻 SÍNTESIS DE CÓDIGO LLM: Vivy generó parche en C++ 'src/controllers/balance_controller.cpp' optimizando la matriz jacobiana amortiguada.</div>
-    <div style="color:var(--text-sub)">[${now}] 🔍 AUTO-DIAGNÓSTICO: Sensor de corriente en tobillo izquierdo detectó micro-fricción de 12 Nm.</div>
-  ` + log.innerHTML;
+  box.textContent = `[${now}] 🔍 AUTO-DIAGNÓSTICO: Sensor de corriente en tobillo izquierdo detectó micro-fricción de 12 Nm.
+[${now}] 💻 SÍNTESIS DE CÓDIGO LLM: Vivy generó parche en C++ 'src/controllers/balance_controller.cpp' optimizando la matriz jacobiana amortiguada.
+[${now}] 🤖 PRUEBA VIRTUAL EN MUJOCO: 100,000 ciclos de marcha simulados en 3.1 segundos sobre GPU. Tasa de caída: 0.000%.
+[${now}] 🧬 AUTO-DESPLIEGUE EN CALIENTE: Librería 'lib_kinematics_v2.so' inyectada en ROS 2 sin reiniciar motores. Error de balance reducido en 4.8%.`;
 }
 </script>
 </body>
