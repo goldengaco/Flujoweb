@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMSS-ISSSTE Digital — Centro Nacional de Observabilidad Médica & APM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#0a0e17;--bg-card:#111726;--border:#1d273d;
+  --imss-green:#006847;--imss-emerald:#10b981;--issste-cyan:#0284c7;--alert-red:#ef4444;--alert-amber:#f59e0b;
+  --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#5a6e8c;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:26px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:20px}
+
+/* Header */
+.hdr{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:16px;border-bottom:1px solid var(--border);
+}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-icon{
+  width:42px;height:42px;border-radius:10px;background:var(--imss-green);
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;
+  box-shadow:0 0 20px rgba(0,104,71,0.4);
+}
+.hdr-title{font-size:1.3rem;font-weight:700;letter-spacing:-0.02em}
+.hdr-tag{
+  font-size:0.75rem;padding:5px 14px;border-radius:20px;background:rgba(16,185,129,0.12);
+  border:1px solid rgba(16,185,129,0.3);color:var(--imss-emerald);font-family:var(--mono);font-weight:600;
+}
+
+/* Tabs Bar */
+.tabs-bar{display:flex;gap:10px;border-bottom:1px solid var(--border);padding-bottom:10px;flex-wrap:wrap}
+.tab-btn{
+  padding:10px 18px;border-radius:8px;font-family:var(--font);font-size:0.82rem;font-weight:700;
+  cursor:pointer;background:transparent;border:1px solid transparent;color:var(--text-sub);
+  display:flex;align-items:center;gap:8px;transition:all 0.2s;
+}
+.tab-btn.active{
+  background:rgba(255,255,255,0.05);border-color:var(--border);color:#fff;
+}
+
+/* Views */
+.view{display:none;flex-direction:column;gap:18px}
+.view.active{display:flex}
+
+/* KPIs */
+.kpis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+.kpi-lbl{font-size:0.68rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)}
+.kpi-val{font-size:1.5rem;font-weight:700;font-family:var(--mono);margin:2px 0;color:#fff}
+.kpi-sub{font-size:0.72rem;color:var(--text-sub)}
+
+/* General Cards & Tables */
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:18px;display:flex;flex-direction:column;gap:12px;
+}
+.card-hdr{font-size:0.88rem;font-weight:700;color:#fff;display:flex;justify-content:space-between;align-items:center}
+
+.data-table{width:100%;border-collapse:collapse;font-size:0.75rem}
+.data-table th{text-align:left;padding:8px 10px;color:var(--text-dim);border-bottom:1px solid var(--border);font-family:var(--mono)}
+.data-table td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.03)}
+
+.badge{padding:3px 8px;border-radius:6px;font-family:var(--mono);font-size:0.68rem;font-weight:700}
+.badge-ok{background:rgba(16,185,129,0.15);color:var(--imss-emerald);border:1px solid rgba(16,185,129,0.3)}
+.badge-warn{background:rgba(245,158,11,0.15);color:var(--alert-amber);border:1px solid rgba(245,158,11,0.3)}
+.badge-crit{background:rgba(239,68,68,0.15);color:var(--alert-red);border:1px solid rgba(239,68,68,0.3)}
+
+/* Controls & Log */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.action-grid{grid-template-columns:1fr}}
+
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  padding:9px 16px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.2s;
+}
+.btn-green{background:var(--imss-emerald);color:#000}
+.btn-green:hover{background:#059669}
+.btn-red{background:var(--alert-red);color:#fff}
+.btn-red:hover{background:#dc2626}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+
+.code-log{
+  background:#060a12;border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+  padding:10px;font-family:var(--mono);font-size:0.72rem;max-height:140px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:4px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-icon">🏥</div>
+      <div>
+        <div class="hdr-title">IMSS-ISSSTE Digital · Observabilidad Médica Nacional & APM</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Centro de Control de Telemetría Clínica, Expediente Electrónico ECE & Abasto de Medicamentos</div>
+      </div>
+    </div>
+    <div class="hdr-tag">Nivel de Abasto Nacional: 98.4% · 1,480 UMF Activas</div>
+  </header>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab(0)">📊 APM & Trazas ECE</button>
+    <button class="tab-btn" onclick="switchTab(1)">💊 Cadena de Medicamentos</button>
+    <button class="tab-btn" onclick="switchTab(2)">🏥 Triage & Camas</button>
+    <button class="tab-btn" onclick="switchTab(3)">⚡ Métricas SRE</button>
+  </div>
+
+  <!-- Tab 1: APM Distributed Tracing -->
+  <div class="view active" id="v-0">
+    <div class="kpis-grid">
+      <div class="kpi">
+        <div class="kpi-lbl">Consultas Procesadas Hoy</div>
+        <div class="kpi-val" style="color:var(--imss-emerald)">482,910</div>
+        <div class="kpi-sub">UMF + Hospitales Generales de Zona (HGZ)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Latencia Media de ECE</div>
+        <div class="kpi-val" style="color:var(--issste-cyan)">38.2 ms</div>
+        <div class="kpi-sub">Firma digital de receta en &lt; 50ms</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Validación de Vigencia (CURP/NSS)</div>
+        <div class="kpi-val" style="color:#fff">99.99%</div>
+        <div class="kpi-sub">Conexión a RENAPO & Padrones en vivo</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">
+        <span>📍 Trazabilidad Distribuida de Consulta Médica (Span Waterfall)</span>
+        <span style="font-size:0.7rem;color:var(--imss-emerald);font-family:var(--mono)">TraceID: #IMSS-2026-NSS-9821</span>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Servicio / Microservicio</th>
+            <th>Operación</th>
+            <th>Latencia</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:#fff;font-weight:600">gateway-imss-digital</td>
+            <td>POST /api/v1/receta-electronica</td>
+            <td style="font-family:var(--mono)">42.1 ms</td>
+            <td><span class="badge badge-ok">200 OK</span></td>
+          </tr>
+          <tr>
+            <td style="color:#fff;font-weight:600">auth-renapo-curp</td>
+            <td>VALIDAR_DERECHOHABIENTE</td>
+            <td style="font-family:var(--mono)">12.4 ms</td>
+            <td><span class="badge badge-ok">VIGENTE</span></td>
+          </tr>
+          <tr>
+            <td style="color:#fff;font-weight:600">ece-core-database</td>
+            <td>COMMIT_DIAGNOSTICO_CIE10</td>
+            <td style="font-family:var(--mono)">18.0 ms</td>
+            <td><span class="badge badge-ok">GUARDADO</span></td>
+          </tr>
+          <tr>
+            <td style="color:#fff;font-weight:600">farmacia-dispensador</td>
+            <td>RESERVAR_CLAVE_MEDICAMENTO</td>
+            <td style="font-family:var(--mono)">8.2 ms</td>
+            <td><span class="badge badge-ok">SURTIBLE</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 2: Medicine Supply Chain -->
+  <div class="view" id="v-1">
+    <div class="kpis-grid">
+      <div class="kpi">
+        <div class="kpi-lbl">Nivel de Abasto General</div>
+        <div class="kpi-val" style="color:var(--imss-emerald)" id="valAbasto">98.4%</div>
+        <div class="kpi-sub">Almacén Central de Vallejo y 32 Estados</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Recetas Surtidas al 100%</div>
+        <div class="kpi-val" style="color:var(--issste-cyan)">97.8%</div>
+        <div class="kpi-sub">Cero desabasto en claves prioritarias</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Piezas en Tránsito</div>
+        <div class="kpi-val" style="color:var(--alert-amber)">1,420,000</div>
+        <div class="kpi-sub">Distribución logística nacional con GPS</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><span>💊 Semáforo de Claves de Medicamentos Prioritarias</span></div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Clave Cuadro Básico</th>
+            <th>Descripción Medicamento</th>
+            <th>Disponibilidad</th>
+            <th>Días de Inventario</th>
+            <th>Semáforo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-family:var(--mono)">010.000.0104.00</td>
+            <td>Paracetamol 500 mg (Tabletas)</td>
+            <td>4,850,000 pzas</td>
+            <td style="font-family:var(--mono)">45 días</td>
+            <td><span class="badge badge-ok">ÓPTIMO</span></td>
+          </tr>
+          <tr>
+            <td style="font-family:var(--mono)">010.000.2132.00</td>
+            <td>Metformina 850 mg (Diabetes)</td>
+            <td>3,200,000 pzas</td>
+            <td style="font-family:var(--mono)">38 días</td>
+            <td><span class="badge badge-ok">ÓPTIMO</span></td>
+          </tr>
+          <tr>
+            <td style="font-family:var(--mono)">010.000.4150.00</td>
+            <td>Insulina Glargina 100 UI/ml</td>
+            <td>840,000 pzas</td>
+            <td style="font-family:var(--mono)">24 días</td>
+            <td><span class="badge badge-warn">ALERTA REORDEN</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 3: Emergency Triage & Beds -->
+  <div class="view" id="v-2">
+    <div class="kpis-grid">
+      <div class="kpi">
+        <div class="kpi-lbl">Ocupación Hospitalaria Nacional</div>
+        <div class="kpi-val" style="color:var(--alert-amber)">78.2%</div>
+        <div class="kpi-sub">Camas Generales Disponibles: 8,420</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Terapia Intensiva (UCI)</div>
+        <div class="kpi-val" style="color:var(--imss-emerald)">64.0%</div>
+        <div class="kpi-sub">Ventiladores activos y calibrados</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Tiempo Medio de Espera Triage Verde</div>
+        <div class="kpi-val" style="color:#fff">24 min</div>
+        <div class="kpi-sub">Meta oficial: &lt; 60 min</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 4: SRE Golden Signals -->
+  <div class="view" id="v-3">
+    <div class="kpis-grid">
+      <div class="kpi">
+        <div class="kpi-lbl">Throughput Global</div>
+        <div class="kpi-val" style="color:var(--issste-cyan)">18,400 req/s</div>
+        <div class="kpi-sub">Servidores en Cluster Kubernetes</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Tasa de Error Global</div>
+        <div class="kpi-val" style="color:var(--imss-emerald)">0.01%</div>
+        <div class="kpi-sub">SLO Uptime: 99.99%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Saturación de Servidores</div>
+        <div class="kpi-val" style="color:#fff">44.5% CPU</div>
+        <div class="kpi-sub">Memoria Heap: 38% ZGC</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Controls & Log -->
+  <div class="action-grid">
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:700;color:#fff">🎛️ Centro de Simulación & Contingencias Médicas</div>
+      <div class="btn-row">
+        <button class="btn btn-green" onclick="simulateNewRx()">💊 Surtir Receta Electrónica en UMF 28 (Del Valle)</button>
+        <button class="btn btn-red" onclick="simulateShortage()">⚠️ Simular Alerta de Abasto en Zona Norte</button>
+        <button class="btn btn-sec" onclick="resetHealth()">🔄 Restablecer Parámetros</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:700;color:#fff">📜 Bitácora de Auditoría del Sistema Nacional de Salud</div>
+      <div class="code-log" id="healthLog">
+        <div style="color:var(--imss-emerald)">[08:00:00] Sincronización nacional de recetas electrónicas completada con 1,480 UMFs.</div>
+        <div style="color:var(--text-sub)">[08:15:20] Embarque de 80,000 unidades de Insulina arribó a HGZ 1A Venados.</div>
+        <div style="color:var(--issste-cyan)">[08:30:00] RENAPO validó 45,000 CURPs de derechohabientes sin incidencias.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchTab(idx){
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.view').forEach((v, i) => {
+    v.classList.toggle('active', i === idx);
+  });
+}
+
+function simulateNewRx(){
+  const log = document.getElementById('healthLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--imss-emerald)">[${now}] 💊 RECETA SURTIDA: Paciente con NSS 4810-82-4122 surtió Paracetamol y Losartán en UMF 28. Sello digital emitido.</div>` + log.innerHTML;
+}
+
+function simulateShortage(){
+  document.getElementById('valAbasto').textContent = '92.1% (ALERTA)';
+  document.getElementById('valAbasto').style.color = 'var(--alert-amber)';
+
+  const log = document.getElementById('healthLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--alert-red)">[${now}] ⚠️ ALERTA DE ABASTO: Inventario de Insulina en Monterrey bajó a 12 días. Despachando camión de Almacén Vallejo.</div>` + log.innerHTML;
+}
+
+function resetHealth(){
+  document.getElementById('valAbasto').textContent = '98.4%';
+  document.getElementById('valAbasto').style.color = 'var(--imss-emerald)';
+
+  const log = document.getElementById('healthLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--imss-emerald)">[${now}] ✅ Parámetros del sistema nacional restablecidos.</div>` + log.innerHTML;
+}
+</script>
+</body>
+</html>

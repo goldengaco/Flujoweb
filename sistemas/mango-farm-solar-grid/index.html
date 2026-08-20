@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroSolar Mango Plantation — Huerto de Mango & Microred Fotovoltaica</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#0a0f16;--bg-card:#121a24;--border:#1d2938;
+  --mango-gold:#f59e0b;--leaf-green:#10b981;--solar-yellow:#eab308;--water-cyan:#06b6d4;
+  --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#5e718d;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:26px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:20px}
+
+/* Header */
+.hdr{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:16px;border-bottom:1px solid var(--border);
+}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-icon{
+  width:42px;height:42px;border-radius:10px;background:#d97706;
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;
+  box-shadow:0 0 20px rgba(245,158,11,0.3);
+}
+.hdr-title{font-size:1.3rem;font-weight:700;letter-spacing:-0.02em}
+.hdr-tag{
+  font-size:0.75rem;padding:5px 14px;border-radius:20px;background:rgba(234,179,8,0.12);
+  border:1px solid rgba(234,179,8,0.3);color:var(--solar-yellow);font-family:var(--mono);font-weight:600;
+}
+
+/* Tabs Bar */
+.tabs-bar{display:flex;gap:10px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.tab-btn{
+  padding:10px 20px;border-radius:8px;font-family:var(--font);font-size:0.85rem;font-weight:700;
+  cursor:pointer;background:transparent;border:1px solid transparent;color:var(--text-sub);
+  display:flex;align-items:center;gap:8px;transition:all 0.2s;
+}
+.tab-btn.active{
+  background:rgba(255,255,255,0.05);border-color:var(--border);color:#fff;
+}
+
+/* Tab Views */
+.view{display:none;flex-direction:column;gap:18px}
+.view.active{display:flex}
+
+/* KPIs */
+.kpis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+.kpi-lbl{font-size:0.68rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)}
+.kpi-val{font-size:1.5rem;font-weight:700;font-family:var(--mono);margin:2px 0;color:#fff}
+.kpi-sub{font-size:0.72rem;color:var(--text-sub)}
+
+/* Agro Grid */
+.agro-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:14px}
+@media(max-width:800px){.agro-grid{grid-template-columns:1fr}}
+
+.zone-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:16px;display:flex;flex-direction:column;gap:10px;transition:all 0.3s;
+}
+.zone-card.irrigating{
+  border-color:var(--water-cyan);box-shadow:0 0 16px rgba(6,182,212,0.25);
+}
+.zone-hdr{display:flex;justify-content:space-between;align-items:center}
+.zone-title{font-size:0.85rem;font-weight:700;color:#fff}
+.zone-val{font-size:0.75rem;font-family:var(--mono)}
+
+/* Controls & Log */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.action-grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:18px;display:flex;flex-direction:column;gap:12px;
+}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  padding:9px 16px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.2s;
+}
+.btn-gold{background:var(--mango-gold);color:#000}
+.btn-gold:hover{background:#d97706}
+.btn-cyan{background:var(--water-cyan);color:#000}
+.btn-cyan:hover{background:#0891b2}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+
+.code-log{
+  background:#060a12;border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+  padding:10px;font-family:var(--mono);font-size:0.72rem;max-height:140px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:4px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-icon">🥭</div>
+      <div>
+        <div class="hdr-title">AgroSolar Mango Plantation · Huerto Inteligente & Microred Solar</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Finca San Carlos (Soconusco, Chiapas) · Riego Automatizado & Autonomía Energética BESS</div>
+      </div>
+    </div>
+    <div class="hdr-tag">Potencia Solar: 45.2 kW · Baterías 88%</div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('agro')">🥭 Huerto de Mango Ataulfo</button>
+    <button class="tab-btn" onclick="switchTab('solar')">☀️ Microred Solar & Baterías (BESS)</button>
+  </div>
+
+  <!-- View 1: Mango Orchard -->
+  <div class="view active" id="view-agro">
+    <div class="kpis-grid">
+      <div class="kpi">
+        <div class="kpi-lbl">Maduración (Azúcares)</div>
+        <div class="kpi-val" style="color:var(--mango-gold)">14.2° Brix</div>
+        <div class="kpi-sub">Grado óptimo para exportación a EE.UU.</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Humedad Media de Suelo</div>
+        <div class="kpi-val" style="color:var(--water-cyan)" id="valMoisture">36.5%</div>
+        <div class="kpi-sub">Rango saludable: 30% - 45%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Pronóstico de Cosecha</div>
+        <div class="kpi-val" style="color:var(--leaf-green)">48.5 Ton</div>
+        <div class="kpi-sub">Variedad Ataulfo Calidad Extra</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Temperatura Ambiente</div>
+        <div class="kpi-val" style="color:#fff">32.4 °C</div>
+        <div class="kpi-sub">Radiación: 940 W/m² (Día despejado)</div>
+      </div>
+    </div>
+
+    <!-- Zones Grid -->
+    <div class="agro-grid">
+      <div class="zone-card">
+        <div class="zone-hdr"><span class="zone-title">📍 Lote Norte (2,400 Árboles)</span><span class="zone-val" style="color:var(--leaf-green)">Humedad 42%</span></div>
+        <div style="font-size:0.72rem;color:var(--text-sub)">Válvula de Riego: CERRADA (Suelo Óptimo)</div>
+      </div>
+      <div class="zone-card">
+        <div class="zone-hdr"><span class="zone-title">📍 Lote Centro (3,100 Árboles)</span><span class="zone-val" style="color:var(--leaf-green)">Humedad 38%</span></div>
+        <div style="font-size:0.72rem;color:var(--text-sub)">Válvula de Riego: CERRADA</div>
+      </div>
+      <div class="zone-card" id="zoneSur">
+        <div class="zone-hdr"><span class="zone-title">📍 Lote Sur (1,800 Árboles)</span><span class="zone-val" style="color:var(--mango-gold)" id="surH">Humedad 26% (Seco)</span></div>
+        <div style="font-size:0.72rem;color:var(--text-sub)" id="surState">Válvula de Riego: EN ESPERA</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View 2: Solar Microgrid -->
+  <div class="view" id="view-solar">
+    <div class="kpis-grid">
+      <div class="kpi">
+        <div class="kpi-lbl">Generación Fotovoltaica</div>
+        <div class="kpi-val" style="color:var(--solar-yellow)" id="valGen">45.2 kW</div>
+        <div class="kpi-sub">120 Paneles Monocristalinos Tier-1</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Banco de Baterías (BESS)</div>
+        <div class="kpi-val" style="color:var(--leaf-green)">88% (105.6 kWh)</div>
+        <div class="kpi-sub">Autonomía nocturna: 14 horas</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Bomba Solar de Pozo</div>
+        <div class="kpi-val" style="color:var(--water-cyan)">7.5 kW (Activa)</div>
+        <div class="kpi-sub">Caudal: 140 L/min directos de pozo</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Excedente a Red CFE</div>
+        <div class="kpi-val" style="color:var(--leaf-green)">+12.4 kW</div>
+        <div class="kpi-sub">Contrato de Interconexión Net Metering</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Controls & Log -->
+  <div class="action-grid">
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:700;color:#fff">🎛️ Centro de Control de Finca</div>
+      <div class="btn-row">
+        <button class="btn btn-cyan" onclick="startSolarIrrigation()">💧 Activar Riego por Goteo Solar (Lote Sur)</button>
+        <button class="btn btn-gold" onclick="simulateCloudDrop()">☁️ Simular Nublado (Paso a Baterías)</button>
+        <button class="btn btn-sec" onclick="resetFarm()">🔄 Restablecer Parámetros</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:700;color:#fff">📜 Bitácora de Telemetría AgroSolar</div>
+      <div class="code-log" id="farmLog">
+        <div style="color:var(--solar-yellow)">[07:00:00] Inversores solares sincronizados. Generando 12 kW con salida del sol.</div>
+        <div style="color:var(--leaf-green)">[09:30:00] Baterías LiFePO4 al 88% de carga. Autonomía garantizada.</div>
+        <div style="color:var(--water-cyan)">[11:00:00] Bomba solar sumergible llenando estanque de almacenamiento de 50,000L.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchTab(t){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  if(t === 'agro'){
+    document.querySelectorAll('.tab-btn')[0].classList.add('active');
+    document.getElementById('view-agro').classList.add('active');
+  } else {
+    document.querySelectorAll('.tab-btn')[1].classList.add('active');
+    document.getElementById('view-solar').classList.add('active');
+  }
+}
+
+function startSolarIrrigation(){
+  const sur = document.getElementById('zoneSur');
+  sur.className = 'zone-card irrigating';
+  document.getElementById('surH').textContent = 'Humedad 38% (Regando)';
+  document.getElementById('surH').style.color = 'var(--water-cyan)';
+  document.getElementById('surState').textContent = 'Válvula de Riego: ABIERTA (7.5 kW Solar)';
+
+  const log = document.getElementById('farmLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--water-cyan)">[${now}] 💧 RIEGO SOLAR INICIADO: Lote Sur recibiendo 140 L/min impulsados 100% por energía solar.</div>` + log.innerHTML;
+}
+
+function simulateCloudDrop(){
+  document.getElementById('valGen').textContent = '14.8 kW (Nublado)';
+  document.getElementById('valGen').style.color = 'var(--mango-gold)';
+
+  const log = document.getElementById('farmLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--mango-gold)">[${now}] ☁️ COBERTURA NUBOSA: Generación cayó a 14.8 kW. Sistema conmuta automáticamente al banco de baterías BESS sin interrupciones.</div>` + log.innerHTML;
+}
+
+function resetFarm(){
+  document.getElementById('valGen').textContent = '45.2 kW';
+  document.getElementById('valGen').style.color = 'var(--solar-yellow)';
+  document.getElementById('zoneSur').className = 'zone-card';
+  document.getElementById('surH').textContent = 'Humedad 26% (Seco)';
+  document.getElementById('surH').style.color = 'var(--mango-gold)';
+  document.getElementById('surState').textContent = 'Válvula de Riego: EN ESPERA';
+
+  const log = document.getElementById('farmLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--leaf-green)">[${now}] ✅ Parámetros restablecidos. Generación a plena potencia.</div>` + log.innerHTML;
+}
+</script>
+</body>
+</html>

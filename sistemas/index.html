@@ -996,7 +996,7 @@
       <div class="filter-pills-row">
         <button class="filter-btn category-pill active" data-category="all" data-filter="all">
           <span>🌐 All Systems</span>
-          <span class="pill-count" id="count-all">29</span>
+          <span class="pill-count" id="count-all">34</span>
         </button>
         <button class="filter-btn category-pill" data-category="datadog-grafana" data-filter="datadog-grafana">
           <span>📊 Datadog, Grafana & ELK</span>
@@ -1012,7 +1012,7 @@
         </button>
         <button class="filter-btn category-pill" data-category="operaciones-iot" data-filter="operaciones-iot">
           <span>🏭 Industria & Salud</span>
-          <span class="pill-count" id="count-iot">3</span>
+          <span class="pill-count" id="count-iot">8</span>
         </button>
         <button class="filter-btn category-pill" data-category="mulesoft" data-filter="mulesoft">
           <span>🌐 MuleSoft & Apigee</span>
@@ -1447,6 +1447,66 @@
         href: './service-mesh-topology-map/index.html',
         metrics: { latency: '18ms', sla: '99.98%', rps: '18.4k RPS' },
         visType: 'radar'
+      },
+      {
+        id: 'gas-station-iot',
+        name: 'HidroFlow México · Gasolinera SAT',
+        subtitle: 'Volumetric Fuel Telemetry & Anexo 30 Compliance',
+        category: 'operaciones-iot',
+        categoryLabel: '🏭 Industria & Salud',
+        badges: ['SAT Anexo 30', 'Magna/Prem/Diesel', 'Vapor Recovery', 'TLS-450 Probe'],
+        description: 'Smart gas station management with underground storage tank volume visualizers, multi-hose pump flow meters, and SAT cryptographic tax audit ledgers.',
+        href: './gas-station-iot/index.html',
+        metrics: { latency: '6ms', sla: '100%', rps: 'Fiscal SAT' },
+        visType: 'tx'
+      },
+      {
+        id: 'tortilleria-smart-factory',
+        name: 'TortiTech Pro · Tortillería & Nixtamal',
+        subtitle: 'Automated Corn Nixtamalization & Production SCADA',
+        category: 'operaciones-iot',
+        categoryLabel: '🏭 Industria & Salud',
+        badges: ['Nixtamal 86°C', '1,840 tort/hr', 'Molino 7.5HP', 'Horno 280°C'],
+        description: 'Industrial corn nixtamalization and tortilla automation pipeline monitoring water cooking temperature, stone mill load, gas burner heat, and weight QA.',
+        href: './tortilleria-smart-factory/index.html',
+        metrics: { latency: '4ms', sla: '99.95%', rps: '1.8k tort/h' },
+        visType: 'radar'
+      },
+      {
+        id: 'mango-farm-solar-grid',
+        name: 'AgroSolar · Mango Farm & BESS Solar Grid',
+        subtitle: 'Ataulfo Orchard Irrigation & Clean Microgrid',
+        category: 'operaciones-iot',
+        categoryLabel: '🏭 Industria & Salud',
+        badges: ['45kW Solar PV', 'BESS 120kWh', '14.2° Brix', 'Drip Irrigation'],
+        description: 'Dual-view AgroTech plantation tracking soil moisture, fruit sugar Brix, deep-well solar pumping, battery storage BESS, and CFE grid intertie.',
+        href: './mango-farm-solar-grid/index.html',
+        metrics: { latency: '12ms', sla: '99.99%', rps: '45.2 kW' },
+        visType: 'mesh'
+      },
+      {
+        id: 'imss-issste-salud-apm',
+        name: 'IMSS-ISSSTE Digital · Observabilidad Médica',
+        subtitle: 'National Healthcare APM, Rx Supply & Clinical Traces',
+        category: 'operaciones-iot',
+        categoryLabel: '🏭 Industria & Salud',
+        badges: ['98.4% Abasto', 'ECE Tracing', 'Manchester Triage', '18.4k req/s'],
+        description: 'Multi-tab national healthcare observability hub tracking electronic clinical records, medicine supply chains, Manchester triage, and SRE golden signals.',
+        href: './imss-issste-salud-apm/index.html',
+        metrics: { latency: '38ms', sla: '99.99%', rps: '18.4k req/s' },
+        visType: 'alarm'
+      },
+      {
+        id: 'mexico-transit-map',
+        name: 'MetroFlow CDMX & Tren Maya Logistics',
+        subtitle: 'Live Railway Telemetry & Interactive Transit Map',
+        category: 'operaciones-iot',
+        categoryLabel: '🏭 Industria & Salud',
+        badges: ['Live Trains Map', '750V DC Tracción', 'Headway 2.5m', 'Maya Corridor'],
+        description: 'Interactive 2D vector railway map with live animated trains moving along tracks, passenger density meters, traction power, and emergency brake simulation.',
+        href: './mexico-transit-map/index.html',
+        metrics: { latency: '8ms', sla: '99.95%', rps: '3.8M pas/d' },
+        visType: 'mesh'
       }
     ];
 

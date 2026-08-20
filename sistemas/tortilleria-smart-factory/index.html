@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TortiTech Pro — Automatización Industrial de Tortillería & Nixtamalización</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#0c0f17;--bg-card:#141a26;--border:#242d3d;
+  --corn-gold:#f59e0b;--fire-orange:#f97316;--safe-green:#10b981;--danger:#ef4444;
+  --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#64748b;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:26px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:20px}
+
+/* Header */
+.hdr{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:16px;border-bottom:1px solid var(--border);
+}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-icon{
+  width:42px;height:42px;border-radius:10px;background:var(--corn-gold);
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;
+  box-shadow:0 0 20px rgba(245,158,11,0.3);
+}
+.hdr-title{font-size:1.3rem;font-weight:700;letter-spacing:-0.02em}
+.hdr-tag{
+  font-size:0.75rem;padding:5px 14px;border-radius:20px;background:rgba(245,158,11,0.12);
+  border:1px solid rgba(245,158,11,0.3);color:var(--corn-gold);font-family:var(--mono);font-weight:600;
+}
+
+/* 4-Stage Production Pipeline */
+.pipeline-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  padding:22px;display:flex;flex-direction:column;gap:16px;
+}
+.stages-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:12px}
+@media(max-width:900px){.stages-grid{grid-template-columns:repeat(2, 1fr)}}
+@media(max-width:540px){.stages-grid{grid-template-columns:1fr}}
+
+.stage-box{
+  background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px;
+  padding:16px;display:flex;flex-direction:column;gap:8px;transition:all 0.3s;
+}
+.stage-box.active{
+  border-color:var(--corn-gold);box-shadow:0 0 16px rgba(245,158,11,0.25);
+  background:rgba(245,158,11,0.05);
+}
+.st-num{font-size:0.65rem;font-weight:700;font-family:var(--mono);color:var(--corn-gold)}
+.st-title{font-size:0.85rem;font-weight:700;color:#fff}
+.st-metrics{
+  background:#070a12;border:1px solid rgba(255,255,255,0.06);border-radius:6px;
+  padding:8px;display:flex;flex-direction:column;gap:4px;font-size:0.72rem;font-family:var(--mono);
+}
+
+/* KPIs */
+.kpis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+.kpi-lbl{font-size:0.68rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)}
+.kpi-val{font-size:1.5rem;font-weight:700;font-family:var(--mono);margin:2px 0;color:#fff}
+
+/* Action Controls & Sensor Stream */
+.action-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:16px}
+@media(max-width:800px){.action-grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:18px;display:flex;flex-direction:column;gap:12px;
+}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  padding:9px 16px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.2s;
+}
+.btn-gold{background:var(--corn-gold);color:#000}
+.btn-gold:hover{background:#d97706}
+.btn-fire{background:var(--fire-orange);color:#fff}
+.btn-fire:hover{background:#ea580c}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+
+.code-log{
+  background:#070b14;border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+  padding:10px;font-family:var(--mono);font-size:0.72rem;max-height:140px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:4px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-icon">🌽</div>
+      <div>
+        <div class="hdr-title">TortiTech Pro · Automatización de Nixtamalización & Tortillería</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Línea Continua de Producción de Masa y Tortilla de Maíz · Monitoreo SCADA & Calidad</div>
+      </div>
+    </div>
+    <div class="hdr-tag">Quemadores Gas LP: 280°C · 1,840 tort/hr</div>
+  </header>
+
+  <!-- Key Metrics -->
+  <div class="kpis-grid">
+    <div class="kpi">
+      <div class="kpi-lbl">Producción por Hora</div>
+      <div class="kpi-val" style="color:var(--corn-gold)" id="valSpeed">1,840 tort/hr</div>
+      <div class="kpi-sub">Equivalente a ~57.5 kg/hr</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Temperatura Horno 3 Pasos</div>
+      <div class="kpi-val" style="color:var(--fire-orange)">280 °C</div>
+      <div class="kpi-sub">Cocción uniforme sin quemaduras</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">pH Calidad de Nixtamal</div>
+      <div class="kpi-val" style="color:var(--safe-green)" id="valPh">11.4 pH</div>
+      <div class="kpi-sub">Nivel óptimo de cal hidratada</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Gramaje por Kilo</div>
+      <div class="kpi-val" style="color:#fff">1,002 g (32 tort)</div>
+      <div class="kpi-sub">Tolerancia PROFECO: ±5g</div>
+    </div>
+  </div>
+
+  <!-- 4 Production Stages -->
+  <div class="pipeline-card">
+    <div style="font-size:0.95rem;font-weight:700;color:#fff;display:flex;justify-content:space-between">
+      <span>📍 Línea de Proceso en Tiempo Real</span>
+      <span style="font-size:0.75rem;color:var(--safe-green);font-family:var(--mono)">● MOTORES & QUEMADORES SINCRONIZADOS</span>
+    </div>
+
+    <div class="stages-grid">
+      <!-- Stage 1 -->
+      <div class="stage-box active">
+        <span class="st-num">ETAPA 01</span>
+        <span class="st-title">🌽 Paila de Nixtamal</span>
+        <div class="st-metrics">
+          <div>Temp Agua: <span style="color:var(--fire-orange)">86.4 °C</span></div>
+          <div>Cal Hidratada: <span>1.2%</span></div>
+          <div>Reposo: <span>07h 40m</span></div>
+        </div>
+      </div>
+
+      <!-- Stage 2 -->
+      <div class="stage-box active">
+        <span class="st-num">ETAPA 02</span>
+        <span class="st-title">⚙️ Molino de Piedra</span>
+        <div class="st-metrics">
+          <div>Motor: <span>7.5 HP (74%)</span></div>
+          <div>Humedad Masa: <span style="color:var(--safe-green)">52.0%</span></div>
+          <div>Rendimiento: <span>1.8 kg/kg</span></div>
+        </div>
+      </div>
+
+      <!-- Stage 3 -->
+      <div class="stage-box active">
+        <span class="st-num">ETAPA 03</span>
+        <span class="st-title">🫓 Máquina & Horno</span>
+        <div class="st-metrics">
+          <div>Quemador 1: <span style="color:var(--fire-orange)">280 °C</span></div>
+          <div>Quemador 2: <span style="color:var(--fire-orange)">260 °C</span></div>
+          <div>Quemador 3: <span style="color:var(--fire-orange)">240 °C</span></div>
+        </div>
+      </div>
+
+      <!-- Stage 4 -->
+      <div class="stage-box active">
+        <span class="st-num">ETAPA 04</span>
+        <span class="st-title">⚖️ Báscula & Envoltura</span>
+        <div class="st-metrics">
+          <div>Báscula: <span style="color:#fff">1.002 kg</span></div>
+          <div>Despacho: <span>Térmico</span></div>
+          <div>Defectos: <span style="color:var(--safe-green)">0.2%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Controls & Log -->
+  <div class="action-grid">
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:700;color:#fff">🎛️ Controles del Operador de Planta</div>
+      <div class="btn-row">
+        <button class="btn btn-gold" onclick="boostProduction()">⚡ Acelerar Producción a 2,200 tortillas/hr</button>
+        <button class="btn btn-fire" onclick="simulateLowLime()">⚠️ Simular Falta de Cal en Paila de Nixtamal</button>
+        <button class="btn btn-sec" onclick="calibrateScale()">🔄 Calibrar Báscula de Precisión</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:700;color:#fff">📜 Registro de Control de Calidad & SCADA</div>
+      <div class="code-log" id="tortiLog">
+        <div style="color:var(--safe-green)">[06:00:00] Paila de nixtamal lista. pH calibrado a 11.4 con maíz criollo.</div>
+        <div style="color:var(--text-sub)">[06:15:20] Molino de piedra volcánica iniciado a 1,750 RPM. Masa suave.</div>
+        <div style="color:var(--corn-gold)">[06:30:00] Horno de 3 pasos a temperatura operativa (280°C). Tortillas inflando correctamente.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function boostProduction(){
+  document.getElementById('valSpeed').textContent = '2,200 tort/hr';
+  document.getElementById('valSpeed').style.color = 'var(--fire-orange)';
+
+  const log = document.getElementById('tortiLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--fire-orange)">[${now}] ⚡ PRODUCCIÓN ACELERADA: Velocidad de banda al 120% para surtir pedidos de taquerías.</div>` + log.innerHTML;
+}
+
+function simulateLowLime(){
+  document.getElementById('valPh').textContent = '8.2 pH (BAJO)';
+  document.getElementById('valPh').style.color = 'var(--danger)';
+
+  const log = document.getElementById('tortiLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--danger)">[${now}] ⚠️ ALERTA DE CALIDAD: pH bajo en nixtamal. La masa podría romperse en el cortador. Dosificando cal.</div>` + log.innerHTML;
+}
+
+function calibrateScale(){
+  document.getElementById('valPh').textContent = '11.4 pH';
+  document.getElementById('valPh').style.color = 'var(--safe-green)';
+  document.getElementById('valSpeed').textContent = '1,840 tort/hr';
+  document.getElementById('valSpeed').style.color = 'var(--corn-gold)';
+
+  const log = document.getElementById('tortiLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--safe-green)">[${now}] ✅ Báscula digital tarada a 0.000 kg. Calidad de tortilla aprobada.</div>` + log.innerHTML;
+}
+</script>
+</body>
+</html>

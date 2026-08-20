@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MetroFlow México — Telemetría de Transporte & Mapa Ferroviario en Vivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#0a0d16;--bg-card:#111624;--border:#1d263b;
+  --line-pink:#ec4899;--line-blue:#3b82f6;--line-green:#10b981;--line-gold:#f59e0b;--alert-red:#ef4444;
+  --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#5e708d;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:26px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:20px}
+
+/* Header */
+.hdr{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:16px;border-bottom:1px solid var(--border);
+}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-icon{
+  width:42px;height:42px;border-radius:10px;background:#f97316;
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;
+  box-shadow:0 0 20px rgba(249,115,22,0.3);
+}
+.hdr-title{font-size:1.3rem;font-weight:700;letter-spacing:-0.02em}
+.hdr-tag{
+  font-size:0.75rem;padding:5px 14px;border-radius:20px;background:rgba(249,115,22,0.12);
+  border:1px solid rgba(249,115,22,0.3);color:#fb923c;font-family:var(--mono);font-weight:600;
+}
+
+/* Map Card */
+.map-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  padding:20px;display:flex;flex-direction:column;gap:14px;
+}
+.map-hdr{display:flex;justify-content:space-between;align-items:center}
+.map-stage{
+  position:relative;width:100%;height:380px;background:#060810;border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;
+}
+#transit-canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+
+/* KPIs */
+.kpis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+.kpi-lbl{font-size:0.68rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)}
+.kpi-val{font-size:1.5rem;font-weight:700;font-family:var(--mono);margin:2px 0;color:#fff}
+.kpi-sub{font-size:0.72rem;color:var(--text-sub)}
+
+/* Controls & Log */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.action-grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:18px;display:flex;flex-direction:column;gap:12px;
+}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  padding:9px 16px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.2s;
+}
+.btn-orange{background:#f97316;color:#fff}
+.btn-orange:hover{background:#ea580c}
+.btn-red{background:var(--alert-red);color:#fff}
+.btn-red:hover{background:#dc2626}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+
+.code-log{
+  background:#060a12;border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+  padding:10px;font-family:var(--mono);font-size:0.72rem;max-height:140px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:4px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-icon">🚇</div>
+      <div>
+        <div class="hdr-title">MetroFlow México · Telemetría de Transporte & Mapa Ferroviario</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Centro de Control de Tráfico Metro CDMX & Corredor Tren Maya · Seguimiento de Convoyes en Tiempo Real</div>
+      </div>
+    </div>
+    <div class="hdr-tag">Subestaciones: 750V DC · 284 Convoyes Activos</div>
+  </header>
+
+  <!-- Key Metrics -->
+  <div class="kpis-grid">
+    <div class="kpi">
+      <div class="kpi-lbl">Pasajeros Movilizados Hoy</div>
+      <div class="kpi-val" style="color:#fb923c">3,850,200</div>
+      <div class="kpi-sub">Líneas 1, 2, 3 + Corredor Maya</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Intervalo Medio (Headway)</div>
+      <div class="kpi-val" style="color:var(--line-green)" id="valHeadway">2.5 min</div>
+      <div class="kpi-sub">Frecuencia óptima en horas hábiles</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Ocupación de Convoyes</div>
+      <div class="kpi-val" style="color:#fff" id="valOcup">68.4%</div>
+      <div class="kpi-sub">Capacidad nominal: 1,500 pas/tren</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Velocidad Promedio en Línea</div>
+      <div class="kpi-val" style="color:var(--line-blue)">64.8 km/h</div>
+      <div class="kpi-sub">Tren Maya: 140 km/h en vía recta</div>
+    </div>
+  </div>
+
+  <!-- Interactive Map Stage -->
+  <div class="map-card">
+    <div class="map-hdr">
+      <span style="font-size:0.95rem;font-weight:700;color:#fff">🗺️ Mapa de Rutas & Posicionamiento GPS en Vivo</span>
+      <span style="font-size:0.75rem;color:var(--line-green);font-family:var(--mono)" id="transitStatus">● TRÁFICO FLUIDO · MARCHA TIPO AUTOMÁTICA</span>
+    </div>
+
+    <div class="map-stage" id="stage">
+      <canvas id="transit-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Action Controls & Log -->
+  <div class="action-grid">
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:700;color:#fff">🎛️ Centro de Despacho & Control Operativo</div>
+      <div class="btn-row">
+        <button class="btn btn-orange" onclick="triggerRushHour()">⚡ Activar Modo Hora Pico (Dosificación de Pasajeros)</button>
+        <button class="btn btn-red" onclick="simulateEmergencyBrake()">⚠️ Simular Palanca de Emergencia en Estación Central</button>
+        <button class="btn btn-sec" onclick="resetTransit()">🔄 Restablecer Marcha Normal</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:700;color:#fff">📜 Bitácora de Tráfico & Comunicaciones TETRA</div>
+      <div class="code-log" id="transitLog">
+        <div style="color:var(--line-green)">[06:00:00] Subestaciones de tracción energizadas a 750V DC. Vías libres.</div>
+        <div style="color:var(--text-sub)">[06:15:00] Convoy #042 saliendo de Pantitlán hacia Observatorio.</div>
+        <div style="color:var(--line-blue)">[06:30:00] Tren Maya #TM-104 en tramo Cancún-Tulum reportando 140 km/h.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const canvas = document.getElementById('transit-canvas');
+const stage = document.getElementById('stage');
+const ctx = canvas.getContext('2d');
+
+function resize(){
+  canvas.width = stage.offsetWidth;
+  canvas.height = stage.offsetHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// 3 Lines: Línea 1 (Rosa), Línea 2 (Azul), Tren Maya (Dorado)
+const routes = [
+  {
+    name: 'Línea 1 (Pantitlán - Observatorio)',
+    color: '#ec4899',
+    stations: [
+      { name: 'Observatorio', x: 0.15, y: 0.70 },
+      { name: 'Tacubaya',    x: 0.32, y: 0.60 },
+      { name: 'Balderas',    x: 0.50, y: 0.50 },
+      { name: 'Pino Suárez', x: 0.68, y: 0.45 },
+      { name: 'Pantitlán',   x: 0.88, y: 0.40 }
+    ],
+    trains: [{ progress: 0.2, speed: 0.003, dir: 1 }, { progress: 0.7, speed: 0.003, dir: -1 }]
+  },
+  {
+    name: 'Línea 2 (Cuatro Caminos - Tasqueña)',
+    color: '#3b82f6',
+    stations: [
+      { name: 'Cuatro Caminos', x: 0.20, y: 0.20 },
+      { name: 'Hidalgo',        x: 0.45, y: 0.38 },
+      { name: 'Zócalo',         x: 0.55, y: 0.52 },
+      { name: 'Chabacano',      x: 0.62, y: 0.68 },
+      { name: 'Tasqueña',       x: 0.75, y: 0.85 }
+    ],
+    trains: [{ progress: 0.4, speed: 0.0035, dir: 1 }]
+  },
+  {
+    name: 'Tren Maya (Cancún - Tulum)',
+    color: '#f59e0b',
+    stations: [
+      { name: 'Cancún Aeropuerto', x: 0.60, y: 0.15 },
+      { name: 'Puerto Morelos',    x: 0.75, y: 0.22 },
+      { name: 'Playa del Carmen',  x: 0.85, y: 0.32 },
+      { name: 'Tulum Estación',    x: 0.92, y: 0.48 }
+    ],
+    trains: [{ progress: 0.1, speed: 0.0045, dir: 1 }]
+  }
+];
+
+function drawTransitMap(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const w = canvas.width, h = canvas.height;
+
+  // Draw Tracks
+  routes.forEach(r => {
+    ctx.strokeStyle = r.color;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    r.stations.forEach((st, idx) => {
+      const sx = st.x * w, sy = st.y * h;
+      if(idx === 0) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
+    });
+    ctx.stroke();
+
+    // Draw Stations
+    r.stations.forEach(st => {
+      const sx = st.x * w, sy = st.y * h;
+      ctx.fillStyle = '#060810';
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.font = '10px Inter, sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText(st.name, sx + 8, sy - 6);
+    });
+
+    // Draw Trains
+    r.trains.forEach(t => {
+      t.progress += (t.speed * t.dir);
+      if(t.progress >= 1.0){ t.progress = 1.0; t.dir = -1; }
+      if(t.progress <= 0.0){ t.progress = 0.0; t.dir = 1; }
+
+      const totalSegments = r.stations.length - 1;
+      const currentSegment = Math.min(Math.floor(t.progress * totalSegments), totalSegments - 1);
+      const segProgress = (t.progress * totalSegments) - currentSegment;
+
+      const p1 = r.stations[currentSegment];
+      const p2 = r.stations[currentSegment + 1];
+
+      const tx = (p1.x * w) + ((p2.x - p1.x) * w) * segProgress;
+      const ty = (p1.y * h) + ((p2.y - p1.y) * h) * segProgress;
+
+      ctx.fillStyle = r.color;
+      ctx.shadowColor = r.color;
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(tx, ty, 8, 0, Math.PI*2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Train inner dot
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(tx, ty, 3, 0, Math.PI*2);
+      ctx.fill();
+    });
+  });
+
+  requestAnimationFrame(drawTransitMap);
+}
+drawTransitMap();
+
+function triggerRushHour(){
+  document.getElementById('valOcup').textContent = '98.5% (ALTO)';
+  document.getElementById('valOcup').style.color = '#fb923c';
+  document.getElementById('valHeadway').textContent = '1.8 min (Acelerado)';
+  document.getElementById('transitStatus').textContent = '⚡ HORA PICO ACTIVADA · DOSIFICACIÓN EN TORNIQUETES';
+  document.getElementById('transitStatus').style.color = '#fb923c';
+
+  const log = document.getElementById('transitLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:#fb923c">[${now}] ⚡ HORA PICO: Inserción de 12 trenes de reserva para desahogar Pantitlán y Pino Suárez.</div>` + log.innerHTML;
+}
+
+function simulateEmergencyBrake(){
+  document.getElementById('transitStatus').textContent = '🚨 ALERTA: PALANCA DE EMERGENCIA ACCIONADA EN BALDERAS';
+  document.getElementById('transitStatus').style.color = 'var(--alert-red)';
+
+  const log = document.getElementById('transitLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--alert-red)">[${now}] 🛑 CORTE DE TRACCIÓN: Convoy #042 detenido por palanca en Balderas. Personal de seguridad inspeccionando.</div>` + log.innerHTML;
+}
+
+function resetTransit(){
+  document.getElementById('valOcup').textContent = '68.4%';
+  document.getElementById('valOcup').style.color = '#fff';
+  document.getElementById('valHeadway').textContent = '2.5 min';
+  document.getElementById('transitStatus').textContent = '● TRÁFICO FLUIDO · MARCHA TIPO AUTOMÁTICA';
+  document.getElementById('transitStatus').style.color = 'var(--line-green)';
+
+  const log = document.getElementById('transitLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--line-green)">[${now}] ✅ Marcha normal restablecida en toda la red ferroviaria.</div>` + log.innerHTML;
+}
+</script>
+</body>
+</html>

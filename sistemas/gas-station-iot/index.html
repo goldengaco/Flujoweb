@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HidroFlow México — Telemetría Volumétrica de Estación de Gasolina (SAT Anexo 30/31)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-dark:#0a0e17;--bg-card:#121826;--border:#1e293b;
+  --magna-green:#10b981;--premium-red:#ef4444;--diesel-black:#3b82f6;--accent-amber:#f59e0b;
+  --text:#f8fafc;--text-sub:#94a3b8;--text-dim:#64748b;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{
+  min-height:100vh;background:var(--bg-dark);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;padding:26px 20px;line-height:1.5;
+}
+.app{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:20px}
+
+/* Header */
+.hdr{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:16px;border-bottom:1px solid var(--border);
+}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-icon{
+  width:42px;height:42px;border-radius:10px;background:#059669;
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;
+  box-shadow:0 0 20px rgba(16,185,129,0.3);
+}
+.hdr-title{font-size:1.3rem;font-weight:700;letter-spacing:-0.02em}
+.hdr-tag{
+  font-size:0.75rem;padding:5px 14px;border-radius:20px;background:rgba(16,185,129,0.12);
+  border:1px solid rgba(16,185,129,0.3);color:var(--magna-green);font-family:var(--mono);font-weight:600;
+}
+
+/* Fuel Tanks Grid */
+.tanks-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:14px}
+@media(max-width:800px){.tanks-grid{grid-template-columns:1fr}}
+
+.tank-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:16px;display:flex;flex-direction:column;gap:12px;
+}
+.tank-hdr{display:flex;justify-content:space-between;align-items:center}
+.tank-name{font-size:0.85rem;font-weight:700;color:#fff}
+.tank-badge{font-size:0.68rem;padding:3px 8px;border-radius:6px;font-family:var(--mono);font-weight:700}
+.badge-magna{background:rgba(16,185,129,0.15);color:var(--magna-green);border:1px solid rgba(16,185,129,0.3)}
+.badge-prem{background:rgba(239,68,68,0.15);color:var(--premium-red);border:1px solid rgba(239,68,68,0.3)}
+.badge-diesel{background:rgba(59,130,246,0.15);color:var(--diesel-black);border:1px solid rgba(59,130,246,0.3)}
+
+/* Tank Volume Visualizer */
+.tank-bar-wrap{
+  height:16px;background:#060a12;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);position:relative;
+}
+.tank-bar-fill{height:100%;border-radius:8px;transition:width 0.5s ease}
+
+.tank-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.75rem}
+.tank-meta-item{display:flex;flex-direction:column}
+.tank-meta-lbl{color:var(--text-dim);font-size:0.68rem}
+.tank-meta-val{font-family:var(--mono);font-weight:700;color:#fff}
+
+/* Dispensers Grid */
+.dispensers-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  padding:20px;display:flex;flex-direction:column;gap:16px;
+}
+.disp-hdr{display:flex;justify-content:space-between;align-items:center}
+.disp-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:12px}
+@media(max-width:960px){.disp-grid{grid-template-columns:repeat(2, 1fr)}}
+@media(max-width:540px){.disp-grid{grid-template-columns:1fr}}
+
+.disp-box{
+  background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px;
+  padding:14px;display:flex;flex-direction:column;gap:8px;transition:all 0.3s;
+}
+.disp-box.pumping{
+  border-color:var(--magna-green);box-shadow:0 0 16px rgba(16,185,129,0.25);
+  background:rgba(16,185,129,0.05);
+}
+.disp-top{display:flex;justify-content:space-between;align-items:center}
+.disp-title{font-size:0.8rem;font-weight:700;color:#fff}
+.disp-state{font-size:0.65rem;font-family:var(--mono);font-weight:700;color:var(--text-dim)}
+.disp-display{
+  background:#060a12;border:1px solid rgba(255,255,255,0.08);border-radius:8px;
+  padding:8px 10px;display:flex;flex-direction:column;gap:4px;
+}
+.disp-row{display:flex;justify-content:space-between;font-size:0.75rem;font-family:var(--mono)}
+
+/* Controls & SAT Log */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.action-grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:18px;display:flex;flex-direction:column;gap:12px;
+}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  padding:9px 16px;border-radius:8px;font-family:var(--font);font-size:0.8rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.2s;
+}
+.btn-green{background:var(--magna-green);color:#000}
+.btn-green:hover{background:#059669}
+.btn-red{background:var(--premium-red);color:#fff}
+.btn-red:hover{background:#dc2626}
+.btn-sec{background:rgba(255,255,255,0.06);color:#fff;border:1px solid var(--border)}
+
+.code-log{
+  background:#070b14;border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+  padding:10px;font-family:var(--mono);font-size:0.72rem;max-height:140px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:4px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-icon">⛽</div>
+      <div>
+        <div class="hdr-title">HidroFlow México · Telemetría Volumétrica & Control Fiscal SAT</div>
+        <div style="font-size:0.78rem;color:var(--text-sub)">Estación de Servicio ES-4821 (PEMEX / OXXO Gas) · Cumplimiento Anexo 30 & 31 RMF</div>
+      </div>
+    </div>
+    <div class="hdr-tag">Sello Digital SAT: VÁLIDO (SHA-256)</div>
+  </header>
+
+  <!-- Underground Tanks Row -->
+  <div class="tanks-grid">
+    <!-- Tank 1: Magna -->
+    <div class="tank-card">
+      <div class="tank-hdr">
+        <span class="tank-name">🛢️ Tanque 01 · Magna Regular (87 Oct)</span>
+        <span class="tank-badge badge-magna">70.5% LLENO</span>
+      </div>
+      <div class="tank-bar-wrap">
+        <div class="tank-bar-fill" style="width:70.5%;background:var(--magna-green)"></div>
+      </div>
+      <div class="tank-meta">
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Volumen Actual</span><span class="tank-meta-val" id="volMagna">42,300 L</span></div>
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Capacidad Total</span><span class="tank-meta-val">60,000 L</span></div>
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Agua en Fondo</span><span class="tank-meta-val" style="color:var(--magna-green)">0.0 mm (Normal)</span></div>
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Temperatura</span><span class="tank-meta-val">22.4 °C</span></div>
+      </div>
+    </div>
+
+    <!-- Tank 2: Premium -->
+    <div class="tank-card">
+      <div class="tank-hdr">
+        <span class="tank-name">🛢️ Tanque 02 · Premium (91 Oct)</span>
+        <span class="tank-badge badge-prem">64.0% LLENO</span>
+      </div>
+      <div class="tank-bar-wrap">
+        <div class="tank-bar-fill" style="width:64%;background:var(--premium-red)"></div>
+      </div>
+      <div class="tank-meta">
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Volumen Actual</span><span class="tank-meta-val">25,600 L</span></div>
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Capacidad Total</span><span class="tank-meta-val">40,000 L</span></div>
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Agua en Fondo</span><span class="tank-meta-val" style="color:var(--magna-green)">0.0 mm</span></div>
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Temperatura</span><span class="tank-meta-val">22.1 °C</span></div>
+      </div>
+    </div>
+
+    <!-- Tank 3: Diesel -->
+    <div class="tank-card">
+      <div class="tank-hdr">
+        <span class="tank-name">🛢️ Tanque 03 · Diesel UBA (Ultra Bajo Azufre)</span>
+        <span class="tank-badge badge-diesel">82.0% LLENO</span>
+      </div>
+      <div class="tank-bar-wrap">
+        <div class="tank-bar-fill" style="width:82%;background:var(--diesel-black)"></div>
+      </div>
+      <div class="tank-meta">
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Volumen Actual</span><span class="tank-meta-val">41,000 L</span></div>
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Capacidad Total</span><span class="tank-meta-val">50,000 L</span></div>
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Agua en Fondo</span><span class="tank-meta-val" style="color:var(--magna-green)">0.0 mm</span></div>
+        <div class="tank-meta-item"><span class="tank-meta-lbl">Temperatura</span><span class="tank-meta-val">23.0 °C</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi-Hose Dispensers Grid -->
+  <div class="dispensers-card">
+    <div class="disp-hdr">
+      <span style="font-size:0.95rem;font-weight:700;color:#fff">⛽ Isla de Dispensarios en Pista (8 Posiciones de Carga)</span>
+      <span style="font-size:0.75rem;color:var(--magna-green);font-family:var(--mono)" id="pistaStatus">● PULSADORES ACTIVOS · SIN FUGAS</span>
+    </div>
+
+    <div class="disp-grid">
+      <!-- Dispenser 1 -->
+      <div class="disp-box pumping" id="disp1">
+        <div class="disp-top">
+          <span class="disp-title">Posición 01 (Magna)</span>
+          <span class="disp-state" style="color:var(--magna-green)" id="st1">DESPACHANDO</span>
+        </div>
+        <div class="disp-display">
+          <div class="disp-row"><span style="color:var(--text-sub)">Venta:</span><span style="color:#fff" id="p1Mxn">$450.00 MXN</span></div>
+          <div class="disp-row"><span style="color:var(--text-sub)">Litros:</span><span style="color:var(--magna-green)" id="p1Lts">18.78 L</span></div>
+          <div class="disp-row"><span style="color:var(--text-sub)">Flujo:</span><span style="color:var(--accent-amber)">34.2 L/min</span></div>
+        </div>
+      </div>
+
+      <!-- Dispenser 2 -->
+      <div class="disp-box" id="disp2">
+        <div class="disp-top">
+          <span class="disp-title">Posición 02 (Premium)</span>
+          <span class="disp-state">EN ESPERA</span>
+        </div>
+        <div class="disp-display">
+          <div class="disp-row"><span style="color:var(--text-sub)">Última Venta:</span><span>$800.00 MXN</span></div>
+          <div class="disp-row"><span style="color:var(--text-sub)">Litros:</span><span style="color:var(--premium-red)">30.88 L</span></div>
+          <div class="disp-row"><span style="color:var(--text-sub)">Flujo:</span><span>0.0 L/min</span></div>
+        </div>
+      </div>
+
+      <!-- Dispenser 3 -->
+      <div class="disp-box" id="disp3">
+        <div class="disp-top">
+          <span class="disp-title">Posición 03 (Diesel)</span>
+          <span class="disp-state">EN ESPERA</span>
+        </div>
+        <div class="disp-display">
+          <div class="disp-row"><span style="color:var(--text-sub)">Última Venta:</span><span>$1,450.00 MXN</span></div>
+          <div class="disp-row"><span style="color:var(--text-sub)">Litros:</span><span style="color:var(--diesel-black)">58.00 L</span></div>
+          <div class="disp-row"><span style="color:var(--text-sub)">Flujo:</span><span>0.0 L/min</span></div>
+        </div>
+      </div>
+
+      <!-- Dispenser 4 -->
+      <div class="disp-box" id="disp4">
+        <div class="disp-top">
+          <span class="disp-title">Posición 04 (Magna)</span>
+          <span class="disp-state">EN ESPERA</span>
+        </div>
+        <div class="disp-display">
+          <div class="disp-row"><span style="color:var(--text-sub)">Última Venta:</span><span>$250.00 MXN</span></div>
+          <div class="disp-row"><span style="color:var(--text-sub)">Litros:</span><span style="color:var(--magna-green)">10.43 L</span></div>
+          <div class="disp-row"><span style="color:var(--text-sub)">Flujo:</span><span>0.0 L/min</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions & SAT Log -->
+  <div class="action-grid">
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:700;color:#fff">🎛️ Centro de Operaciones & Pruebas</div>
+      <div class="btn-row">
+        <button class="btn btn-green" onclick="startDispatch()">▶ Iniciar Despacho Posición 02 (Premium)</button>
+        <button class="btn btn-red" onclick="simulateSpillAlarm()">⚠️ Simular Alerta de Sensor de Fuga / Vapores</button>
+        <button class="btn btn-sec" onclick="generateSATReport()">📑 Generar Reporte Diario SAT Anexo 30</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:700;color:#fff">📜 Registro Volumétrico SAT Anexo 30 & Transacciones Fiscales</div>
+      <div class="code-log" id="satLog">
+        <div style="color:var(--magna-green)">[00:00:01] Sistema de Telemetría Veeder-Root TLS-450 calibrado.</div>
+        <div style="color:var(--text-sub)">[00:01:15] Despacho #84920 completado en Posición 01. Sello SHA-256 generado.</div>
+        <div style="color:var(--diesel-black)">[00:02:40] Recepción de Pipa PEMEX #4812 verificada con 15,000L Magna.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let liters = 18.78;
+let amount = 450.00;
+setInterval(() => {
+  if(document.getElementById('disp1').classList.contains('pumping')){
+    liters += 0.45;
+    amount += (0.45 * 23.95);
+    document.getElementById('p1Lts').textContent = liters.toFixed(2) + ' L';
+    document.getElementById('p1Mxn').textContent = '$' + amount.toFixed(2) + ' MXN';
+  }
+}, 800);
+
+function startDispatch(){
+  const d2 = document.getElementById('disp2');
+  d2.className = 'disp-box pumping';
+  d2.querySelector('.disp-state').textContent = 'DESPACHANDO';
+  d2.querySelector('.disp-state').style.color = 'var(--premium-red)';
+
+  const log = document.getElementById('satLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--premium-red)">[${now}] ⛽ DESPACHO INICIADO: Posición 02 (Premium 91 Oct) · Medidor fiscal activo.</div>` + log.innerHTML;
+}
+
+function simulateSpillAlarm(){
+  document.getElementById('pistaStatus').textContent = '🚨 ALERTA: SENSOR DE VAPORES EN TRINCHERA 02 DISPARADO';
+  document.getElementById('pistaStatus').style.color = 'var(--premium-red)';
+
+  const log = document.getElementById('satLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--premium-red)">[${now}] 🛑 ALERTA DE SEGURIDAD: Válvula de corte de emergencia activada en Isla 01 y 02.</div>` + log.innerHTML;
+}
+
+function generateSATReport(){
+  const log = document.getElementById('satLog');
+  const now = new Date().toTimeString().split(' ')[0];
+  log.innerHTML = `<div style="color:var(--magna-green)">[${now}] 📑 XML ANEXO 30 SAT GENERADO: Total vendido hoy: 14,850.40 L · CFDI Timbrado exitosamente.</div>` + log.innerHTML;
+}
+</script>
+</body>
+</html>
